@@ -1,0 +1,68 @@
+{
+ "name": "West Parking Deck, Kennesaw State University",
+ "units": "metres",
+ "up": "y (glTF)",
+ "levels": [
+  {
+   "n": 1,
+   "z": 313.0
+  },
+  {
+   "n": 2,
+   "z": 316.05
+  },
+  {
+   "n": 3,
+   "z": 319.15
+  }
+ ],
+ "zones": {
+  "L1_West": {
+   "level": 1,
+   "zone": "West",
+   "stalls": 79
+  },
+  "L1_Centre": {
+   "level": 1,
+   "zone": "Centre",
+   "stalls": 39
+  },
+  "L1_East": {
+   "level": 1,
+   "zone": "East",
+   "stalls": 69
+  },
+  "L2_West": {
+   "level": 2,
+   "zone": "West",
+   "stalls": 79
+  },
+  "L2_Centre": {
+   "level": 2,
+   "zone": "Centre",
+   "stalls": 80
+  },
+  "L2_East": {
+   "level": 2,
+   "zone": "East",
+   "stalls": 73
+  },
+  "L3_West": {
+   "level": 3,
+   "zone": "West",
+   "stalls": 79
+  },
+  "L3_Centre": {
+   "level": 3,
+   "zone": "Centre",
+   "stalls": 80
+  },
+  "L3_East": {
+   "level": 3,
+   "zone": "East",
+   "stalls": 73
+  }
+ },
+ "total_stalls": 651,
+ "sources": "Outline, top deck and ramp: USGS 3DEP lidar (GA statewide, flown Apr 2019). Stall module and bays: USDA NAIP photo (Oct 2025). Levels: 3 (OpenStreetMap). Below the top deck the layout repeats the measured top deck; stall counts are the model's, not KSU's."
+}
