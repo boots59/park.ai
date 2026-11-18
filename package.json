@@ -1,0 +1,14 @@
+{
+  "name": "west-deck-prototype",
+  "private": true,
+  "description": "Student concept prototype for West Deck (KSU Kennesaw). Simulated data only.",
+  "scripts": {
+    "build": "node build.cjs",
+    "test": "node build.cjs && node test/model.test.cjs && node test/ui.test.cjs",
+    "check:browser": "node test/browser.check.cjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "three": "^0.170.0"
+  }
+}

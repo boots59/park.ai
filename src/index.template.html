@@ -1,0 +1,80 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>West Deck / Parking field prototype</title><style>
+:root{font-family:Inter,Arial,sans-serif;color:#172e2c;background:#f2f4ed;font-synthesis:none}*{box-sizing:border-box}body{margin:0;background:#f2f4ed}button,input,select{font:inherit}button{cursor:pointer;border:0}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ce8a16;outline-offset:3px}
+header{padding:23px 5%;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #d4dcd2}.brand{font-weight:800;letter-spacing:-1px;font-size:23px}.brand span{color:#7c8c78;font-weight:400}.badge{font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:800;background:#f1d985;padding:9px 12px;border-radius:5px}
+main{max-width:1160px;margin:auto;padding:45px 24px}h1{font-size:clamp(36px,5vw,62px);letter-spacing:-3px;line-height:1.03;margin:12px 0 20px;max-width:730px}h2{font-size:22px;letter-spacing:-.6px}p{line-height:1.55}.eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:800;color:#53705d}.intro{max-width:650px;color:#56685b;font-size:17px}
+.notice{border-left:3px solid #c99d24;padding:10px 16px;font-size:13px;line-height:1.5;background:#fbf5db;margin:25px 0}
+nav{display:flex;gap:6px;border-bottom:1px solid #cdd7ca;margin:30px 0 22px;overflow-x:auto;scrollbar-width:thin}nav button{background:none;padding:14px 16px;color:#61715e;border-bottom:3px solid transparent;white-space:nowrap;flex:none}nav button.active{color:#173b2b;border-color:#173b2b;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:#fff;border:1px solid #dce3d8;border-radius:14px;padding:22px;position:relative}.card h3{font-size:16px;margin:0 0 14px}.count{font-size:56px;letter-spacing:-3px;font-weight:700;line-height:1.1}.unit{font-size:13px;color:#61715e;margin:6px 0 16px;min-height:2.6em}
+.bays{list-style:none;margin:0;padding:0;border-top:1px solid #e3e9df}.bays li{margin:0}.bay{width:100%;display:grid;grid-template-columns:1fr auto;grid-template-areas:"name count" "status count";gap:4px 10px;text-align:left;background:none;padding:10px 6px;border-bottom:1px solid #eef2ea;border-radius:6px}.bay.selected{background:#e6eefb;box-shadow:inset 3px 0 0 #1f5fbf}.bay-name{grid-area:name;font-size:13px;font-weight:600}.bay-count{grid-area:count;font-size:24px;align-self:center}.bay .status{grid-area:status;justify-self:start}
+.status{font-size:11px;font-weight:bold;border-radius:20px;padding:4px 9px;display:inline-block;background:#dcebd5;color:#2b5733}.stale{background:#fff0c1;color:#806000}.unknown{background:#e8ece7;color:#667464}
+.layout{display:grid;grid-template-columns:1.2fr 1fr;gap:24px}.panel{background:white;border:1px solid #dce3d8;border-radius:16px;padding:25px;margin-top:22px;min-width:0}
+#deck3d{height:340px;border-radius:10px;overflow:hidden;background:#eef1ea;touch-action:none}#deck3d canvas{width:100%!important;height:100%!important}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#4d5f4b;margin:12px 0 4px}.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px}
+.small{font-size:12px;color:#60725e;line-height:1.5}label{display:block;font-size:13px;font-weight:bold;margin:18px 0 8px}select,input{width:100%;padding:13px;border:1px solid #bac9b6;border-radius:7px;background:#fff;color:#173b2b}
+.primary{background:#214c36;color:white;border-radius:7px;padding:14px 20px;margin-top:18px}.secondary{background:#e5ebdf;color:#25432c;padding:10px 14px;border-radius:7px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.hidden{display:none!important}button:disabled{opacity:.5;cursor:not-allowed}
+.controls{margin-top:28px;border-top:1px solid #ccd7c6;padding-top:22px}.feedback{color:#24522b;min-height:24px;margin-top:16px}.error{color:#a42e20}footer{padding:28px 0;font-size:12px;color:#6b7c66;line-height:1.6}
+.number-controls{display:grid;grid-template-columns:50px 1fr 50px;gap:10px}.number-controls button{margin:0}.number-controls input{text-align:center;font-size:24px}li{line-height:1.6;margin-bottom:9px}.bays li{margin-bottom:0}
+@media(max-width:860px){.grid{grid-template-columns:1fr}.layout{grid-template-columns:1fr}}
+@media(max-width:760px){h1{letter-spacing:-2px}header{padding:20px 16px}main{padding:30px 16px}.card{padding:18px}.count{font-size:48px}.badge{font-size:9px}nav button{padding:14px 10px}.panel{padding:18px}#deck3d{height:280px}}
+</style></head><body><header><div class="brand">WEST<span> / deck</span></div><span class="badge">Concept prototype · simulated</span></header><main>
+<div class="eyebrow">Kennesaw campus · student-built concept</div><h1>Less circling.<br>More certainty.</h1>
+<p class="intro">Recently observed open spaces, by level and bay. Start with people on the ground, not promises about cameras.</p>
+<div class="notice"><b>Demo only. Do not use for parking decisions.</b> All counts are illustrative, not KSU data. The 3D model's level count and stall counts are estimates, not verified. No KSU affiliation, live feed, or reserved space guarantee.</div>
+<nav aria-label="View" role="tablist"><button id="studentTab" role="tab" class="active" aria-selected="true" onclick="setView('student')">Students</button><button id="staffTab" role="tab" aria-selected="false" onclick="setView('staff')">Staff survey</button><button id="backupTab" role="tab" aria-selected="false" onclick="setView('backup')">Backup reports</button><button id="aboutTab" role="tab" aria-selected="false" onclick="setView('about')">Pilot boundaries</button></nav>
+
+<section id="student"><div class="row" style="justify-content:space-between"><h2>West Deck observations</h2><span class="small">Bay surveys · not live inventory</span></div>
+<div id="cards" class="grid"></div>
+<div class="layout"><div class="panel"><div class="eyebrow">3D deck model</div><h2>Find the bay, not just the floor</h2>
+<div id="deck3d" role="img" aria-label="3D model of the deck. Bays are tinted by how fresh their last survey is. The level cards give the same information as text."></div>
+<div class="legend"><span><i style="background:#2f8f4e"></i>Recent</span><span><i style="background:#d9a21b"></i>Stale</span><span><i style="background:#9aa69a"></i>Unknown</span><span><i style="background:#1f5fbf"></i>Selected</span></div>
+<div class="row" style="justify-content:space-between"><p id="viewerNote" class="small">3D view loading…</p><button id="spread" class="secondary" aria-pressed="true" onclick="toggleSpread()">Spread levels</button></div>
+<p id="selection" class="small" role="status" aria-live="polite"></p>
+<p class="small"><b>What the model is:</b> outline, top deck, ramp and floor spacing measured from USGS 3DEP lidar (flown April 2019); stall spacing from a USDA NAIP aerial photo (October 2025). <b>What is guessed:</b> 3 levels (from OpenStreetMap; KSU has not confirmed), lower levels copy the top deck's layout, and stall counts are the model's, not KSU's. Colour shows survey freshness, not how full a bay is.</p></div>
+<div class="panel"><div class="eyebrow">Know what you’re seeing</div><h2>Freshness, not false precision.</h2>
+<p class="small"><b>Recent:</b> survey started less than 5 minutes ago.<br><b>Stale:</b> 5–15 minutes, so the count is hidden.<br><b>Unknown:</b> no survey, or 15+ minutes old.<br><b>Level total:</b> shown only when all of the level's bays are recent. Otherwise you see “≥ N in 2 of 3 bays”.</p>
+<p class="small">Age counts from when the survey <i>started</i>, because a walk takes minutes. Demo thresholds only: a pilot must measure how fast counts go out of date.</p>
+<p class="small"><b>What is counted:</b> open spaces a holder of the <i>example general permit</i> could use. Not counted: accessible (ADA), visitor, reserved, EV-only, motorcycle, blocked or coned spaces. An empty space is not always one you may use.</p></div></div></section>
+
+<section id="staff" class="hidden"><div class="layout"><div class="panel"><div class="eyebrow">One bounded observation</div><h2>Walk. Count. Complete.</h2>
+<p class="small">Pick one bay. Start at zero, walk the whole bay once, and count only spaces that the example general permit may use. Don't mix partial walks or count a space twice.</p>
+<label for="bay">Bay to survey (illustrative layout)</label><select id="bay"></select>
+<button class="primary" id="start" onclick="startSurvey()">Start bay survey</button>
+<div id="surveyFields" class="hidden"><p id="modelled" class="small"></p><label for="count">Open spaces, example general permit</label>
+<div class="number-controls"><button class="secondary" aria-label="Subtract one space" onclick="adjust(-1)">−</button><input id="count" type="number" inputmode="numeric" min="0" max="999" step="1" value="0"><button class="secondary" aria-label="Add one space" onclick="adjust(1)">+</button></div>
+<label><input type="checkbox" id="coverage" style="width:auto;margin-right:8px"> I walked this whole bay once.</label>
+<button class="primary" onclick="finishSurvey()">Complete &amp; replace observation</button> <button class="secondary" onclick="cancelSurvey()">Cancel</button></div>
+<div id="feedback" class="feedback" role="status" aria-live="polite"></div></div>
+<div class="panel"><h2>Counting rules</h2><ol class="small">
+<li>Count only empty spaces the example general permit may use. Skip accessible, visitor, reserved, EV-only, motorcycle and blocked spaces.</li>
+<li>A completed survey replaces the bay's old count. It never adds to it.</li>
+<li>A survey open more than 20 minutes is rejected. Start again.</li>
+<li>Partial or cancelled surveys never reach students.</li>
+<li>Zero means you found no usable open spaces. Unknown means no recent survey.</li></ol>
+<div class="notice">Local demo only: this browser stores the simulated records. No staff login, shared server or audit log. Real use needs KSU approval and coordination between observers.</div></div></div></section>
+
+<section id="backup" class="hidden"><div class="layout"><div class="panel"><div class="eyebrow">Optional fallback · simulated reports</div><h2>Report a deck entry or exit</h2>
+<p class="small">Shows how students could report if cameras aren't possible. Report only after you've parked or stopped, never while driving. This demo records no identity or real movement.</p>
+<div class="row"><button class="primary" onclick="reportMovement('in')">Simulate: I entered</button><button class="primary" onclick="reportMovement('out')">Simulate: I left</button></div>
+<div id="reportFeedback" class="feedback" role="status" aria-live="polite"></div><button class="secondary" onclick="clearReports()">Clear simulated reports</button></div>
+<div class="panel"><div class="eyebrow">Low-trust reporting channel</div><h2>Movement reports, not vacancies</h2><div id="movementStats"></div>
+<div class="notice"><b>Occupancy: unknown. Available spaces: unknown.</b><br>No verified starting count, full participation, capacity or exit coverage. These totals are never combined with staff surveys.</div>
+<p class="small">Missed reports cause drift; duplicate or false reports distort totals. A short repeat-tap guard is not identity checking. A real pilot would need a staff baseline count and regular reconciliation. A negative net total is possible and does not mean negative occupancy.</p></div></div></section>
+
+<section id="about" class="hidden"><div class="panel"><h2>A credible one-deck pilot</h2>
+<p>Test the staff workflow and whether students understand the display before claiming to solve parking. Confirm with KSU Parking &amp; Transportation: the real number of levels, eligible stalls per bay and permit type, and whether they would take part.</p>
+<ul><li><b>Built now:</b> bay surveys, replace-not-add, timestamps from survey start, expiry, unknown states, level totals only when complete, local storage, and a 3D view.</li>
+<li><b>3D model:</b> made from public USGS lidar and USDA aerial photos. It shows where bays are. It does not detect cars or open spaces.</li>
+<li><b>Student backup:</b> simulated entry/exit reports, kept separate as a low-trust signal. No QR codes yet.</li>
+<li><b>Cameras:</b> not connected. KSU's Video Monitoring Standard (Sept 2024) routes live viewing and new cameras through the Department of Public Safety.</li>
+<li><b>Privacy:</b> no plates, faces, student identity or enforcement records.</li>
+<li><b>AI:</b> this prototype runs no AI model. AI-assisted development is not an AI-powered product.</li></ul>
+<p class="small">This prototype cannot reserve spaces, validate a permit, prevent tickets or detect accidents. Use it to test an idea, not to make parking decisions.</p></div></section>
+
+<div class="controls"><div class="row"><b class="small">Demo controls</b><button class="secondary" onclick="advance(6)">Advance 6 minutes</button><button class="secondary" onclick="advance(15)">Advance 15 minutes</button><button class="secondary" onclick="resetDemo()">Reset sample data</button><button class="secondary" onclick="clearDemo()">Clear observations</button></div><p id="clock" class="small"></p></div>
+<footer>WEST / deck · Concept by Kell Enow · 3D model contributed by a collaborator · Browser-local prototype, no data sent anywhere.<br>Model data: USGS 3DEP lidar · Imagery: USDA NAIP · Level count: © OpenStreetMap contributors (ODbL)</footer></main>
+<script id="viewer-js">/*VIEWER*/</script>
+<script id="app-js">
+/*DECK*/
+/*MODEL*/
+/*APP*/
+</script></body></html>
