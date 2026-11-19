@@ -14,7 +14,7 @@ table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;p
 <section id="stalls"><div class="panel"><h2>Stall count</h2>
 <p class="small">Count painted stalls, one bay (or one row) at a time. Tap as you walk; your taps are kept if the page reloads. Save at the end of each bay.</p>
 <div class="row"><label>Level <select id="sLevel" onchange="draftChanged()"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
-<label>Bay <select id="sBay" onchange="draftChanged()"><option>West</option><option>Centre ramp</option><option>East</option><option>Other</option></select></label>
+<label>Bay <select id="sBay" onchange="draftChanged()"><option>West</option><option>Centre ramp</option><option>East</option><option>North</option><option>South</option><option>Other</option></select></label>
 <label>Row or note <input id="sRow" placeholder="optional" oninput="draftChanged()" style="width:9em"></label></div>
 <div id="counters"></div>
 <div class="row" style="margin-top:14px"><button class="primary" onclick="saveStalls()">Save this bay</button><button onclick="undoStall()">Undo last tap</button><button onclick="resetStalls()">Reset to zero</button></div>
