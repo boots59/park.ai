@@ -41,6 +41,10 @@ console.log('built', path.relative(root, file), (html.length / 1024).toFixed(0) 
 
 // Static files for the installable app (icons, manifest, service worker).
 for (const f of fs.readdirSync(path.join(root, 'public'))) fs.copyFileSync(path.join(root, 'public', f), path.join(root, 'dist', f));
+// The field kit shares the app's database address (Settings.syncUrl); empty keeps it on one phone.
+{ const kit = path.join(root, 'dist/field.html'), url = String(require(path.join(root, 'src/settings.js')).syncUrl || '');
+  if (url && !/^https:\/\/[\w.-]+$/.test(url.replace(/\/+$/, ''))) throw Error('Settings.syncUrl must look like https://name.firebaseio.com');
+  fs.writeFileSync(kit, fs.readFileSync(kit, 'utf8').split('/*SYNC_URL*/').join(url)); }
 
 // AI assets sit BESIDE the page in dist/ai/ (too big to inline: about 47 MB).
 // The page works without them; the AI count then asks staff to count by eye.

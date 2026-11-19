@@ -14,20 +14,30 @@ every phone, give the app a shared database address. This is optional and takes 
 {
   "rules": {
     "v1": {
-      ".read": true,
       "counts": {
+        ".read": true,
         "$bay": {
           ".write": true,
           ".validate": "newData.hasChildren(['count','start','end','version','category']) && newData.child('count').isNumber() && newData.child('count').val() >= 0 && newData.child('count').val() <= 999 && newData.child('start').isNumber() && newData.child('end').isNumber()"
         }
       },
       "reports": {
+        ".read": true,
         "$id": {
           ".write": "!data.exists()",
           ".validate": "newData.hasChildren(['zone','band','t']) && newData.child('zone').isString() && newData.child('band').isString() && newData.child('band').val().matches(/^(plenty|few|full)$/) && newData.child('t').isNumber()"
         }
       },
+      "poll": {
+        ".read": false,
+        "$id": { ".write": "!data.exists()" }
+      },
+      "fieldkit": {
+        ".read": false,
+        "$device": { ".write": true }
+      },
       "history": {
+        ".read": true,
         "$id": {
           ".write": "!data.exists()",
           ".validate": "newData.hasChildren(['zone','t','count']) && newData.child('count').isNumber() && newData.child('t').isNumber()"
@@ -37,6 +47,13 @@ every phone, give the app a shared database address. This is optional and takes 
   }
 }
 ```
+
+## The field kit and the student survey
+With the address set, the field kit backs up everything you collect (stall counts, poll answers, tallies) each time you
+save, and `field.html?survey` becomes a survey students can fill in on their own phones from a QR code. Those two lists
+(`poll` and `fieldkit`) are write-only: the website cannot read them back. You read them in the Firebase console
+(Data tab, then the three-dot menu, Export JSON). In Firebase a read permission granted higher up cannot be taken away lower down, which is why the
+rules give read access to `counts`, `reports` and `history` one by one and never to `v1` as a whole.
 
 ## What changes when it is on
 - The page starts empty instead of with sample data, hides the demo clock, and labels itself a test build.

@@ -7,9 +7,10 @@ button:focus-visible{outline:3px solid #ce8a16;outline-offset:2px}.primary{backg
 select,input{font:inherit;padding:10px;border:1px solid #bac9b6;border-radius:8px;background:#fff}label{font-size:13px;font-weight:700}.ctr{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;margin-top:10px}.ctr .n{font-size:30px;font-weight:800;min-width:2.2em;text-align:right}.ctr button{min-width:56px;font-weight:700}.ctr.main button.add{background:#214c36;color:#fff;min-height:64px;font-size:20px}
 table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;padding:4px 6px;border-bottom:1px solid #e3e9df}nav{display:flex;gap:6px;margin-top:10px}nav button[aria-selected="true"]{background:#214c36;color:#fff}.hidden{display:none}
 </style></head><body><main>
-<p class="small"><a href="./">← back to the app</a></p><h1>Field kit</h1>
-<p class="small">For the person collecting data. Answers are stored on this phone only. No names, no contact details, no photos.</p>
-<nav role="tablist"><button id="tStalls" role="tab" aria-selected="true" onclick="show('stalls')">Stall count</button><button id="tPoll" role="tab" aria-selected="false" onclick="show('poll')">Poll</button><button id="tTally" role="tab" aria-selected="false" onclick="show('tally')">Circling</button><button id="tData" role="tab" aria-selected="false" onclick="show('data')">Results</button></nav>
+<div id="kitHead"><p class="small"><a href="./">← back to the app</a></p><h1>Field kit</h1>
+<p class="small">For the person collecting data. No names, no contact details, no photos. <span id="where">Everything is stored on this phone only.</span></p></div>
+<div id="surveyHead" class="hidden"><h1>Parking at KSU: 45-second survey</h1><p class="small">A student hackathon project, not a KSU survey. Anonymous: no name, no email, nothing that identifies you. Tap an answer for each question.</p></div>
+<nav role="tablist" id="tabs"><button id="tStalls" role="tab" aria-selected="true" onclick="show('stalls')">Stall count</button><button id="tPoll" role="tab" aria-selected="false" onclick="show('poll')">Poll</button><button id="tTally" role="tab" aria-selected="false" onclick="show('tally')">Circling</button><button id="tData" role="tab" aria-selected="false" onclick="show('data')">Results</button></nav>
 
 <section id="stalls"><div class="panel"><h2>Stall count</h2>
 <p class="small">Count painted stalls, one bay (or one row) at a time. Tap as you walk; your taps are kept if the page reloads. Save at the end of each bay.</p>
@@ -20,9 +21,9 @@ table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;p
 <div class="row" style="margin-top:14px"><button class="primary" onclick="saveStalls()">Save this bay</button><button onclick="undoStall()">Undo last tap</button><button onclick="resetStalls()">Reset to zero</button></div>
 <p id="stallMsg" class="small" role="status" aria-live="polite"></p><div id="stallTable"></div></div></section>
 
-<section id="poll" class="hidden"><div class="panel"><div class="say"><b>Say:</b> “Hi, I'm a student doing a 30-second anonymous poll about parking for a hackathon project. No names. Do you have a moment?”</div>
+<section id="poll" class="hidden"><div class="panel"><div class="say" id="say"><b>Say:</b> “Hi, I'm a student doing a 30-second anonymous poll about parking for a hackathon project. No names. Do you have a moment?”</div>
 <div id="questions"></div>
-<div class="row"><button class="primary" onclick="saveResponse()">Save this response</button><button onclick="resetForm()">Clear</button></div>
+<div class="row" id="pollButtons"><button class="primary" onclick="saveResponse()">Save this response</button><button onclick="resetForm()">Clear</button></div>
 <p id="pollMsg" class="small" role="status" aria-live="polite"></p></div></section>
 
 <section id="tally" class="hidden"><div class="panel"><h2>Circling tally</h2>
@@ -51,10 +52,33 @@ const QUESTIONS = [
   { id: 'tap', text: '11. After parking, would you tap one button to tell the next driver how full your level was?', options: ['Yes', 'Maybe', 'No'] },
 ];
 const KEY = 'west-deck-fieldkit-v1';
+// Shared database address, filled in by the build from Settings.syncUrl. Empty = this phone only.
+const SYNC = '/*SYNC_URL*/'.startsWith('http') ? '/*SYNC_URL*/'.replace(/\/+$/, '') : '';
+const SURVEY = new URLSearchParams(location.search).has('survey'); // the page students open from the QR code
 let data = { responses: [], tallies: [], stalls: [] }, form = {}, tally = null, timer = 0;
 try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.responses) && Array.isArray(d.tallies)) data = d; } catch (e) {}
 if (!Array.isArray(data.stalls)) data.stalls = [];
-const $ = id => document.getElementById(id), save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} };
+const $ = id => document.getElementById(id), save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} backup(); };
+
+// ---- Optional upload to the shared database (see docs/SHARED-DATA.md) ----
+// The collector's whole field kit is saved under a random id for this phone, so edits upload too.
+// A student's survey answer is added to a list. Neither can be read back from the page.
+let device = ''; try { device = localStorage.getItem('west-deck-device') || ''; if (!device) { device = 'd' + Math.random().toString(36).slice(2, 12); localStorage.setItem('west-deck-device', device); } } catch (e) {}
+let pending = false, backingUp = false;
+async function backup() {
+  if (!SYNC || SURVEY || !device) return;
+  pending = true; if (backingUp) return; backingUp = true;
+  while (pending) { pending = false;
+    try { const r = await fetch(SYNC + '/v1/fieldkit/' + device + '.json', { method: 'PUT', body: JSON.stringify({ saved: stamp(), ...data }) }); if (!r.ok) throw 0;
+      $('where').textContent = 'Saved on this phone and backed up online at ' + new Date().toLocaleTimeString() + '.'; }
+    catch (e) { $('where').textContent = 'Saved on this phone. Online backup failed; it will retry on the next save.'; }
+  }
+  backingUp = false;
+}
+async function submitSurvey(answer) {
+  const r = await fetch(SYNC + '/v1/poll.json', { method: 'POST', body: JSON.stringify(answer) });
+  if (!r.ok) throw Error('not saved');
+}
 const stamp = () => new Date().toISOString();
 
 function show(id) { for (const n of ['stalls', 'poll', 'tally', 'data']) { $(n).classList.toggle('hidden', n !== id); $('t' + n[0].toUpperCase() + n.slice(1)).setAttribute('aria-selected', String(n === id)); } if (id === 'data') renderSummary(); }
@@ -68,7 +92,14 @@ function resetForm() { form = {}; renderForm(); $('pollMsg').textContent = ''; }
 function saveResponse() {
   const missing = QUESTIONS.filter(q => visible(q) && !form[q.id]);
   if (missing.length) { $('pollMsg').textContent = 'Still unanswered: question ' + missing.map(q => parseInt(q.text)).join(', ') + '. Tap an answer, or Clear to drop this response.'; return; }
-  data.responses.push({ time: stamp(), ...form }); save(); form = {}; renderForm();
+  if (SURVEY) { // a student answering on their own phone: send it, keep nothing here
+    $('pollMsg').textContent = 'Sending…';
+    submitSurvey({ time: stamp(), source: 'qr', ...form })
+      .then(() => { $('questions').innerHTML = ''; $('pollButtons').classList.add('hidden'); $('pollMsg').textContent = 'Thank you. Your answers were recorded anonymously. You can close this page.'; })
+      .catch(() => { $('pollMsg').textContent = 'Could not send your answers. Check your connection and press Save again.'; });
+    return;
+  }
+  data.responses.push({ time: stamp(), source: 'asked', ...form }); save(); form = {}; renderForm();
   $('pollMsg').textContent = 'Saved. ' + data.responses.length + ' responses so far.';
 }
 function undoResponse() { if (data.responses.length && confirm('Delete the last poll response?')) { data.responses.pop(); save(); renderSummary(); } }
@@ -146,4 +177,9 @@ function exportCsv() {
 }
 function clearAll() { if (confirm('Delete ALL poll responses and tallies on this phone? Export first.')) { data = { responses: [], tallies: [], stalls: [] }; save(); renderSummary(); drawStalls(); } }
 renderForm(); drawStalls();
+if (SURVEY) { // QR mode: only the survey
+  for (const id of ['kitHead', 'tabs', 'say']) $(id).classList.add('hidden');
+  $('surveyHead').classList.remove('hidden'); show('poll');
+  if (!SYNC) { $('questions').innerHTML = ''; $('pollButtons').classList.add('hidden'); $('pollMsg').textContent = 'This survey is not collecting answers yet. Please find the student running it.'; }
+} else if (SYNC) backup();
 </script></body></html>
