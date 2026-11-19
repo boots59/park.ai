@@ -162,6 +162,23 @@ test('the phone remembers where it parked, so leaving is one tap', () => {
   assert.equal(b.els.parkedNote.innerHTML, '');                              // nothing left to offer after leaving
   const again = boot(b.storage); assert.equal(again.els.reportBay.value, 'L2_East');   // next visit starts on the same bay
 });
+test('the guide always offers the most useful next step', () => {
+  const b = boot();
+  assert.match(b.els.guideText.textContent, /Parked already\? One tap helps the next driver/);  // someone who has not reported is pointed to Report
+  assert.equal(b.els.guideBtn.textContent, 'Report');
+  b.run("setView('deck')"); assert.match(b.els.guideText.textContent, /Best bet: Level 3 · East bay · 11 open/);   // from the same prediction as the Now screen
+  assert.equal(b.els.guideBtn.textContent, 'I parked');
+  b.run("setView('staff')"); assert.match(b.els.guideText.textContent, /Count next: Level 2 · South bay/);
+  b.run("setView('student'); clearDemo()"); assert.match(b.els.guideText.textContent, /No known open space/);
+  b.els.reportBay.value = 'L2_East'; b.run("reportBay('few')");
+  assert.match(b.els.guideText.textContent, /Thanks\. Level 2 · East bay updated/);             // a short thank-you first
+  assert.match(b.els.selection.textContent, /Level 2 · East bay/);                               // and the deck shows what their tap changed
+  b.run('flash = null; renderGuide()');
+  assert.match(b.els.guideText.textContent, /Parked in Level 2 · East bay\. Leaving\?/);       // from then on, leaving is one tap from any screen
+  b.run("advance(1); guideTap(); flash = null; setView('student')");
+  assert.match(b.els.cards.innerHTML, /"a space just opened"/);                                  // a minute after parking
+  assert.match(b.els.guideText.textContent, /Parked already\?/);
+});
 test('a fresh staff count is not overridden by a student report', () => {
   const b = boot(); b.els.reportBay.value = 'L3_East'; b.run("reportBay('full')"); // sample data: 11 counted 1 min ago
   assert.match(b.els.cards.innerHTML, /bay-count">11<\/b><span class="status recent">Counted/);

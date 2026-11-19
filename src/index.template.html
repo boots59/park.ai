@@ -26,9 +26,10 @@
 
 <section id="report" class="screen" aria-label="Report"><div class="inner" id="reportPanel">
 <div id="parkedNote" class="parked hidden"></div>
-<h2>I just parked</h2>
-<label for="reportBay">Bay</label><select id="reportBay"></select>
-<div class="choices"><button class="choice room" onclick="reportBay('plenty')"><b>Plenty</b>5 or more open</button><button class="choice few" onclick="reportBay('few')"><b>A few</b>1 to 4 open</button><button class="choice full" onclick="reportBay('full')"><b>Last one</b>none left</button></div>
+<h2>Where did you park?</h2>
+<div id="reportGrid" class="baygrid"></div><select id="reportBay" class="hidden" aria-hidden="true" tabindex="-1"></select>
+<h2 style="margin-top:16px">How full is it?</h2>
+<div class="choices" style="margin-top:8px"><button class="choice room" onclick="reportBay('plenty')"><b>Plenty</b>5 or more open</button><button class="choice few" onclick="reportBay('few')"><b>A few</b>1 to 4 open</button><button class="choice full" onclick="reportBay('full')"><b>Last one</b>none left</button></div>
 <button class="secondary wide-btn" onclick="reportBay('leaving')">I'm leaving this bay</button>
 <div id="reportMsg" class="feedback" role="status" aria-live="polite"></div>
 <p class="small">Anonymous. Only when parked, never while driving.</p>
@@ -36,15 +37,15 @@
 
 <section id="staff" class="screen" aria-label="Count"><div class="inner">
 <p id="countNext" class="small next"></p>
-<label for="bay">Bay</label><select id="bay"></select>
-<button class="primary wide-btn" id="start" onclick="startSurvey()">Start count</button>
+<div id="bayGrid" class="baygrid"></div><select id="bay" class="hidden" aria-hidden="true" tabindex="-1"></select>
+<button class="hidden" id="start" onclick="startSurvey()" tabindex="-1" aria-hidden="true">Start count</button>
 <div id="surveyFields" class="hidden"><p id="modelled" class="small"></p>
-<label for="entryKind">Entering</label><select id="entryKind" onchange="kindChanged()"><option value="open">Open stalls I tallied</option><option value="scan">Vehicles counted by the truck</option></select>
+<div class="seg" id="kindSeg"><button class="secondary" id="kindOpen" aria-pressed="true" onclick="setKind('open')">Open stalls</button><button class="secondary" id="kindScan" aria-pressed="false" onclick="setKind('scan')">Truck count</button></div><select id="entryKind" class="hidden" aria-hidden="true" tabindex="-1" onchange="kindChanged()"><option value="open">open</option><option value="scan">scan</option></select>
 <label for="count" id="countLabel">Open stalls</label>
 <button class="primary tally" id="tallyButton" onclick="adjust(1)" aria-label="Add one">+1 open stall</button>
 <div class="number-controls" style="margin-top:8px"><button class="secondary" aria-label="Subtract one" onclick="adjust(-1)">−</button><input id="count" type="number" inputmode="numeric" min="0" max="999" step="1" value="0"><button class="secondary" aria-label="Add five" onclick="adjust(5)">+5</button></div>
-<label class="check"><input type="checkbox" id="coverage"><span id="coverageLabel"> Whole bay walked</span></label>
-<div class="row"><button class="primary" style="flex:1" onclick="finishSurvey()">Save count</button><button class="secondary" onclick="cancelSurvey()">Cancel</button></div>
+<label class="hidden"><input type="checkbox" id="coverage" tabindex="-1"><span id="coverageLabel"> Whole bay walked</span></label>
+<div class="row" style="margin-top:16px"><button class="primary" id="saveBtn" style="flex:1;margin-top:0" onclick="saveWalked()">Save: whole bay walked</button><button class="secondary" onclick="cancelSurvey()">Cancel</button></div>
 <details class="assist" id="assist"><summary>Camera AI test (optional)</summary>
 <p class="small">Walking and tallying is the reliable count. This tests the vehicle-detection model that could one day count from the deck's own cameras, using a phone photo as a stand-in. Photograph one section; the model counts the vehicles on this device and you check it. The photo is not saved or uploaded.</p>
 <button class="secondary" onclick="document.getElementById('photo').click()">Photograph a section</button>
@@ -99,6 +100,7 @@
 <footer>Park.AI · Concept by Kell Enow · The owl mark is an original drawing, not a KSU logo · 3D model contributed by a collaborator · Browser-local prototype, no data sent anywhere. <br>Model data: USGS 3DEP lidar · Imagery: USDA NAIP · Level count: © OpenStreetMap contributors (ODbL) · Detection: YOLOX (Apache-2.0), ONNX Runtime Web (MIT) · 3D: three.js (MIT)</footer>
 </div></section>
 </main>
+<div id="guide" role="status" aria-live="polite"><span id="guideText"></span><button id="guideBtn" class="hidden" onclick="guideTap()"></button></div>
 <nav id="tabs" aria-label="Screens" role="tablist"><button id="studentTab" role="tab" class="active" aria-selected="true" onclick="setView('student')">Now</button><button id="deckTab" role="tab" aria-selected="false" onclick="setView('deck')">Deck</button><button id="levelsTab" role="tab" aria-selected="false" onclick="setView('levels')">Levels</button><button id="reportTab" role="tab" aria-selected="false" onclick="setView('report')">Report</button><button id="staffTab" role="tab" aria-selected="false" onclick="setView('staff')">Count</button></nav>
 <script id="viewer-js">/*VIEWER*/</script>
 <script id="app-js">

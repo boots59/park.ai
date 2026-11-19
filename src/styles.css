@@ -38,6 +38,9 @@ body { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; 
 .inner { max-width: 640px; margin: 0 auto; }
 .inner.wide { max-width: 1120px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#guide { background: #3a3536; color: var(--white); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; font-size: 15px; line-height: 1.25; }
+#guide.warn { background: var(--full); }
+#guideBtn { flex: none; background: var(--gold); color: var(--black); font-family: var(--sign); font-size: 19px; font-weight: 700; padding: 8px 14px; border-radius: 2px; min-height: 44px; }
 #tabs { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--black); margin: 0; border: 0; padding-bottom: env(safe-area-inset-bottom); overflow: visible; gap: 0; }
 #tabs button { background: none; color: #cfcfcf; font-family: var(--sign); font-size: 19px; font-weight: 600; padding: 8px 4px; min-height: 56px; border-radius: 0; border-top: 4px solid transparent; }
 #tabs button.active { color: var(--gold); border-top-color: var(--gold); background: none; }
@@ -52,6 +55,11 @@ body { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; 
 .choice { min-height: 96px; border-radius: 4px; color: var(--white); font-size: 13px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
 .choice b { font-family: var(--sign); font-size: 26px; line-height: 1; }
 .choice.room { background: var(--room); } .choice.few { background: var(--few); } .choice.full { background: var(--full); }
+.baygrid { display: grid; grid-template-columns: auto repeat(5, 1fr); gap: 8px; align-items: center; margin: 8px 0; }
+.lvl { font-family: var(--sign); font-size: 18px; font-weight: 600; white-space: nowrap; padding-right: 4px; }
+.spot { min-height: 56px; background: var(--white); border: 2px solid #8f8f8c; border-radius: 4px; font-family: var(--sign); font-size: 18px; font-weight: 600; color: var(--ink); padding: 4px; }
+.spot[aria-pressed="true"] { background: var(--black); border-color: var(--black); color: var(--gold); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
 .parked { background: #fff3c4; border: 1px solid #e0b100; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 15px; }
 .next { line-height: 2.4; margin: 0 0 8px; }
 .next .pick { background: #ececea; color: var(--ink); border: 1px solid #c9c9c6; }

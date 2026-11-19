@@ -69,7 +69,39 @@ function feedback(text, error = false) { const el = $('feedback'); el.textConten
 
 // The app is a row of full-size screens. Swipe sideways or use the bottom bar; `setView` jumps to one.
 const SCREENS = ['student', 'deck', 'levels', 'report', 'staff', 'about'];
+// ---- The guide: one line above the bottom bar that says the most useful next step, with one button. ----
+// It is driven by the same prediction the Now screen uses (where to try first), by what this phone last
+// reported (so leaving is one tap), and by which bay most needs a count. It is rules, not a chatbot.
+let screenNow = 'student', flash = null, guideAct = null;
+function say(text, ms = 4000) { flash = { text, until: Date.now() + ms }; renderGuide(); if (typeof setTimeout === 'function') setTimeout(renderGuide, ms + 60); }
+function guideTap() { if (guideAct) guideAct(); }
+function showBay(zone) { selectedBay = zone; $('reportBay').value = zone; setView('deck'); if (viewer) viewer.select(zone); render(); }
+function renderGuide() {
+  const t = now(); let text = '', label = '', act = null, warn = false;
+  if (flash && Date.now() < flash.until) text = flash.text;
+  else {
+    const p = parkedHere(), parked = p && !p.left && t - p.t < 16 * 3600e3 && t >= p.t;
+    if (screenNow === 'staff') {
+      const next = ParkingModel.recheckNext(records, ZONE_IDS, t, reports, 1)[0];
+      if (survey) text = 'Tap +1 for each open stall, then Save.';
+      else if (next) { text = 'Count next: ' + bayName(next.zone); label = 'Start'; act = () => pickBay(next.zone); }
+      else text = 'Every bay has a fresh count.';
+    } else if (parked) { text = 'Parked in ' + bayName(p.zone) + '. Leaving?'; label = "I'm leaving"; act = leaveParked; }
+    else if (screenNow === 'report') text = 'Tap your bay, then how full it is.';
+    else {
+      const pick = ParkingModel.recommend(records, ZONE_IDS, t + lead * 60e3, 1, reports)[0];
+      // Someone who has not reported yet is nudged, once per screen, to the one place they can help.
+      if (screenNow === 'deck' && pick) { text = 'Best bet: ' + bayName(pick.zone) + ' · ' + range(pick.est) + ' open'; label = 'I parked'; act = () => setView('report'); }
+      else if (screenNow === 'about' && pick) { text = 'Best bet: ' + bayName(pick.zone) + ' · ' + range(pick.est) + ' open'; label = 'Show me'; act = () => showBay(pick.zone); }
+      else if (!pick && screenNow !== 'about') { text = 'No known open space. If the deck is full: Shuttle Lot + Big Owl Bus.'; warn = true; label = 'I parked'; act = () => setView('report'); }
+      else { text = 'Parked already? One tap helps the next driver.'; label = 'Report'; act = () => setView('report'); }
+    }
+  }
+  $('guideText').textContent = text; $('guide').classList.toggle('warn', warn);
+  const b = $('guideBtn'); b.textContent = label; b.classList.toggle('hidden', !act); guideAct = act;
+}
 function markTab(id) {
+  screenNow = id; renderGuide();
   for (const name of SCREENS) { const tab = $(name + 'Tab'); tab.classList.toggle('active', name === id); tab.setAttribute('aria-selected', String(name === id)); }
 }
 function setView(id) {
@@ -170,7 +202,7 @@ function render() {
   $('clock').textContent = (demo === 'nov19' ? 'Replay of Thu Nov 19, as if 11:58 AM' : demo === 'sample' ? 'Made-up sample data' : 'Counts entered on this device') +
     ' · clock moved forward ' + Math.round(offset / 60e3) + ' min · stall numbers counted on foot Nov 19.';
   if (!Sync.on) $('notice').innerHTML = demo === 'own' ? '<b>Test entries</b> typed in on this device. Not verified.' : NOTICE[demo];
-  renderNext();
+  renderNext(); renderGrids(); renderGuide();
   if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z); return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
   renderSelection();
 }
@@ -209,7 +241,7 @@ function renderParked() {
   el.classList.toggle('hidden', !current);
   el.innerHTML = current ? `You reported parking in <b>${bayName(p.zone)}</b> at ${new Date(p.t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. ` +
     `<button class="primary" style="margin-top:8px" onclick="leaveParked()">I'm leaving now: my space is opening</button>` : '';
-  if (p && !$('reportBay').dataset?.chosen) $('reportBay').value = p.zone; // start on the bay used last time
+  if (p && !$('reportBay').dataset?.chosen) { $('reportBay').value = p.zone; renderGrids(); } // start on the bay used last time
 }
 function leaveParked() { const p = parkedHere(); if (!p) return; $('reportBay').value = p.zone; reportBay('leaving'); }
 
@@ -217,14 +249,16 @@ function leaveParked() { const p = parkedHere(); if (!p) return; $('reportBay').
 function reportBay(band) {
   const zone = $('reportBay').value, t = now(), msg = $('reportMsg');
   let last = {}; try { last = JSON.parse(localStorage.getItem(REPORTED_KEY)) || {}; } catch (e) {}
-  if (t - (last[zone] || 0) < Settings.studentRepeatMinutes * 60e3 && t >= (last[zone] || 0)) {
+  const slot = zone + (band === 'leaving' ? ':out' : ':in'); // parking and leaving are separate events: leaving soon after parking is allowed
+  if (t - (last[slot] || 0) < Settings.studentRepeatMinutes * 60e3 && t >= (last[slot] || 0)) {
     msg.textContent = 'You already reported this bay a few minutes ago. One report per bay is enough.'; return; }
   const report = { zone, band, t };
   reports = ParkingModel.cleanReports([...reports, report], ZONE_IDS, t); saveReports();
-  last[zone] = t; try { localStorage.setItem(REPORTED_KEY, JSON.stringify(last)); } catch (e) {}
+  last[slot] = t; try { localStorage.setItem(REPORTED_KEY, JSON.stringify(last)); } catch (e) {}
   if (typeof shareReport === 'function') shareReport(report);
   try { localStorage.setItem(PARKED_KEY, JSON.stringify({ zone, t, left: band === 'leaving' })); } catch (e) {}
   render(); renderParked();
+  showBay(zone); say('Thanks. ' + bayName(zone) + ' updated.'); // show the person what their tap changed
   msg.textContent = 'Thank you. ' + (est(zone, t)?.source === 'students'
     ? bayName(zone) + ' now shows "' + BAND_TEXT[band] + '" as a student report for the next ' + (band === 'leaving' ? Settings.studentLeavingMinutes : Settings.studentReportMinutes) + ' minutes.'
     : 'A staff count of ' + bayName(zone) + ' from the last 5 minutes is stronger evidence, so the display keeps it for now.');
@@ -237,7 +271,24 @@ function renderNext() {
     `<button class="pick" onclick="pickBay('${p.zone}')">${bayName(p.zone)}</button> <span class="small">${i ? '' : '(' + p.why + ')'}</span>`).join(' ')
     : 'Every bay has a fresh count. Nothing needs recounting yet.';
 }
-function pickBay(z) { if (!survey) $('bay').value = z; }
+function pickBay(z) { if (!survey) { $('bay').value = z; renderGrids(); startSurvey(); } }
+
+// ---- Bay pickers: one tap on a button, no drop-down. A hidden <select> still holds the value. ----
+function renderGrids() {
+  for (const [gridId, selectId] of [['reportGrid', 'reportBay'], ['bayGrid', 'bay']]) {
+    const chosen = $(selectId).value, locked = selectId === 'bay' && !!survey;
+    $(gridId).innerHTML = LEVELS.filter(n => zonesOf(n).length).map(n => `<div class="lvl">Level ${n}</div>` + zonesOf(n).map(z =>
+      `<button class="spot" aria-pressed="${z === chosen}"${locked ? ' disabled' : ''} onclick="chooseBay('${selectId}','${z}')" aria-label="${bayName(z)}">${DECK.zones[z].label.split(' ')[0]}</button>`).join('')).join('');
+  }
+}
+function chooseBay(selectId, zone) {
+  $(selectId).value = zone; if (selectId === 'reportBay') $('reportBay').dataset && ($('reportBay').dataset.chosen = '1');
+  renderGrids();
+  if (selectId === 'bay' && !survey) startSurvey(); // for a monitor, tapping the bay starts the count: no extra Start step
+}
+// One button saves and confirms the whole bay was covered (the button says so).
+function saveWalked() { $('coverage').checked = true; finishSurvey(); }
+function setKind(kind) { $('entryKind').value = kind; kindChanged(); }
 
 // ---- Staff survey ----
 function fillBayOptions() {
@@ -249,14 +300,14 @@ function startSurvey() {
   survey = { zone, start: now(), realStart: Date.now(), version: records[zone]?.version || 0, photos: [] };
   $('count').value = 0; $('coverage').checked = false; $('entryKind').value = 'open'; kindChanged(); renderScan();
   $('surveyFields').classList.remove('hidden');
-  $('start').disabled = true; $('bay').disabled = true; $('observer').disabled = true;
+  $('start').disabled = true; $('bay').disabled = true; $('observer').disabled = true; renderGrids();
   $('modelled').textContent = stallNote(zone) + '.';
   feedback('Counting ' + bayName(zone) + '.');
 }
 function cancelSurvey(message = 'Survey closed. No unfinished count was saved.') {
   survey = null;
   $('surveyFields').classList.add('hidden');
-  $('start').disabled = false; $('bay').disabled = false; $('observer').disabled = false;
+  $('start').disabled = false; $('bay').disabled = false; $('observer').disabled = false; renderGrids();
   $('scanCanvas').classList.add('hidden'); // the photo preview is discarded with the survey
   feedback(message);
 }
@@ -265,8 +316,10 @@ function adjust(n) { const i = $('count'); i.value = Math.min(ParkingModel.MAX_C
 function kindChanged() {
   const scan = $('entryKind').value === 'scan';
   $('countLabel').textContent = scan ? 'Vehicles (a number only, never a plate)' : 'Open stalls';
+  $('kindOpen').setAttribute('aria-pressed', String(!scan)); $('kindScan').setAttribute('aria-pressed', String(scan));
   $('tallyButton').textContent = scan ? '+1 vehicle' : '+1 open stall';
   $('coverageLabel').textContent = scan ? ' Truck covered the whole bay' : ' Whole bay walked';
+  $('saveBtn').textContent = scan ? 'Save: truck covered whole bay' : 'Save: whole bay walked';
 }
 function finishSurvey() {
   if (!survey) return; // a second tap after saving does nothing
@@ -284,6 +337,7 @@ function finishSurvey() {
       ? ' Note: that is above the ' + stallWord(zone) + ' stall count (' + DECK.zones[zone].stalls + '). One of the two numbers is wrong; worth recording.' : '';
     const how = fromScan ? ` ${entered} vehicles counted, so ${count} open` + (fromScan.couldBeLowerBy ? ` (up to ${fromScan.couldBeLowerBy} fewer if the open stalls are faculty, accessible or reserved ones).` : '.') : '';
     cancelSurvey(bayName(zone) + ' saved. The previous count was replaced, not added.' + how + (fromScan ? '' : over));
+    say('Saved ' + bayName(zone) + '.', 2500);
     render();
   } catch (e) { feedback(e.message, true); }
 }

@@ -38,8 +38,8 @@ function serve() {
     assert.doesNotMatch(await p.textContent('#selection'), /Tap a bay/, 'tapping the model centre selected no bay');
     await p.screenshot({ path: `${out}/student-${w}.png`, fullPage: true });
 
-    await p.click('#staffTab'); await p.selectOption('#bay', 'L2_North'); await p.click('#start');
-    await p.click('#tallyButton'); await p.check('#coverage'); await p.click('text=Save count');
+    await p.click('#staffTab'); await p.click('#bayGrid [aria-label="Level 2 · North bay"]'); // tapping the bay starts the count
+    await p.click('#tallyButton'); await p.click('#saveBtn');
     assert.match(await p.textContent('#feedback'), /Level 2 · North bay saved/);
     assert.match(await p.textContent('#logSummary'), /1 completed survey logged/);
     const staffOverflow = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
@@ -57,7 +57,7 @@ function serve() {
     const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 2 });
     const p = await ctx.newPage(), errors = [];
     p.on('pageerror', e => errors.push(e.message));
-    await p.goto(url); await p.click('#staffTab'); await p.selectOption('#bay', 'L3_West'); await p.click('#start');
+    await p.goto(url); await p.click('#staffTab'); await p.click('#bayGrid [aria-label="Level 3 · West bay"]');
     const t0 = Date.now();
     await p.click('#assist summary'); // the camera AI test is tucked under the tally
     await p.setInputFiles('#photo', fixture);
@@ -65,12 +65,12 @@ function serve() {
     const panel = await p.textContent('#scanPanel'), found = Number((panel.match(/found (\d+) vehicles/) || [])[1]);
     assert.ok(found >= 1, 'model found no vehicles: ' + (panel || await p.textContent('#scanStatus')));
     await p.click('[aria-label="One more vehicle"]');
-    await p.click('text=/^Use \\d+ as the count$/'); await p.check('#coverage');
+    await p.click('text=/^Use \\d+ as the count$/');
     await p.locator('#scanCanvas').scrollIntoViewIfNeeded();
     const aiOverflow = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     assert.ok(aiOverflow <= 0, `AI panel scrolls sideways by ${aiOverflow}px`);
     await p.screenshot({ path: `${out}/staff-ai-375.png`, fullPage: true });
-    await p.click('text=Save count');
+    await p.click('#saveBtn');
     assert.match(await p.textContent('#feedback'), /Level 3 · West bay saved/);
     const csv = await p.evaluate(() => fieldLogCsv());
     assert.match(csv, new RegExp(`ai-assisted,1,${found},${found + 1},${found}>${found + 1},0,(single|tiled),0`));
