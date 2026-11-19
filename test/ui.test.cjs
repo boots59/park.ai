@@ -115,6 +115,14 @@ test('a student leaving opens a space in their bay for a few minutes', () => {
   assert.match(b.els.reportMsg.textContent, /for the next 4 minutes/);
   b.run('advance(6)'); assert.doesNotMatch(b.els.cards.innerHTML, /status students/);
 });
+test('the phone remembers where it parked, so leaving is one tap', () => {
+  const b = boot(); b.run('clearDemo()'); b.els.reportBay.value = 'L2_East'; b.run("reportBay('few')");
+  assert.match(b.els.parkedNote.innerHTML, /You reported parking in <b>Level 2 · East bay<\/b>.*I'm leaving now/);
+  b.run('advance(30); leaveParked()');
+  assert.match(b.els.cards.innerHTML, /bay-count">1\+<\/b><span class="status students">Student report · "a space just opened"/);
+  assert.equal(b.els.parkedNote.innerHTML, '');                              // nothing left to offer after leaving
+  const again = boot(b.storage); assert.equal(again.els.reportBay.value, 'L2_East');   // next visit starts on the same bay
+});
 test('a fresh staff count is not overridden by a student report', () => {
   const b = boot(); b.els.reportBay.value = 'L3_East'; b.run("reportBay('full')"); // sample data: 11 counted 1 min ago
   assert.match(b.els.cards.innerHTML, /bay-count">11<\/b><span class="status recent">Counted/);

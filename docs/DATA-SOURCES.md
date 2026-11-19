@@ -31,3 +31,8 @@ All of these depend on KSU.
 ## What has not been tested
 - Whether students will report at all, and how often they report wrongly. The rules for combining reports are a design, not a finding.
 - "Typical at this hour" has no data behind it yet; it only appears once several days of counts exist.
+
+## Making a student report nearly effortless (what is built, and what is not)
+- **Built:** the phone remembers the bay it last reported, so parking is one tap and "I'm leaving" is one tap with no bay to pick. A link ending `?bay=L2_West` opens the report panel with that bay chosen, so a QR code posted in a bay makes it scan-then-one-tap. Posting codes needs KSU's permission.
+- **Not built, and why:** automatic bay detection by GPS. Satellite positioning is unreliable inside a concrete deck and cannot tell one level from another, and this project's own rule is to collect no location traces.
+- **Needs a native app (later):** a home-screen or lock-screen widget, and reminders when you arrive or leave.

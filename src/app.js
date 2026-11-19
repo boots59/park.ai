@@ -155,6 +155,24 @@ function renderSelection() {
     '. ' + stallNote(selectedBay) + '.';
 }
 
+// ---- Fewer taps: remember where this phone last parked (on this phone only) ----
+// No GPS: location is unreliable inside a multi-level deck and cannot tell levels apart.
+// Instead the bay comes from the last report, or from a link such as ?bay=L2_West (for a QR code posted in that bay).
+const PARKED_KEY = 'west-deck-parked-v1';
+function parkedHere() {
+  try { const p = JSON.parse(localStorage.getItem(PARKED_KEY)); if (p && ZONE_IDS.includes(p.zone) && Number.isFinite(p.t)) return p; } catch (e) {}
+  return null;
+}
+function renderParked() {
+  const p = parkedHere(), el = $('parkedNote'), t = now();
+  const current = p && t - p.t < 16 * 3600e3 && t >= p.t && !p.left;
+  el.classList.toggle('hidden', !current);
+  el.innerHTML = current ? `You reported parking in <b>${bayName(p.zone)}</b> at ${new Date(p.t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. ` +
+    `<button class="primary" style="margin-top:8px" onclick="leaveParked()">I'm leaving now: my space is opening</button>` : '';
+  if (p && !$('reportBay').dataset?.chosen) $('reportBay').value = p.zone; // start on the bay used last time
+}
+function leaveParked() { const p = parkedHere(); if (!p) return; $('reportBay').value = p.zone; reportBay('leaving'); }
+
 // ---- Student report: "I just parked here" (anonymous, low trust, expires) ----
 function reportBay(band) {
   const zone = $('reportBay').value, t = now(), msg = $('reportMsg');
@@ -165,7 +183,8 @@ function reportBay(band) {
   reports = ParkingModel.cleanReports([...reports, report], ZONE_IDS, t); saveReports();
   last[zone] = t; try { localStorage.setItem(REPORTED_KEY, JSON.stringify(last)); } catch (e) {}
   if (typeof shareReport === 'function') shareReport(report);
-  render();
+  try { localStorage.setItem(PARKED_KEY, JSON.stringify({ zone, t, left: band === 'leaving' })); } catch (e) {}
+  render(); renderParked();
   msg.textContent = 'Thank you. ' + (est(zone, t)?.source === 'students'
     ? bayName(zone) + ' now shows "' + BAND_TEXT[band] + '" as a student report for the next ' + (band === 'leaving' ? Settings.studentLeavingMinutes : Settings.studentReportMinutes) + ' minutes.'
     : 'A staff count of ' + bayName(zone) + ' from the last 5 minutes is stronger evidence, so the display keeps it for now.');
@@ -366,8 +385,13 @@ function toggleSpread() {
 }
 
 load(); loadReports(); fillBayOptions(); renderLog(); render();
-// A link, QR code or home-screen shortcut ending in ?report opens straight at the student report panel.
-if (typeof location !== 'undefined' && /[?&]report\b/.test(location.search || '')) { setView('student'); const el = $('reportPanel'); if (el.scrollIntoView) el.scrollIntoView(); }
+renderParked();
+// Links: ?report opens straight at the student report panel; ?bay=L2_West also picks the bay (for a QR code posted in that bay).
+if (typeof location !== 'undefined') {
+  const q = location.search || '', bay = (/[?&]bay=([\w]+)/.exec(q) || [])[1];
+  if (bay && ZONE_IDS.includes(bay)) $('reportBay').value = bay;
+  if (bay || /[?&]report\b/.test(q)) { setView('student'); const el = $('reportPanel'); if (el.scrollIntoView) el.scrollIntoView(); }
+}
 window.addEventListener('storage', e => {
   if (e.key === REPORT_KEY) { loadReports(); render(); return; }
   if (e.key !== KEY) return;
