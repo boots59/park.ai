@@ -79,6 +79,7 @@ function showBay(zone) { selectedBay = zone; $('reportBay').value = zone; setVie
 function renderGuide() {
   const t = now(); let text = '', label = '', act = null, warn = false;
   if (flash && Date.now() < flash.until) text = flash.text;
+  else if (TRY && !reviewed()) { text = 'Trying the app? Tell us what you think.'; label = 'Rate it'; act = openReview; }
   else {
     const p = parkedHere(), parked = p && !p.left && t - p.t < 16 * 3600e3 && t >= p.t;
     if (screenNow === 'staff') {
@@ -178,6 +179,44 @@ const VERDICT = { room: 'Room likely', tight: 'Tight', full: 'Likely full', unkn
 // every count is older by then, so ranges are wider, and a bay that was filling is projected forward.
 let lead = 0; // minutes from now
 function setLead(minutes) { lead = minutes; render(); }
+// ---- Tester review (only when the page is opened with ?try, from the "Try the app" QR code) ----
+// A tester uses the app, then answers four one-tap questions and an optional suggestion. Anonymous: no name,
+// no device id. A web page cannot stop someone closing it, so the review is offered three ways instead:
+// a button that stays in the guide bar, a prompt after 75 seconds, and a prompt when they come back to the tab.
+const TRY = typeof location !== 'undefined' && /[?&]try\b/.test(location.search || '');
+const REVIEW_KEY = 'park-ai-reviewed-v1';
+const REVIEW_QS = [
+  ['easy', 'Easy to use?', ['Yes', 'Sort of', 'No']],
+  ['use', 'Would you check it before driving in?', ['Yes', 'Maybe', 'No']],
+  ['trust', 'Do you trust the numbers?', ['Yes', 'Somewhat', 'No']],
+  ['best', 'Most useful part?', ['Now', '3D deck', 'Levels', 'Report']]];
+let reviewAnswers = {};
+function reviewed() { try { return !!localStorage.getItem(REVIEW_KEY); } catch (e) { return false; } }
+function renderReview() {
+  $('reviewQs').innerHTML = REVIEW_QS.map(([k, q, opts]) => `<div class="q"><b>${q}</b><div>` +
+    opts.map(o => `<button aria-pressed="${reviewAnswers[k] === o}" onclick="answerReview('${k}','${o}')">${o}</button>`).join('') + '</div></div>').join('');
+}
+function answerReview(k, o) { reviewAnswers[k] = o; renderReview(); }
+function openReview() { if (reviewed()) return; renderReview(); $('review').classList.remove('hidden'); }
+function closeReview() { $('review').classList.add('hidden'); }
+async function sendReview() {
+  const missing = REVIEW_QS.filter(([k]) => !reviewAnswers[k]);
+  if (missing.length) { $('reviewNote').textContent = 'One tap per question, please: ' + missing.length + ' left.'; return; }
+  const text = String($('reviewText').value || '').slice(0, 300);
+  $('reviewSend').disabled = true; $('reviewNote').textContent = 'Sending…';
+  try {
+    const r = await fetch(Settings.syncUrl + '/v1/poll.json', { method: 'POST', body: JSON.stringify({ kind: 'app-review', t: Date.now(), ...reviewAnswers, text }) });
+    if (!r.ok) throw Error('not saved');
+    try { localStorage.setItem(REVIEW_KEY, '1'); } catch (e) {}
+    closeReview(); say('Thank you. Your review was sent.', 6000);
+  } catch (e) { $('reviewNote').textContent = 'Not sent. Check your connection and tap Send again.'; }
+  $('reviewSend').disabled = false;
+}
+if (TRY && typeof setTimeout === 'function') {
+  setTimeout(openReview, 75e3);
+  if (typeof document.addEventListener === 'function') document.addEventListener('visibilitychange', () => { if (!document.hidden) openReview(); });
+}
+
 // Deck switcher on the Now screen. Only West Deck has counts; every other place says "coming soon".
 // `PLACES` is injected by scripts/build.cjs from data/places.json (names and clearances from KSU's own pages).
 let place = 'west';

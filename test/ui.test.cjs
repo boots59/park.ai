@@ -212,6 +212,20 @@ test('deck switcher: West Deck is live, every other place says coming soon', () 
 const photo = () => ({ files: [{}], value: 'x' });
 (async () => {
   const atest = async (name, fn) => { await fn(); pass++; console.log('ok -', name); };
+  await atest('tester review needs every question, then sends one anonymous record', async () => {
+  const sent = [];
+  const b = boot({}, { syncUrl: 'https://example.invalid', fetch: async (u, o) => { sent.push([u, o && o.body]); return { ok: true, json: async () => ({}) }; } });
+  sent.length = 0;
+  b.run("answerReview('easy','Yes')"); await b.run('sendReview()');
+  assert.match(b.els.reviewNote.textContent, /3 left/);
+  assert.equal(sent.filter(s => /poll\.json/.test(s[0])).length, 0);
+  b.run("answerReview('use','Maybe'); answerReview('trust','Somewhat'); answerReview('best','Now')");
+  b.run("$('reviewText').value = 'Add East Deck'");
+  await b.run('sendReview()');
+  const rec = JSON.parse(sent.find(s => /poll\.json/.test(s[0]))[1]);
+  assert.deepEqual(Object.keys(rec).sort(), ['best', 'easy', 'kind', 't', 'text', 'trust', 'use']);
+  assert.equal(rec.kind, 'app-review'); assert.equal(rec.text, 'Add East Deck');
+});
   await atest('AI count is a suggestion the person corrects, then saves', async () => {
     const b = boot(); b.ctx.window.CarCounter = { count: async () => ({ count: 30, ms: 5 }) };
     b.run('clearDemo(); startSurvey()');

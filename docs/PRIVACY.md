@@ -31,3 +31,6 @@ License plates, faces, names, student IDs, emails, accounts, GPS location, enfor
 ## Honest summary
 The prototype collects no personal information by design, but "no privacy concerns at all" would be an overstatement.
 The photo test and any future use of cameras or plate scans need KSU's review.
+
+## Tester reviews (`?try`)
+Opened from the "Try the app" QR code, the app asks for a review: four one-tap answers and an optional suggestion of up to 300 characters. It is sent once to the write-only `poll` list with `kind: "app-review"` and a time. No name, device id or location is sent. The form asks people not to write names; free text is still free text, so read it before quoting it.

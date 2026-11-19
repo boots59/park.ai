@@ -39,6 +39,17 @@ body { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; 
 .inner.wide { max-width: 1120px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #guide { background: #3a3536; color: var(--white); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; font-size: 15px; line-height: 1.25; }
+.review { position: fixed; inset: 0; z-index: 30; background: var(--black); color: var(--white); padding: 16px; overflow-y: auto; }
+.review h2 { color: var(--gold); margin: 0 0 12px; }
+.review h2 span, .review label span { font-family: Barlow, Arial, sans-serif; font-size: 13px; font-weight: 400; color: #cfcfcf; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+.review .q { margin: 0 0 12px; }
+.review .q b { display: block; margin-bottom: 6px; }
+.review .q div { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+.review .q button { min-height: 48px; margin: 0; padding: 4px; background: #3a3536; color: var(--white); border-radius: 4px; font-size: 15px; }
+.review .q button[aria-pressed="true"] { background: var(--gold); color: var(--black); font-weight: 700; }
+.review textarea { width: 100%; box-sizing: border-box; margin: 6px 0; padding: 8px; font: inherit; border-radius: 4px; border: 0; }
+.review .primary { background: var(--gold); color: var(--black); min-width: 120px; }
+.review .small { color: #cfcfcf; min-height: 18px; }
 #guide.warn { background: var(--full); }
 #guideBtn { flex: none; background: var(--gold); color: var(--black); font-family: var(--sign); font-size: 19px; font-weight: 700; padding: 8px 14px; border-radius: 2px; min-height: 44px; }
 #tabs { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--black); margin: 0; border: 0; padding-bottom: env(safe-area-inset-bottom); overflow: visible; gap: 0; }

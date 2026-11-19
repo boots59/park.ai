@@ -103,6 +103,14 @@
 <footer>Park.AI · Concept by Kell Enow · The owl mark is an original drawing, not a KSU logo · 3D model contributed by a collaborator · Browser-local prototype, no data sent anywhere. <br>Model data: USGS 3DEP lidar · Imagery: USDA NAIP · Level count: © OpenStreetMap contributors (ODbL) · Detection: YOLOX (Apache-2.0), ONNX Runtime Web (MIT) · 3D: three.js (MIT)</footer>
 </div></section>
 </main>
+<div id="review" class="review hidden" role="dialog" aria-modal="true" aria-label="Rate Park.AI">
+<h2>Rate Park.AI <span>4 taps, anonymous</span></h2>
+<div id="reviewQs"></div>
+<label for="reviewText">What should we add or fix? <span>optional, no names</span></label>
+<textarea id="reviewText" maxlength="300" rows="3"></textarea>
+<p id="reviewNote" class="small" role="status" aria-live="polite"></p>
+<div class="row"><button id="reviewSend" class="primary" onclick="sendReview()">Send</button><button class="secondary" onclick="closeReview()">Keep testing</button></div>
+</div>
 <div id="guide" role="status" aria-live="polite"><span id="guideText"></span><button id="guideBtn" class="hidden" onclick="guideTap()"></button></div>
 <nav id="tabs" aria-label="Screens" role="tablist"><button id="studentTab" role="tab" class="active" aria-selected="true" onclick="setView('student')">Now</button><button id="deckTab" role="tab" aria-selected="false" onclick="setView('deck')">Deck</button><button id="levelsTab" role="tab" aria-selected="false" onclick="setView('levels')">Levels</button><button id="reportTab" role="tab" aria-selected="false" onclick="setView('report')">Report</button><button id="staffTab" role="tab" aria-selected="false" onclick="setView('staff')">Count</button></nav>
 <script id="viewer-js">/*VIEWER*/</script>
