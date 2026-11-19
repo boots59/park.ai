@@ -45,6 +45,22 @@ recompute with `node scripts/analyze-field.cjs data/field/2026-11-19-bay-counts.
 | Vehicles missed / invented | | | |
 | Time per photo on a phone | | | |
 
+### Camera-like views: a quick look on public images (2026-11-19, not West Deck)
+Three still images from fixed or aerial parking-lot cameras, found in public GitHub repositories, run through the app's
+detector. There is no answer key: the "by eye" numbers are Claude's own count from the annotated image, so treat them as rough.
+
+| Image | One look | Enlarged quarters (the app's setting) | 3 x 3 pieces | By eye |
+|---|---|---|---|---|
+| Angled view from a pole, open lot, about 38 vehicles | 29 | 39 | 41 | about 37 to 39; no clear misses, one or two possible double counts |
+| Angled view from a building, apartment lot | 15 | 22 | 24 | about 22 to 25; a few small distant cars unboxed |
+| Straight down from above (drone-style), about 60 vehicles | 0 | 1 | 0 | fails completely |
+
+What this suggests, and no more: from an angled, elevated camera the model finds nearly every clearly visible vehicle, and
+the enlarged-quarters setting matters (it found about a third more than a single look). From directly overhead it does not
+work at all, because the model learned what cars look like from the side. Corner-mounted deck cameras would be the angled
+case, but indoor light, columns and cars hiding each other were not tested. Time per image: about 6 s on a desktop
+processor with enlarged quarters, 12 s with 3 x 3. The images are not in this repository (they are not ours to redistribute).
+
 ## Do the estimates hold?
 | Measure | Value | Sample | Date |
 |---|---|---|---|
