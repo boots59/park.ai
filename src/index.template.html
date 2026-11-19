@@ -1,14 +1,14 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' /*SYNC_ORIGIN*/; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
-<meta name="referrer" content="no-referrer"><title>WEST / deck · concept prototype</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#231f20"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="WEST deck"><style>
+<meta name="referrer" content="no-referrer"><title>Park.AI · West Deck · student project</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#231f20"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Park.AI"><style>
 /*STYLES*/
 </style></head><body>
-<header><div class="brand">West<span> / </span>Deck</div><button id="aboutTab" class="info" onclick="setView('about')" aria-label="About, limits and settings" aria-selected="false">i</button></header>
+<header><div class="brand"><svg class="owl" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><path fill="#ffc629" d="M5 4l5 4h12l5-4v14a11 11 0 0 1-22 0z"/><circle cx="11.5" cy="14" r="4.2" fill="#231f20"/><circle cx="20.5" cy="14" r="4.2" fill="#231f20"/><circle cx="11.5" cy="14" r="1.7" fill="#fff"/><circle cx="20.5" cy="14" r="1.7" fill="#fff"/><path fill="#231f20" d="M16 17l-2.2 3.2h4.4z"/></svg><span class="name">Park<span>.AI</span></span><span class="by">student project</span></div><button id="aboutTab" class="info" onclick="setView('about')" aria-label="About, limits and settings" aria-selected="false">i</button></header>
 <div class="notice" id="notice"></div>
 <main id="screens">
 
 <section id="student" class="screen" aria-label="Now"><div class="inner">
-<h1 class="sr">West Deck, Kennesaw campus</h1>
+<h1 class="place">West Deck <span>Kennesaw campus</span></h1>
 <div id="verdict" role="status" aria-live="polite"></div>
 </div></section>
 
@@ -96,7 +96,7 @@
 <p id="logSummary" class="small"></p>
 <div class="row"><button class="secondary" onclick="exportLog()">Export field log (CSV)</button><button class="secondary" onclick="clearLog()">Clear field log</button><a class="secondary" href="field.html" style="text-decoration:none;display:inline-flex;align-items:center">Field kit</a></div></details>
 <details class="fold"><summary>About this 3D model</summary><p class="small"><b>What the model is:</b> outline, top deck, ramp and floor spacing measured from USGS 3DEP lidar (flown April 2019); stall spacing from a USDA NAIP aerial photo (October 2025). <b>What was checked on foot (Nov 19):</b> 3 levels and 662 stalls, against the model's estimate of 651. <b>What is schematic:</b> the North and South strips mark bays the model does not have; their position is approximate. Level 1 is grey because it has no regular student stalls. The model shows whole bays. It does not show which individual spaces are open.</p></details>
-<footer>WEST / deck · Concept by Kell Enow · 3D model contributed by a collaborator · Browser-local prototype, no data sent anywhere. <br>Model data: USGS 3DEP lidar · Imagery: USDA NAIP · Level count: © OpenStreetMap contributors (ODbL) · Detection: YOLOX (Apache-2.0), ONNX Runtime Web (MIT) · 3D: three.js (MIT)</footer>
+<footer>Park.AI · Concept by Kell Enow · The owl mark is an original drawing, not a KSU logo · 3D model contributed by a collaborator · Browser-local prototype, no data sent anywhere. <br>Model data: USGS 3DEP lidar · Imagery: USDA NAIP · Level count: © OpenStreetMap contributors (ODbL) · Detection: YOLOX (Apache-2.0), ONNX Runtime Web (MIT) · 3D: three.js (MIT)</footer>
 </div></section>
 </main>
 <nav id="tabs" aria-label="Screens" role="tablist"><button id="studentTab" role="tab" class="active" aria-selected="true" onclick="setView('student')">Now</button><button id="deckTab" role="tab" aria-selected="false" onclick="setView('deck')">Deck</button><button id="levelsTab" role="tab" aria-selected="false" onclick="setView('levels')">Levels</button><button id="reportTab" role="tab" aria-selected="false" onclick="setView('report')">Report</button><button id="staffTab" role="tab" aria-selected="false" onclick="setView('staff')">Count</button></nav>

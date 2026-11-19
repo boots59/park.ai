@@ -1,4 +1,4 @@
-# WEST / deck
+# Park.AI
 
 **Know before you drive in.** A student prototype for West Deck on KSU's Kennesaw campus: people on the ground count open
 spaces one bay at a time, an on-device AI model helps them count, and students see the count, or an honest estimate with

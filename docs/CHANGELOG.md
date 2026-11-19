@@ -91,3 +91,4 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Nothing about how the app behaves changed; all tests pass unchanged apart from the placeholder character.
 - The app is now a row of full-size screens (Now, Deck, Levels, Report, Count) with a bottom bar and sideways swipe; About is behind the "i" button. Explanations, demo controls and field tools moved to About. Wording cut throughout.
 - Content security policy and no-referrer added. `docs/SECURITY.md` lists what is and is not protected.
+- Renamed to **Park.AI** in the app, icon and pitch deck. The owl mark is an original drawing, not KSU's logo. The pitch deck file is now `submission/Park-AI-pitch-DRAFT.pptx`.

@@ -1,7 +1,7 @@
 {
-  "name": "WEST / deck (concept prototype)",
-  "short_name": "WEST deck",
-  "description": "Student concept prototype for parking counts at West Deck, KSU Kennesaw. Simulated data. Not a KSU app.",
+  "name": "Park.AI (student project)",
+  "short_name": "Park.AI",
+  "description": "Student prototype for parking counts at West Deck, KSU Kennesaw. Not a KSU app.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
