@@ -302,14 +302,14 @@ function startSurvey() {
   $('surveyFields').classList.remove('hidden');
   $('start').disabled = true; $('bay').disabled = true; $('observer').disabled = true; renderGrids();
   $('modelled').textContent = stallNote(zone) + '.';
-  feedback('Counting ' + bayName(zone) + '.');
+  feedback('Counting ' + bayName(zone) + '.'); renderGuide();
 }
 function cancelSurvey(message = 'Survey closed. No unfinished count was saved.') {
   survey = null;
   $('surveyFields').classList.add('hidden');
   $('start').disabled = false; $('bay').disabled = false; $('observer').disabled = false; renderGrids();
   $('scanCanvas').classList.add('hidden'); // the photo preview is discarded with the survey
-  feedback(message);
+  feedback(message); renderGuide();
 }
 function adjust(n) { const i = $('count'); i.value = Math.min(ParkingModel.MAX_COUNT, Math.max(0, (Number(i.value) || 0) + n)); }
 // What the number being entered means: open stalls tallied on foot, or vehicles counted by a patrol truck's plate reader.
