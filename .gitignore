@@ -1,6 +1,7 @@
 node_modules/
 screenshots/
-West-Deck-handoff.zip
-dist/ai/
+dist/
 assets/models/*.onnx
+assets/*.glb
 test/fixtures/
+outreach/

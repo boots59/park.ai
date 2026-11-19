@@ -4,9 +4,18 @@ A student concept for West Deck, KSU Kennesaw campus. Staff survey one **bay** a
 that counts vehicles in a photo and a person who confirms the number. Students see each bay's count, or an estimate
 with a range once the count ages, a deck-level verdict and a 3D view. **All data is illustrative. Not a KSU system.**
 
-## Open it
-`dist/West-Deck-Prototype.html`: one file, opens offline in any modern browser (about 1 MB because three.js and the 3D model are inside).
-`dist/West-Deck-Prototype-lite.html` is the same page without the 3D view (26 KB).
+## Run it
+```bash
+npm install
+npm run fetch-model   # one-time: the 36 MB detection model
+npm run build
+npm run serve         # then open http://127.0.0.1:8080/
+```
+The built page is one HTML file in `dist/` plus an `ai/` folder for the detection model. Build output is not kept in git.
+
+**3D view:** the deck model (`assets/west_deck_plain.glb`) was made by a collaborator and is not in this repository yet.
+Without it the page builds and runs with the level cards only. `assets/west_deck.json` holds that model's bay layout and
+stall estimates, which are not KSU figures.
 
 ## Develop
 ```bash
@@ -26,11 +35,10 @@ npm run check:browser  # headless Chromium at 375px and 1280px; runs the real mo
 | `src/viewer.js` | three.js viewer: loads the model, tints bays, tap to select, spread levels |
 | `src/index.template.html` | Markup and CSS with `/*VIEWER*/ /*DECK*/ /*MODEL*/ /*APP*/` markers |
 | `build.cjs` | Bundles the viewer (esbuild), embeds the GLB as base64, writes `dist/` |
-| `assets/` | The friend's 3D model (`west_deck_plain.glb`, `west_deck.json`, `MODEL-README.md`) |
+| `assets/` | `west_deck.json`: bay layout and stall estimates from a collaborator's 3D model |
 | `baseline/` | The prototype exactly as uploaded before this work |
 | `scripts/` | `fetch-model.cjs` (model download), `serve.cjs` (local server) |
 | `docs/FIELD-DAY.md` | Thursday's measurement protocol and student poll |
-| `outreach/` | Draft emails to KSU and the organizer |
 | `EVIDENCE.md` | What is verified, assumed, simulated or proposed |
 | `CONTRIBUTIONS.md` | Who did what, for an honest record |
 | `LEARNING-3D.md` | How the 3D model was made and how to learn to do it |

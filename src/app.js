@@ -229,7 +229,10 @@ function clearDemo() { cancelSurvey(); records = {}; save(); render(); }
 // ---- 3D model (optional: the page works without it) ----
 async function mountViewer() {
   const box = $('deck3d');
-  if (!box || typeof window.DeckViewer === 'undefined' || typeof GLB_B64 === 'undefined') return;
+  if (!box) return;
+  if (typeof window.DeckViewer === 'undefined' || typeof GLB_B64 === 'undefined') {
+    $('viewerNote').textContent = '3D view is not included in this build. The level cards show the same data.'; return;
+  }
   try {
     viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay });
     viewer.setSpread($('spread').getAttribute('aria-pressed') === 'true'); // spread by default: lower bays visible
