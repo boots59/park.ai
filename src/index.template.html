@@ -1,79 +1,79 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WEST / deck · concept prototype</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#231f20"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="WEST deck"><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' /*SYNC_ORIGIN*/; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer"><title>WEST / deck · concept prototype</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#231f20"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="WEST deck"><style>
 /*STYLES*/
-</style></head><body><header><div class="brand">West<span> / </span>Deck</div><span class="badge">Student prototype</span></header><main>
-<div class="notice" id="notice"><b>Demo only. Do not use for parking decisions.</b> The open-space counts shown are sample data, not live and not KSU data. Stall numbers were counted on foot by one student on Nov 19, 2026. No KSU affiliation, live feed, or reserved space guarantee.</div>
-<nav aria-label="View" role="tablist"><button id="studentTab" role="tab" class="active" aria-selected="true" onclick="setView('student')">Students</button><button id="staffTab" role="tab" aria-selected="false" onclick="setView('staff')">Staff survey</button><button id="aboutTab" role="tab" aria-selected="false" onclick="setView('about')">Pilot boundaries</button></nav>
+</style></head><body>
+<header><div class="brand">West<span> / </span>Deck</div><button id="aboutTab" class="info" onclick="setView('about')" aria-label="About, limits and settings" aria-selected="false">i</button></header>
+<div class="notice" id="notice"></div>
+<main id="screens">
 
-<section id="student"><h1>West Deck, Kennesaw campus</h1>
+<section id="student" class="screen" aria-label="Now"><div class="inner">
+<h1 class="sr">West Deck, Kennesaw campus</h1>
 <div id="verdict" role="status" aria-live="polite"></div>
-<div class="panel hidden" id="intro" style="margin:0 0 16px"><h2>New here? 20 seconds</h2>
-<ul class="small" style="margin:8px 0 12px;padding-left:18px"><li><b>Top line:</b> whether West Deck is worth trying, and which bays to try first.</li>
-<li><b>Colours:</b> green has room, amber a few, red full, grey unknown. A range like 2–9 means the count is getting old.</li>
-<li><b>This is a student demo.</b> The numbers are a replay of one real count, not live.</li></ul>
-<button class="primary" style="margin-top:0" onclick="dismissIntro()">Got it</button></div>
-<div class="panel"><h2>Where the room is</h2>
-<div id="deck3d" role="img" aria-label="3D model of the deck. Bays are tinted by how fresh their last survey is. The level cards give the same information as text."></div>
-<div class="legend"><span><i style="background:#2f8f4e"></i>Room (5 or more)</span><span><i style="background:#d9a21b"></i>A few</span><span><i style="background:#b8402f"></i>Full</span><span><i style="background:#9aa69a"></i>Unknown</span></div>
-<div class="row" style="justify-content:space-between"><p id="viewerNote" class="small">3D view loading…</p><button id="spread" class="secondary" aria-pressed="true" onclick="toggleSpread()">Slide levels apart</button></div>
-<p id="selection" class="small" role="status" aria-live="polite"></p>
-<details class="small" style="margin-top:8px"><summary>About this 3D model</summary><p class="small"><b>What the model is:</b> outline, top deck, ramp and floor spacing measured from USGS 3DEP lidar (flown April 2019); stall spacing from a USDA NAIP aerial photo (October 2025). <b>What was checked on foot (Nov 19):</b> 3 levels and 662 stalls, against the model's estimate of 651. <b>What is schematic:</b> the North and South strips mark bays the model does not have; their position is approximate. Level 1 is grey because it has no regular student stalls. The model shows whole bays. It does not show which individual spaces are open.</p></details></div>
-<div class="panel" id="reportPanel"><h2>Just parked, or about to leave?</h2>
-<p class="small">Only when you are parked: out of the car after arriving, or before you start the engine to leave. Never while driving. No name, no account. Your tap is a lower-trust signal than a staff count and expires after 10 minutes (4 for a space that is opening).</p>
-<div id="parkedNote" class="notice hidden" style="margin:12px 0"></div>
-<label for="reportBay">Which bay?</label><select id="reportBay"></select>
-<div class="row" style="margin-top:12px"><button class="secondary" onclick="reportBay('plenty')">Plenty of spaces (5+)</button><button class="secondary" onclick="reportBay('few')">A few left (1–4)</button><button class="secondary" onclick="reportBay('full')">I got the last one</button></div>
-<div class="row" style="margin-top:8px"><button class="secondary" onclick="reportBay('leaving')">I'm leaving: my space is opening</button></div>
-<div id="reportMsg" class="feedback" role="status" aria-live="polite"></div></div>
-<h2 style="margin-top:24px">Every level and bay</h2>
-<div id="cards" class="grid"></div>
-<p class="small" style="margin-top:10px">Stall diagrams: one box per regular stall. <span class="key" style="background:#5b6b61;margin-left:4px"></span>taken<span class="key" style="background:#c9d2c3"></span>possibly taken<span class="key" style="background:#e3f1dc;outline:1px solid #2f8f4e"></span>open<span class="key" style="outline:1px dashed #9aa69a"></span>unknown. A diagram shows how many stalls, not which ones, and uses sample counts in this demo.</p>
-<details class="panel"><summary><b>How to read these numbers</b> <span class="small">· a range, never a guess dressed as a count</span></summary>
-<p class="small"><b>Counted:</b> a person counted this bay less than 5 minutes ago. You see their number.<br><b>Estimate:</b> the count is 5–60 minutes old. You see a range that widens as the count ages, and shifts if the bay's last two counts showed it filling or emptying.<br><b>Student report:</b> someone who just parked tapped “plenty”, “a few” or “full”. It fills in when there is no fresh staff count, shows as a band (for example 1–4), and expires after 10 minutes. A staff count under 5 minutes old always wins.<br><b>Unknown:</b> no count or report. Nothing is guessed. If there are enough past counts, the bay notes what is typical at this hour.<br><b>Level and deck totals:</b> add up the bays that are known, and say how many bays that covers.<br><b>I arrive in…:</b> pick a time and the verdict and “try first” are predicted for that moment. Counts will be older by then, so ranges widen, and a bay that was filling is projected forward.<br><b>Try first:</b> the bays with the most open spaces at the low end of their range. The 3D view colours each bay the same way and updates as soon as a count is saved.</p>
-<p class="small">The range is sized to hold the real number about 9 times in 10, <i>if</i> its settings match this deck. They are placeholders until checked against real repeat counts; the staff field log runs that check. Age counts from when a survey <i>started</i>, because a walk takes minutes.</p>
-<p class="small"><b>What is counted:</b> open <i>regular</i> stalls: the ones not marked for faculty/staff or otherwise reserved, as the signs read on Nov 19. Not counted: faculty/staff, accessible (ADA), visitor, reserved, EV-only, motorcycle, blocked or coned spaces. An empty space is not always one you may use.</p></details></section>
+</div></section>
 
-<section id="staff" class="hidden"><div class="layout"><div class="panel"><h2>Count a bay</h2>
-<p class="small">Pick one bay and start. Walk the whole bay once and tap the big button for every open regular stall you pass (not faculty/staff, accessible or reserved). Don't mix partial walks or count a space twice.</p>
-<p id="countNext" class="small" style="line-height:2.2"></p>
-<label for="bay">Bay to survey</label><select id="bay"></select>
-<label for="observer">Observer (a letter, not a name)</label><select id="observer"><option value="A">Observer A</option><option value="B">Observer B</option></select>
-<button class="primary" id="start" onclick="startSurvey()">Start bay survey</button>
+<section id="deck" class="screen" aria-label="Deck"><div class="inner">
+<div id="deck3d" role="img" aria-label="3D model of the deck. Each bay is coloured by how much room it has and carries its number. The Levels screen gives the same information as text."></div>
+<div class="legend"><span><i style="background:#2f8f4e"></i>Room (5 or more)</span><span><i style="background:#d9a21b"></i>A few</span><span><i style="background:#b8402f"></i>Full</span><span><i style="background:#9aa69a"></i>Unknown</span></div>
+<div class="row" style="justify-content:space-between"><span id="viewerNote" class="small">Loading…</span><button id="spread" class="secondary" aria-pressed="true" onclick="toggleSpread()">Levels apart</button></div>
+<p id="selection" class="selection" role="status" aria-live="polite"></p>
+</div></section>
+
+<section id="levels" class="screen" aria-label="Levels"><div class="inner wide">
+<div id="cards" class="grid"></div>
+<p class="small keys"><span class="key" style="background:#55555a;margin-left:0"></span>taken<span class="key" style="background:#c4c4c0"></span>maybe taken<span class="key" style="background:#e3f1dc;outline:1px solid #2f8f4e"></span>open<span class="key" style="outline:1px dashed #9a9a96"></span>unknown</p>
+</div></section>
+
+<section id="report" class="screen" aria-label="Report"><div class="inner" id="reportPanel">
+<div id="parkedNote" class="parked hidden"></div>
+<h2>I just parked</h2>
+<label for="reportBay">Bay</label><select id="reportBay"></select>
+<div class="choices"><button class="choice room" onclick="reportBay('plenty')"><b>Plenty</b>5 or more open</button><button class="choice few" onclick="reportBay('few')"><b>A few</b>1 to 4 open</button><button class="choice full" onclick="reportBay('full')"><b>Last one</b>none left</button></div>
+<button class="secondary wide-btn" onclick="reportBay('leaving')">I'm leaving this bay</button>
+<div id="reportMsg" class="feedback" role="status" aria-live="polite"></div>
+<p class="small">Anonymous. Only when parked, never while driving.</p>
+</div></section>
+
+<section id="staff" class="screen" aria-label="Count"><div class="inner">
+<p id="countNext" class="small next"></p>
+<label for="bay">Bay</label><select id="bay"></select>
+<button class="primary wide-btn" id="start" onclick="startSurvey()">Start count</button>
 <div id="surveyFields" class="hidden"><p id="modelled" class="small"></p>
-<label for="entryKind">What are you entering?</label><select id="entryKind" onchange="kindChanged()"><option value="open">Open stalls I tallied on foot</option><option value="scan">Vehicles counted by the patrol truck</option></select>
-<label for="count" id="countLabel">Open regular stalls: tap once for each one you pass</label>
+<label for="entryKind">Entering</label><select id="entryKind" onchange="kindChanged()"><option value="open">Open stalls I tallied</option><option value="scan">Vehicles counted by the truck</option></select>
+<label for="count" id="countLabel">Open stalls</label>
 <button class="primary tally" id="tallyButton" onclick="adjust(1)" aria-label="Add one">+1 open stall</button>
-<div class="number-controls" style="margin-top:10px"><button class="secondary" aria-label="Subtract one space" onclick="adjust(-1)">−</button><input id="count" type="number" inputmode="numeric" min="0" max="999" step="1" value="0"><button class="secondary" aria-label="Add five spaces" onclick="adjust(5)">+5</button></div>
-<label><input type="checkbox" id="coverage" style="width:auto;margin-right:8px"><span id="coverageLabel"> I walked this whole bay once.</span></label>
-<button class="primary" onclick="finishSurvey()">Complete &amp; replace observation</button> <button class="secondary" onclick="cancelSurvey()">Cancel</button>
+<div class="number-controls" style="margin-top:8px"><button class="secondary" aria-label="Subtract one" onclick="adjust(-1)">−</button><input id="count" type="number" inputmode="numeric" min="0" max="999" step="1" value="0"><button class="secondary" aria-label="Add five" onclick="adjust(5)">+5</button></div>
+<label class="check"><input type="checkbox" id="coverage"><span id="coverageLabel"> Whole bay walked</span></label>
+<div class="row"><button class="primary" style="flex:1" onclick="finishSurvey()">Save count</button><button class="secondary" onclick="cancelSurvey()">Cancel</button></div>
 <details class="assist" id="assist"><summary>Camera AI test (optional)</summary>
 <p class="small">Walking and tallying is the reliable count. This tests the vehicle-detection model that could one day count from the deck's own cameras, using a phone photo as a stand-in. Photograph one section; the model counts the vehicles on this device and you check it. The photo is not saved or uploaded.</p>
 <button class="secondary" onclick="document.getElementById('photo').click()">Photograph a section</button>
 <input id="photo" type="file" accept="image/*" capture="environment" class="hidden" onchange="scanPhoto(this)">
 <div id="scanStatus" class="small" role="status" aria-live="polite"></div>
 <canvas id="scanCanvas" class="hidden" onclick="tapBox(event)" style="cursor:pointer" aria-label="Your photo with a numbered box on each vehicle the model found. Tap a box to leave that vehicle out"></canvas>
-<div id="scanPanel"></div></details>
-</div>
-<div id="feedback" class="feedback" role="status" aria-live="polite"></div></div>
-<div class="panel"><h2>Counting rules</h2><ol class="small">
-<li>Count only empty regular stalls. Skip faculty/staff, accessible, visitor, reserved, EV-only, motorcycle and blocked spaces.</li>
-<li>A completed survey replaces the bay's old count. It never adds to it.</li>
-<li>A survey open more than 20 minutes is rejected. Start again.</li>
-<li>A count of vehicles from the patrol truck works too: the app subtracts it from the bay's stall count. It only ever needs the number, never a plate.</li>
-<li>Partial or cancelled surveys never reach students.</li>
-<li>Zero means you found no usable open spaces. Unknown means no count in the last 60 minutes.</li>
-<li>Recounting a bay 3–60 minutes after its last count gives students a trend, not just a number.</li></ol>
-<h2>Field log</h2><p id="logSummary" class="small"></p>
-<div class="row"><button class="secondary" onclick="exportLog()">Export field log (CSV)</button><button class="secondary" onclick="clearLog()">Clear field log</button></div>
-<p class="small">Each completed survey is logged with its real start and end time, the count, and for AI-assisted counts the model's number beside the confirmed one. No photos, names or plates.</p>
-<div class="notice">Local demo only: this browser stores the simulated records. No staff login, shared server or audit log. Real use needs KSU approval and coordination between observers.</div></div></div></section>
+<div id="scanPanel"></div></details></div>
+<div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+</div></section>
 
-<section id="about" class="hidden"><div class="panel"><h2>What a real count looked like</h2>
+<section id="about" class="screen" aria-label="About"><div class="inner">
+<h2>About</h2>
+<p id="noticeLong" class="small">A student prototype for the KSU AI Club Hackathon 2026. Not a KSU system. Do not use it for parking decisions. No license plates, faces, names or location are collected.</p>
+<p id="syncStatus" class="small" role="status" aria-live="polite"></p>
+<details class="fold" open><summary>Demo data</summary>
+<div class="controls" id="demoControls"><div class="row"><button class="secondary" onclick="loadDemo('nov19')">Replay Nov 19 count</button><button class="secondary" onclick="loadDemo('sample')">Made-up sample</button><button class="secondary" onclick="clearDemo()">Clear</button><button class="secondary" onclick="advance(6)">+6 min</button><button class="secondary" onclick="advance(15)">+15 min</button></div></div>
+<p id="clock" class="small"></p><p class="small" id="modeLink"></p></details>
+<details class="fold"><summary>How to read the numbers</summary>
+<p class="small"><b>Counted:</b> a person counted this bay less than 5 minutes ago. You see their number.<br><b>Estimate:</b> the count is 5–60 minutes old. You see a range that widens as the count ages, and shifts if the bay's last two counts showed it filling or emptying.<br><b>Student report:</b> someone who just parked tapped “plenty”, “a few” or “full”. It fills in when there is no fresh staff count, shows as a band (for example 1–4), and expires after 10 minutes. A staff count under 5 minutes old always wins.<br><b>Unknown:</b> no count or report. Nothing is guessed. If there are enough past counts, the bay notes what is typical at this hour.<br><b>Level and deck totals:</b> add up the bays that are known, and say how many bays that covers.<br><b>I arrive in…:</b> pick a time and the verdict and “try first” are predicted for that moment. Counts will be older by then, so ranges widen, and a bay that was filling is projected forward.<br><b>Try first:</b> the bays with the most open spaces at the low end of their range. The 3D view colours each bay the same way and updates as soon as a count is saved.</p>
+<p class="small">The range is sized to hold the real number about 9 times in 10, <i>if</i> its settings match this deck. They are placeholders until checked against real repeat counts; the staff field log runs that check. Age counts from when a survey <i>started</i>, because a walk takes minutes.</p>
+<p class="small"><b>What is counted:</b> open <i>regular</i> stalls: the ones not marked for faculty/staff or otherwise reserved, as the signs read on Nov 19. Not counted: faculty/staff, accessible (ADA), visitor, reserved, EV-only, motorcycle, blocked or coned spaces. An empty space is not always one you may use.</p></details>
+<details class="fold"><summary>A real count: Nov 19</summary><div>
 <p class="small">Thursday, Nov 19, 2026. One student counted all 10 student bays twice. This is a record of that morning, not live data.</p>
 <div style="overflow-x:auto"><table class="facts"><tr><th>Pass</th><th>Open regular stalls</th><th>Level 3</th><th>Level 2</th><th>Where the room was</th></tr>
 <tr><td>11:16–11:35 AM</td><td>75 of 428 (82% taken)</td><td>47 open</td><td>28 open</td><td>56 of the 75 in three bays</td></tr>
 <tr><td>11:49–11:57 AM</td><td>70 of 428 (84% taken)</td><td>45 open</td><td>25 open</td><td>57 of the 70 in the same three bays</td></tr></table></div>
 <p class="small">The three bays were Level 2 West, Level 3 West and Level 3 Centre. The deck was not full at the hour KSU gives as the start of the peak, but most of the room was in 3 of 10 bays. Between the passes a bay changed by 0.9 stalls on average. One morning and one counter: a first look, not a pattern.</p></div>
-<div class="panel"><h2>A credible one-deck pilot</h2>
+</details>
+<details class="fold"><summary>What is built, and its limits</summary>
 <p>Test the staff workflow and whether students understand the display before claiming to solve parking. Confirm with KSU Parking &amp; Transportation: the real number of levels, eligible stalls per bay and permit type, and whether they would take part.</p>
 <ul><li><b>Built now:</b> walk-and-tally bay counts, a field log, bay surveys, replace-not-add, timestamps from survey start, estimates with ranges, unknown states, a deck-level verdict, a "try first" recommendation, local storage, and a 3D view.</li>
 <li><b>3D model:</b> made from public USGS lidar and USDA aerial photos. It shows where bays are. It does not detect cars or open spaces.</li>
@@ -82,11 +82,24 @@
 <li><b>Cameras:</b> not connected. KSU's Video Monitoring Standard (Sept 2024) routes live viewing and new cameras through the Department of Public Safety.</li>
 <li><b>Privacy:</b> no plates, faces, student identity or enforcement records.</li>
 <li><b>AI:</b> people walking and tallying is the reliable count today. An object-detection model (YOLOX-s, trained on the public COCO dataset) is included as a test of what the deck's own cameras could do later, with Public Safety's approval: it counts vehicles in a phone photo, on the device, and a person checks every number. Field testing on Nov 19 found two limits: one wide photo of a bay finds about 11 vehicles at most, and it also counts vehicles outside the bay.</li></ul>
-<p class="small">This prototype cannot reserve spaces, validate a permit, prevent tickets or detect accidents. Use it to test an idea, not to make parking decisions.</p></div></section>
-
-<p id="syncStatus" class="small" role="status" aria-live="polite"></p>
-<div class="controls" id="demoControls"><div class="row"><b class="small">Demo controls</b><button class="secondary" onclick="advance(6)">Advance 6 minutes</button><button class="secondary" onclick="advance(15)">Advance 15 minutes</button><button class="secondary" onclick="loadDemo('nov19')">Replay the Nov 19 count</button><button class="secondary" onclick="loadDemo('sample')">Load made-up sample data</button><button class="secondary" onclick="clearDemo()">Clear observations</button></div><p id="clock" class="small"></p></div>
-<footer>WEST / deck · Concept by Kell Enow · 3D model contributed by a collaborator · Browser-local prototype, no data sent anywhere. <a href="field.html">Field kit</a> <span id="modeLink"></span><br>Model data: USGS 3DEP lidar · Imagery: USDA NAIP · Level count: © OpenStreetMap contributors (ODbL) · Detection: YOLOX (Apache-2.0), ONNX Runtime Web (MIT) · 3D: three.js (MIT)</footer></main>
+<p class="small">This prototype cannot reserve spaces, validate a permit, prevent tickets or detect accidents. Use it to test an idea, not to make parking decisions.</p></details>
+<details class="fold"><summary>Counting rules</summary><ol class="small">
+<li>Count only empty regular stalls. Skip faculty/staff, accessible, visitor, reserved, EV-only, motorcycle and blocked spaces.</li>
+<li>A completed survey replaces the bay's old count. It never adds to it.</li>
+<li>A survey open more than 20 minutes is rejected. Start again.</li>
+<li>A count of vehicles from the patrol truck works too: the app subtracts it from the bay's stall count. It only ever needs the number, never a plate.</li>
+<li>Partial or cancelled surveys never reach students.</li>
+<li>Zero means you found no usable open spaces. Unknown means no count in the last 60 minutes.</li>
+<li>Recounting a bay 3–60 minutes after its last count gives students a trend, not just a number.</li></ol></details>
+<details class="fold"><summary>Field tools</summary>
+<label for="observer">Observer</label><select id="observer"><option value="A">Observer A</option><option value="B">Observer B</option></select>
+<p id="logSummary" class="small"></p>
+<div class="row"><button class="secondary" onclick="exportLog()">Export field log (CSV)</button><button class="secondary" onclick="clearLog()">Clear field log</button><a class="secondary" href="field.html" style="text-decoration:none;display:inline-flex;align-items:center">Field kit</a></div></details>
+<details class="fold"><summary>About this 3D model</summary><p class="small"><b>What the model is:</b> outline, top deck, ramp and floor spacing measured from USGS 3DEP lidar (flown April 2019); stall spacing from a USDA NAIP aerial photo (October 2025). <b>What was checked on foot (Nov 19):</b> 3 levels and 662 stalls, against the model's estimate of 651. <b>What is schematic:</b> the North and South strips mark bays the model does not have; their position is approximate. Level 1 is grey because it has no regular student stalls. The model shows whole bays. It does not show which individual spaces are open.</p></details>
+<footer>WEST / deck · Concept by Kell Enow · 3D model contributed by a collaborator · Browser-local prototype, no data sent anywhere. <br>Model data: USGS 3DEP lidar · Imagery: USDA NAIP · Level count: © OpenStreetMap contributors (ODbL) · Detection: YOLOX (Apache-2.0), ONNX Runtime Web (MIT) · 3D: three.js (MIT)</footer>
+</div></section>
+</main>
+<nav id="tabs" aria-label="Screens" role="tablist"><button id="studentTab" role="tab" class="active" aria-selected="true" onclick="setView('student')">Now</button><button id="deckTab" role="tab" aria-selected="false" onclick="setView('deck')">Deck</button><button id="levelsTab" role="tab" aria-selected="false" onclick="setView('levels')">Levels</button><button id="reportTab" role="tab" aria-selected="false" onclick="setView('report')">Report</button><button id="staffTab" role="tab" aria-selected="false" onclick="setView('staff')">Count</button></nav>
 <script id="viewer-js">/*VIEWER*/</script>
 <script id="app-js">
 /*DECK*/

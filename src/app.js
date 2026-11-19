@@ -41,11 +41,10 @@ function seedNov19() {
               L2_South: rec(2, 5.5, 2, 19), L2_East: rec(1, 5, 4, 22), L2_North: rec(0, 4.5, 1, 22), L2_West: rec(22, 4, 21, 22), L2_Centre: rec(0, 2.5, 0, 21) };
 }
 const NOTICE = {
-  nov19: '<b>A replay, not live. Do not use for parking decisions.</b> These are the counts one student made in West Deck on Thursday, Nov 19, 2026, shown as if it were 11:58 AM that day. Not KSU data and not a KSU system.',
-  sample: '<b>Demo only. Do not use for parking decisions.</b> The open-space counts shown are made-up sample data. Stall numbers were counted on foot by one student on Nov 19, 2026. No KSU affiliation, live feed, or reserved space guarantee.',
+  nov19: '<b>A replay, not live.</b> Thursday, Nov 19, 2026, 11:58 AM',
+  sample: '<b>Not live:</b> made-up sample data.',
 };
 function loadDemo(kind) { cancelSurvey(); demo = kind === 'sample' ? 'sample' : 'nov19'; offset = 0; (demo === 'sample' ? seed : seedNov19)(); reports = []; saveReports(); save(); render(); }
-function dismissIntro() { $('intro').classList.add('hidden'); try { localStorage.setItem('west-deck-intro-v1', '1'); } catch (e) {} }
 
 // ILLUSTRATIVE sample data, not observations. Covers every display state:
 // just counted, ageing with and without a trend, and unknown.
@@ -68,12 +67,22 @@ function loadReports() { try { reports = ParkingModel.cleanReports(JSON.parse(lo
 function saveReports() { try { localStorage.setItem(REPORT_KEY, JSON.stringify(reports)); } catch (e) {} }
 function feedback(text, error = false) { const el = $('feedback'); el.textContent = text; el.classList.toggle('error', error); }
 
+// The app is a row of full-size screens. Swipe sideways or use the bottom bar; `setView` jumps to one.
+const SCREENS = ['student', 'deck', 'levels', 'report', 'staff', 'about'];
+function markTab(id) {
+  for (const name of SCREENS) { const tab = $(name + 'Tab'); tab.classList.toggle('active', name === id); tab.setAttribute('aria-selected', String(name === id)); }
+}
 function setView(id) {
-  for (const name of ['student', 'staff', 'about']) {
-    $(name).classList.toggle('hidden', name !== id);
-    $(name + 'Tab').classList.toggle('active', name === id);
-    $(name + 'Tab').setAttribute('aria-selected', String(name === id));
-  }
+  if (!SCREENS.includes(id)) id = 'student';
+  const strip = $('screens'), screen = $(id);
+  if (strip.scrollTo) strip.scrollTo({ left: screen.offsetLeft, behavior: 'auto' });
+  markTab(id);
+}
+// Keep the bottom bar in step when the person swipes instead of tapping.
+function watchSwipes() {
+  const strip = $('screens'); if (!strip.addEventListener) return;
+  let timer = 0;
+  strip.addEventListener('scroll', () => { clearTimeout(timer); timer = setTimeout(() => markTab(SCREENS[Math.round(strip.scrollLeft / strip.clientWidth)] || 'student'), 80); }, { passive: true });
 }
 
 const STATUS_TEXT = { counted: 'Counted', estimate: 'Estimate', students: 'Student report', unknown: 'Unknown' };
@@ -114,16 +123,16 @@ function bayRow(z, t) {
     `<span class="status ${STATUS_CLASS[src]}">${STATUS_TEXT[src]} · ${detail}</span>${stallStrip(z, e)}</button></li>`;
 }
 function summaryText(sum) {
-  return sum.state === 'unknown' ? ['?', 'availability not known']
-    : sum.state === 'partial' ? ['≥' + sum.low, `in ${sum.knownBays} of ${sum.bays} bays · the rest unknown`]
-    : sum.exact ? [String(sum.low), 'counted open · every bay counted in the last 5 minutes']
-    : [range(sum), 'estimated open · ' + (sum.students ? 'includes student reports' : 'some counts are ageing')];
+  return sum.state === 'unknown' ? ['?', 'unknown']
+    : sum.state === 'partial' ? ['≥' + sum.low, `in ${sum.knownBays} of ${sum.bays} bays`]
+    : sum.exact ? [String(sum.low), 'counted']
+    : [range(sum), sum.students ? 'estimate · student reports' : 'estimate'];
 }
 // A level with no regular stalls (all faculty/staff, accessible or reserved) is shown, but never as open to students.
 function closedLevelCard(n) {
   const all = ALL_IDS.filter(z => DECK.zones[z].level === n).map(z => DECK.zones[z]), sum = k => all.reduce((x, z) => x + (z[k] || 0), 0);
-  return `<article class="card"><h3>Level ${n}</h3><div class="count">0</div><div class="unit">no regular student stalls on this level</div>` +
-    `<p class="small">Counted on foot: ${sum('facultyStaff')} faculty/staff, ${sum('accessible')} accessible, ${sum('otherReserved')} other reserved. Any time limits on those stalls were not recorded.</p></article>`;
+  return `<article class="card"><h3>Level ${n}</h3><div class="count">0</div><div class="unit">no student stalls</div>` +
+    `<p class="small">${sum('facultyStaff')} faculty/staff · ${sum('accessible')} accessible · ${sum('otherReserved')} reserved</p></article>`;
 }
 function levelCard(n, t) {
   if (!zonesOf(n).length) return closedLevelCard(n);
@@ -143,14 +152,14 @@ function renderVerdict(now) {
   const arrive = '<span class="arrive">I arrive in ' + [0, 5, 10, 15].map(m =>
     `<button class="pick" aria-pressed="${lead === m}" onclick="setLead(${m})">${m ? m + ' min' : 'now'}</button>`).join(' ') + '</span>';
   $('verdict').innerHTML = `<span class="verdict-word ${d.verdict}">${VERDICT[d.verdict]}</span>` +
-    `<span class="verdict-detail">${d.state === 'unknown' ? 'No bay has a usable count.' : `<b>${count}</b> open · ${unit}`}` +
+    `<span class="verdict-detail">${d.state === 'unknown' ? 'No counts yet' : `<b>${count}</b> open · ${unit}`}` +
     (lead ? ` · <b>predicted for ${lead} minutes from now</b>` : '') +
     (Number.isFinite(newest) ? ` · newest count ${Math.max(0, Math.floor(newest / 60e3))} min ago` : '') + '</span>' + arrive + bestBet(t);
 }
 // "Where should I try first?" Whole bays only: nothing here knows which individual spaces are open.
 function bestBet(t) {
   const picks = ParkingModel.recommend(records, ZONE_IDS, t, 3, reports);
-  if (!picks.length) return '<span class="best">No bay has a known open space right now. KSU\'s advice when a deck is full is a Shuttle Lot and the Big Owl Bus.</span>';
+  if (!picks.length) return '<span class="best">No bay has a known open space right now. If the deck is full: Shuttle Lot and the Big Owl Bus.</span>';
   const item = ({ zone, est }) => `<button class="pick" onclick="selectBay('${zone}')">${bayName(zone)} · <b>${range(est)}</b> open${{ counted: '', estimate: ' (estimate)', students: ' (student report)' }[est.source]}</button>`;
   return `<span class="best"><b>Try first:</b> ${item(picks[0])}${picks.length > 1 ? ' <span class="then">then</span> ' + picks.slice(1).map(item).join(' ') : ''}</span>`;
 }
@@ -160,7 +169,7 @@ function render() {
   $('cards').innerHTML = LEVELS.map(n => levelCard(n, t)).join('');
   $('clock').textContent = (demo === 'nov19' ? 'Replay of Thu Nov 19, as if 11:58 AM' : demo === 'sample' ? 'Made-up sample data' : 'Counts entered on this device') +
     ' · clock moved forward ' + Math.round(offset / 60e3) + ' min · stall numbers counted on foot Nov 19.';
-  if (!Sync.on) $('notice').innerHTML = demo === 'own' ? '<b>Test entries, not verified. Do not use for parking decisions.</b> Whatever is shown was typed in on this device. Not KSU data and not a KSU system.' : NOTICE[demo];
+  if (!Sync.on) $('notice').innerHTML = demo === 'own' ? '<b>Test entries</b> typed in on this device. Not verified.' : NOTICE[demo];
   renderNext();
   if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z); return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
   renderSelection();
@@ -171,13 +180,13 @@ function selectBay(z) {
     $('selection').textContent = 'That bay has no regular student stalls (faculty/staff, accessible or reserved), so it is not counted.'; return;
   }
   selectedBay = selectedBay === z ? null : z;
-  if (selectedBay) { setView('student'); $('reportBay').value = selectedBay; } // a pick shows on the model and pre-fills the report form
+  if (selectedBay) { setView('deck'); $('reportBay').value = selectedBay; } // a pick shows on the 3D deck and pre-fills the report form
   if (viewer) viewer.select(selectedBay);
   render();
 }
 function renderSelection() {
   const el = $('selection'); if (!el) return;
-  if (!selectedBay) { el.textContent = 'Tap a bay on the model or in a level card.'; return; }
+  if (!selectedBay) { el.textContent = 'Tap a bay.'; return; }
   const t = now(), r = records[selectedBay], e = est(selectedBay, t);
   el.textContent = bayName(selectedBay) + (DECK.zones[selectedBay].note ? ' (' + DECK.zones[selectedBay].note + ')' : '') + ': ' +
     (!e ? 'unknown' : e.counted ? r.count + ' counted open, ' + minsAgo(r, t) + ' min ago'
@@ -242,7 +251,7 @@ function startSurvey() {
   $('surveyFields').classList.remove('hidden');
   $('start').disabled = true; $('bay').disabled = true; $('observer').disabled = true;
   $('modelled').textContent = stallNote(zone) + '.';
-  feedback('Survey of ' + bayName(zone) + ' in progress. Nothing is published until you complete it.');
+  feedback('Counting ' + bayName(zone) + '.');
 }
 function cancelSurvey(message = 'Survey closed. No unfinished count was saved.') {
   survey = null;
@@ -255,9 +264,9 @@ function adjust(n) { const i = $('count'); i.value = Math.min(ParkingModel.MAX_C
 // What the number being entered means: open stalls tallied on foot, or vehicles counted by a patrol truck's plate reader.
 function kindChanged() {
   const scan = $('entryKind').value === 'scan';
-  $('countLabel').textContent = scan ? 'Vehicles the truck counted in this bay (a number only, never a plate)' : 'Open regular stalls: tap once for each one you pass';
+  $('countLabel').textContent = scan ? 'Vehicles (a number only, never a plate)' : 'Open stalls';
   $('tallyButton').textContent = scan ? '+1 vehicle' : '+1 open stall';
-  $('coverageLabel').textContent = scan ? ' The truck covered this whole bay.' : ' I walked this whole bay once.';
+  $('coverageLabel').textContent = scan ? ' Truck covered the whole bay' : ' Whole bay walked';
 }
 function finishSurvey() {
   if (!survey) return; // a second tap after saving does nothing
@@ -412,7 +421,7 @@ function syncNow() {
 function startSharing() {
   if (!Sync.on) return;
   $('demoControls').classList.add('hidden'); // a simulated clock makes no sense with shared real entries
-  $('notice').innerHTML = '<b>Test build. Do not use for parking decisions.</b> Counts and reports here are typed in by testers and are not verified. Not a KSU system.';
+  $('notice').innerHTML = '<b>Live test.</b> Entries are typed in by testers and not verified.';
   syncNow(); setInterval(syncNow, 15000);
 }
 // A link between the two modes, shown only when a shared database is configured.
@@ -436,7 +445,7 @@ async function mountViewer() {
   try {
     viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay, bayIds: ALL_IDS });
     viewer.setSpread($('spread').getAttribute('aria-pressed') === 'true', true); // apart by default, no animation on load
-    $('viewerNote').textContent = 'Drag to rotate. Tap a bay to see its observation.';
+    $('viewerNote').textContent = 'Drag to rotate. Tap a bay.';
     render();
   } catch (e) {
     viewer = null;
@@ -450,13 +459,13 @@ function toggleSpread() {
 }
 
 load(); loadReports(); fillBayOptions(); renderLog(); render();
-try { if (!localStorage.getItem('west-deck-intro-v1')) $('intro').classList.remove('hidden'); } catch (e) {}
+watchSwipes();
 renderParked();
 // Links: ?report opens straight at the student report panel; ?bay=L2_West also picks the bay (for a QR code posted in that bay).
 if (typeof location !== 'undefined') {
   const q = location.search || '', bay = (/[?&]bay=([\w]+)/.exec(q) || [])[1];
   if (bay && ZONE_IDS.includes(bay)) $('reportBay').value = bay;
-  if (bay || /[?&]report\b/.test(q)) { setView('student'); const el = $('reportPanel'); if (el.scrollIntoView) el.scrollIntoView(); }
+  if (bay || /[?&]report\b/.test(q)) setView('report');
 }
 window.addEventListener('storage', e => {
   if (e.key === REPORT_KEY) { loadReports(); render(); return; }

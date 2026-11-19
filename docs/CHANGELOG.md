@@ -89,3 +89,5 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Removed: the marketing headline and intro line, the small uppercase labels above headings, pill-shaped tags, the coloured stripe on the notice, long dashes used as placeholders.
 - The verdict is the first thing on the page, as a black sign board. The first-visit card sits below it. The note about the 3D model is folded away.
 - Nothing about how the app behaves changed; all tests pass unchanged apart from the placeholder character.
+- The app is now a row of full-size screens (Now, Deck, Levels, Report, Count) with a bottom bar and sideways swipe; About is behind the "i" button. Explanations, demo controls and field tools moved to About. Wording cut throughout.
+- Content security policy and no-referrer added. `docs/SECURITY.md` lists what is and is not protected.

@@ -39,7 +39,7 @@ function serve() {
     await p.screenshot({ path: `${out}/student-${w}.png`, fullPage: true });
 
     await p.click('#staffTab'); await p.selectOption('#bay', 'L2_North'); await p.click('#start');
-    await p.click('#tallyButton'); await p.check('#coverage'); await p.click('text=Complete & replace');
+    await p.click('#tallyButton'); await p.check('#coverage'); await p.click('text=Save count');
     assert.match(await p.textContent('#feedback'), /Level 2 · North bay saved/);
     assert.match(await p.textContent('#logSummary'), /1 completed survey logged/);
     const staffOverflow = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
@@ -70,7 +70,7 @@ function serve() {
     const aiOverflow = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     assert.ok(aiOverflow <= 0, `AI panel scrolls sideways by ${aiOverflow}px`);
     await p.screenshot({ path: `${out}/staff-ai-375.png`, fullPage: true });
-    await p.click('text=Complete & replace');
+    await p.click('text=Save count');
     assert.match(await p.textContent('#feedback'), /Level 3 · West bay saved/);
     const csv = await p.evaluate(() => fieldLogCsv());
     assert.match(csv, new RegExp(`ai-assisted,1,${found},${found + 1},${found}>${found + 1},0,(single|tiled),0`));

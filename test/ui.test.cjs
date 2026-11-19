@@ -22,11 +22,11 @@ let pass = 0; const test = (name, fn) => { fn(); pass++; console.log('ok -', nam
 
 test('seed shows a counted level, an estimated level, a level with no student stalls and a deck verdict', () => {
   const { els } = boot();
-  assert.match(els.cards.innerHTML, />25<\/div><div class="unit">counted open/);        // Level 3: 6+0+11+3+5, all just counted
-  assert.match(els.cards.innerHTML, />9–31<\/div><div class="unit">estimated open/);    // Level 2: 4+2+1 counted, plus two ageing bays (0–8 and 2–16)
+  assert.match(els.cards.innerHTML, />25<\/div><div class="unit">counted/);        // Level 3: 6+0+11+3+5, all just counted
+  assert.match(els.cards.innerHTML, />9–31<\/div><div class="unit">estimate/);    // Level 2: 4+2+1 counted, plus two ageing bays (0–8 and 2–16)
   assert.match(els.cards.innerHTML, /bay-count">0–8<\/b><span class="status estimate">Estimate · counted 7, 8 min ago/); // it was filling: 12 then 7, so the middle is 3
-  assert.match(els.cards.innerHTML, /Level 1<\/h3>.*no regular student stalls on this level.*174 faculty\/staff, 3 accessible, 4 other reserved/); // counted on foot
-  assert.match(els.verdict.innerHTML, /Room likely.*<b>34–56<\/b> open · estimated open/);
+  assert.match(els.cards.innerHTML, /Level 1<\/h3>.*no student stalls.*174 faculty\/staff · 3 accessible · 4 reserved/); // counted on foot
+  assert.match(els.verdict.innerHTML, /Room likely.*<b>34–56<\/b> open · estimate/);
 });
 test('recommends where to try first, and says so plainly when nothing is known to be open', () => {
   const b = boot();
@@ -51,7 +51,7 @@ test('staff are told which bay to count next', () => {
 });
 test('a first visit opens on the replay of the real Nov 19 count, labelled as a replay', () => {
   const b = boot({}, { replay: true });
-  assert.match(b.els.verdict.innerHTML, /Room likely.*<b>56–83<\/b> open · estimated open/);   // 70 were counted; five bays are 5-9 minutes old in the replay
+  assert.match(b.els.verdict.innerHTML, /Room likely.*<b>56–83<\/b> open · estimate/);   // 70 were counted; five bays are 5-9 minutes old in the replay
   assert.match(b.els.verdict.innerHTML, /Try first:.*Level 2 · West bay · <b>22<\/b> open/);
   assert.match(b.els.notice.innerHTML, /A replay, not live.*Thursday, Nov 19, 2026/);
   assert.match(b.els.clock.textContent, /Replay of Thu Nov 19/);
@@ -253,7 +253,7 @@ const photo = () => ({ files: [{}], value: 'x' });
   await atest('a count and a student report made on one phone appear on another', async () => {
     const db = fakeDatabase(), opt = { syncUrl: 'https://example.test', fetch: db.fetch };
     const monitor = boot({}, opt), student = boot({}, opt), parked = boot({}, opt);
-    assert.match(monitor.els.cards.innerHTML, /availability not known/);       // shared mode starts empty, no sample data
+    assert.match(monitor.els.cards.innerHTML, /class="unit">unknown/);       // shared mode starts empty, no sample data
     assert.match(monitor.els.notice.innerHTML, /typed in by testers/);
     monitor.run('startSurvey()'); monitor.els.count.value = '9'; monitor.els.coverage.checked = true; monitor.run('finishSurvey()');
     parked.els.reportBay.value = 'L2_North'; parked.run("reportBay('few')");
