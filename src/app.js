@@ -103,7 +103,7 @@ function stallStrip(z, e) {
 function bayRow(z, t) {
   const r = records[z], e = est(z, t), src = e ? e.source : 'unknown';
   let detail;
-  if (src === 'counted') detail = minsAgo(r, t) + ' min ago';
+  if (src === 'counted') detail = (r.method === 'scan' ? 'truck count, ' : '') + minsAgo(r, t) + ' min ago';
   else if (src === 'estimate') detail = `counted ${r.count}, ${minsAgo(r, t)} min ago`;
   else if (src === 'students') detail = `"${BAND_TEXT[e.band]}", ${ago(e.reportedAt, t)}` + (e.students > 1 ? ` · ${e.students} reports agree` : '');
   else { const typ = ParkingModel.typical(historyList(), z, t);
@@ -238,7 +238,7 @@ function fillBayOptions() {
 function startSurvey() {
   const zone = $('bay').value;
   survey = { zone, start: now(), realStart: Date.now(), version: records[zone]?.version || 0, photos: [] };
-  $('count').value = 0; $('coverage').checked = false; renderScan();
+  $('count').value = 0; $('coverage').checked = false; $('entryKind').value = 'open'; kindChanged(); renderScan();
   $('surveyFields').classList.remove('hidden');
   $('start').disabled = true; $('bay').disabled = true; $('observer').disabled = true;
   $('modelled').textContent = stallNote(zone) + '.';
@@ -252,18 +252,29 @@ function cancelSurvey(message = 'Survey closed. No unfinished count was saved.')
   feedback(message);
 }
 function adjust(n) { const i = $('count'); i.value = Math.min(ParkingModel.MAX_COUNT, Math.max(0, (Number(i.value) || 0) + n)); }
+// What the number being entered means: open stalls tallied on foot, or vehicles counted by a patrol truck's plate reader.
+function kindChanged() {
+  const scan = $('entryKind').value === 'scan';
+  $('countLabel').textContent = scan ? 'Vehicles the truck counted in this bay (a number only, never a plate)' : 'Open regular stalls: tap once for each one you pass';
+  $('tallyButton').textContent = scan ? '+1 vehicle' : '+1 open stall';
+  $('coverageLabel').textContent = scan ? ' The truck covered this whole bay.' : ' I walked this whole bay once.';
+}
 function finishSurvey() {
   if (!survey) return; // a second tap after saving does nothing
-  if (!$('coverage').checked) { feedback('Confirm you walked the whole bay once before saving.', true); return; }
+  const scan = $('entryKind').value === 'scan';
+  if (!$('coverage').checked) { feedback(scan ? 'Confirm the truck covered the whole bay before saving.' : 'Confirm you walked the whole bay once before saving.', true); return; }
   const raw = $('count').value;
   try {
     if (raw === '') throw Error('Enter a count, including 0 when no spaces are open.');
-    const count = Number(raw), zone = survey.zone, started = survey.realStart;
-    records = ParkingModel.complete(records, survey, count, now(), CATEGORY, { photos: survey.photos });
+    const entered = Number(raw), zone = survey.zone, started = survey.realStart;
+    const fromScan = scan && Number.isInteger(entered) && entered >= 0 ? ParkingModel.openFromVehicles(DECK.zones[zone], entered) : null;
+    const count = fromScan ? fromScan.open : entered;
+    records = ParkingModel.complete(records, survey, count, now(), CATEGORY, fromScan ? { method: 'scan', vehicles: entered } : { photos: survey.photos });
     save(); logSurvey(zone, records[zone], started); shareCount(zone, records[zone]);
     const over = count > DECK.zones[zone].stalls
       ? ' Note: that is above the ' + stallWord(zone) + ' stall count (' + DECK.zones[zone].stalls + '). One of the two numbers is wrong; worth recording.' : '';
-    cancelSurvey(bayName(zone) + ' saved. The previous count was replaced, not added.' + over);
+    const how = fromScan ? ` ${entered} vehicles counted, so ${count} open` + (fromScan.couldBeLowerBy ? ` (up to ${fromScan.couldBeLowerBy} fewer if the open stalls are faculty, accessible or reserved ones).` : '.') : '';
+    cancelSurvey(bayName(zone) + ' saved. The previous count was replaced, not added.' + how + (fromScan ? '' : over));
     render();
   } catch (e) { feedback(e.message, true); }
 }

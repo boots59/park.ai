@@ -58,6 +58,18 @@ test('a first visit opens on the replay of the real Nov 19 count, labelled as a 
   b.run("loadDemo('sample')"); assert.match(b.els.notice.innerHTML, /made-up sample data/);
   b.run('clearDemo()'); assert.match(b.els.notice.innerHTML, /typed in on this device/);
 });
+test('a truck\'s vehicle count is turned into open stalls, and says how far it could be off', () => {
+  const b = boot(); b.run('clearDemo(); startSurvey()');                     // Level 3 West: 74 regular stalls, nothing else
+  b.els.entryKind.value = 'scan'; b.run('kindChanged()');
+  assert.match(b.els.countLabel.textContent, /never a plate/);
+  b.els.count.value = '56'; b.els.coverage.checked = true; b.run('finishSurvey()');
+  assert.equal(b.saved().L3_West.count, 18); assert.equal(b.saved().L3_West.method, 'scan');
+  assert.match(b.els.feedback.textContent, /56 vehicles counted, so 18 open\./);
+  assert.match(b.els.cards.innerHTML, /bay-count">18<\/b><span class="status recent">Counted · truck count, 0 min ago/);
+  b.els.bay.value = 'L2_Centre'; b.run('startSurvey()'); b.els.entryKind.value = 'scan';     // 28 regular + 38 faculty
+  b.els.count.value = '60'; b.els.coverage.checked = true; b.run('finishSurvey()');
+  assert.match(b.els.feedback.textContent, /so 6 open \(up to 6 fewer/);
+});
 test('coverage must be confirmed before saving', () => {
   const b = boot(); b.run('clearDemo(); startSurvey()');
   assert.equal(b.els.start.disabled, true);

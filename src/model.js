@@ -83,7 +83,16 @@ const ParkingModel = (() => {
     const photos = Array.isArray(extra?.photos)
       ? extra.photos.filter(p => p && ok(p.ai) && ok(p.confirmed)).slice(0, 50).map(p => ({ ai: p.ai, confirmed: p.confirmed, ...(ok(p.outside) && p.outside ? { outside: Math.min(p.outside, p.ai) } : {}) }))
       : [];
-    return { method: photos.length ? 'ai-assisted' : 'manual', photos };
+    // 'scan': the number came from a count of vehicles (for example how many plates a patrol truck read), not a tally of open stalls.
+    return { method: extra?.method === 'scan' ? 'scan' : photos.length ? 'ai-assisted' : 'manual', photos, ...(extra?.method === 'scan' && ok(extra.vehicles) ? { vehicles: extra.vehicles } : {}) };
+  }
+  // Open regular stalls from a count of ALL vehicles in a bay (a patrol truck's plate reads).
+  // total stalls - vehicles = open stalls of every type. How many of those are regular is not known,
+  // so the answer is a best case (all open stalls are regular ones) and how far it could be off.
+  function openFromVehicles(zone, vehicles) {
+    const other = (zone.accessible || 0) + (zone.facultyStaff || 0) + (zone.otherReserved || 0);
+    const openAll = Math.max(0, zone.stalls + other - vehicles);
+    return { open: Math.min(zone.stalls, openAll), couldBeLowerBy: Math.min(other, openAll) };
   }
   // Suggested open spaces = stalls - confirmed vehicles, never below zero.
   // Only as good as the stall number, which is a model estimate until KSU confirms it.
@@ -266,6 +275,6 @@ const ParkingModel = (() => {
   }
 
   return { status, trend, estimate, bayEstimate, cleanReports, typical, BANDS, complete, levelSummary, deckSummary, bayState, stallSplit, recommend, recheckNext, backtest, variability, sanitize,
-    cleanExtra, suggestOpen, aiAccuracy, FRESH, HORIZON, MAX_SURVEY, MAX_COUNT, SIGMA, ROOM_AT, FULL_AT };
+    cleanExtra, suggestOpen, openFromVehicles, aiAccuracy, FRESH, HORIZON, MAX_SURVEY, MAX_COUNT, SIGMA, ROOM_AT, FULL_AT };
 })();
 if (typeof module !== 'undefined') module.exports = ParkingModel;

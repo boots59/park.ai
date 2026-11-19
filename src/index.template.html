@@ -61,10 +61,11 @@ nav{display:flex;gap:6px;border-bottom:1px solid #d0d0ce;margin:30px 0 22px;over
 <label for="observer">Observer (a letter, not a name)</label><select id="observer"><option value="A">Observer A</option><option value="B">Observer B</option></select>
 <button class="primary" id="start" onclick="startSurvey()">Start bay survey</button>
 <div id="surveyFields" class="hidden"><p id="modelled" class="small"></p>
-<label for="count">Open regular stalls: tap once for each one you pass</label>
-<button class="primary tally" onclick="adjust(1)" aria-label="Add one space">+1 open stall</button>
+<label for="entryKind">What are you entering?</label><select id="entryKind" onchange="kindChanged()"><option value="open">Open stalls I tallied on foot</option><option value="scan">Vehicles counted by the patrol truck</option></select>
+<label for="count" id="countLabel">Open regular stalls: tap once for each one you pass</label>
+<button class="primary tally" id="tallyButton" onclick="adjust(1)" aria-label="Add one">+1 open stall</button>
 <div class="number-controls" style="margin-top:10px"><button class="secondary" aria-label="Subtract one space" onclick="adjust(-1)">−</button><input id="count" type="number" inputmode="numeric" min="0" max="999" step="1" value="0"><button class="secondary" aria-label="Add five spaces" onclick="adjust(5)">+5</button></div>
-<label><input type="checkbox" id="coverage" style="width:auto;margin-right:8px"> I walked this whole bay once.</label>
+<label><input type="checkbox" id="coverage" style="width:auto;margin-right:8px"><span id="coverageLabel"> I walked this whole bay once.</span></label>
 <button class="primary" onclick="finishSurvey()">Complete &amp; replace observation</button> <button class="secondary" onclick="cancelSurvey()">Cancel</button>
 <details class="assist" id="assist"><summary>Camera AI test (optional)</summary>
 <p class="small">Walking and tallying is the reliable count. This tests the vehicle-detection model that could one day count from the deck's own cameras, using a phone photo as a stand-in. Photograph one section; the model counts the vehicles on this device and you check it. The photo is not saved or uploaded.</p>
@@ -79,6 +80,7 @@ nav{display:flex;gap:6px;border-bottom:1px solid #d0d0ce;margin:30px 0 22px;over
 <li>Count only empty regular stalls. Skip faculty/staff, accessible, visitor, reserved, EV-only, motorcycle and blocked spaces.</li>
 <li>A completed survey replaces the bay's old count. It never adds to it.</li>
 <li>A survey open more than 20 minutes is rejected. Start again.</li>
+<li>A count of vehicles from the patrol truck works too: the app subtracts it from the bay's stall count. It only ever needs the number, never a plate.</li>
 <li>Partial or cancelled surveys never reach students.</li>
 <li>Zero means you found no usable open spaces. Unknown means no count in the last 60 minutes.</li>
 <li>Recounting a bay 3–60 minutes after its last count gives students a trend, not just a number.</li></ol>

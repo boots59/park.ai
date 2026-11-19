@@ -81,3 +81,5 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Student poll results (30 drivers) and a staff interview form in the field kit. `docs/PRIVACY.md`.
 - Black and gold colour scheme. Counts expire after 60 minutes.
 - Sharing between phones is live behind `?live`, against a real Firebase database. The field kit backs up online and `field.html?survey` collects anonymous answers. Survey QR code and sign in `submission/`.
+- Staff survey accepts a patrol truck's vehicle count for a bay and converts it to open stalls (`ParkingModel.openFromVehicles`), stating how far off it could be where a bay has non-regular stalls.
+- Evidence: conversation with KSU's associate director of parking operations (Nov 19).

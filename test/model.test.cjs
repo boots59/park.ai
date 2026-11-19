@@ -218,6 +218,15 @@ test('AI-assisted counts keep AI and confirmed numbers per photo', () => {
   assert.deepEqual(r.L1_West.photos, [{ ai: 30, confirmed: 31 }, { ai: 29, confirmed: 30 }]); // junk dropped
   assert.equal(m.complete({}, { zone: 'L1_West', start: t, version: 0 }, 5, t, CAT).L1_West.method, 'manual');
 });
+test('open stalls from a truck\'s vehicle count, with how far it could be off', () => {
+  const allRegular = { stalls: 74 }, mixed = { stalls: 28, facultyStaff: 38 };
+  assert.deepEqual(m.openFromVehicles(allRegular, 56), { open: 18, couldBeLowerBy: 0 });
+  assert.deepEqual(m.openFromVehicles(allRegular, 90), { open: 0, couldBeLowerBy: 0 });
+  assert.deepEqual(m.openFromVehicles(mixed, 60), { open: 6, couldBeLowerBy: 6 });      // 6 open of 66: could all be faculty stalls
+  assert.deepEqual(m.openFromVehicles(mixed, 20), { open: 28, couldBeLowerBy: 38 });
+  assert.deepEqual(m.cleanExtra({ method: 'scan', vehicles: 56 }), { method: 'scan', photos: [], vehicles: 56 });
+  assert.equal(m.cleanExtra({ method: 'made-up' }).method, 'manual');
+});
 test('suggested open = stalls - confirmed vehicles, floor at zero', () => {
   assert.deepEqual(m.suggestOpen(79, [{ ai: 30, confirmed: 31 }, { ai: 29, confirmed: 30 }]), { vehicles: 61, open: 18 });
   assert.deepEqual(m.suggestOpen(10, [{ ai: 12, confirmed: 12 }]), { vehicles: 12, open: 0 });

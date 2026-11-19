@@ -46,6 +46,12 @@ Update this whenever a fact changes. "Verified" means someone read the primary s
   - A truck drives through the whole deck and scans every license plate. Plates without a permit are sent to a monitor, who then walks to those cars.
   - Monitors are supposed to walk the whole deck as well; some rely on the truck's scans instead.
   - Not asked or not known: how often the truck passes, whether each scan is stored with a level or location and a time, and whether the parking office would share scan counts.
+- **Told to Kell in person by KSU's associate director of parking operations (2026-11-19). His account, relayed by Kell; nothing in writing yet:**
+  - The plate-reading truck goes through West Deck at least six or seven times a day and circulates around campus all day.
+  - Monitors are meant to cover every lot around the clock. Today that happens Monday to Friday; outside monitors are being brought in to cover weekends.
+  - He regularly gets emails from faculty and staff who cannot find parking. They pay for permits too.
+  - He has more specific data he is willing to share, but it has to go through approvals that will not finish before the hackathon deadline. He offered to follow up by email.
+  - The office is also looking at other technology for counting open spaces across campus. Details are not recorded here because they may not be public.
 - A KSU staff member told Kell (2026-11-19) that privacy is the reason KSU has not had an app for this. Which privacy concern, and whether that is the office's official position, were not established. See `docs/PRIVACY.md`.
 - Kell's report after a day on site (2026-11-19): monitors come to West Deck consistently through at least the busiest part of the day. How often, in rounds per hour, was not measured.
 - Still unknown: how often a monitor covers West Deck, whether a round covers every level, and whether the scanner logs scans by time and place.
