@@ -92,7 +92,7 @@ Neither has been validated in West Deck yet. [docs/RESULTS.md](docs/RESULTS.md) 
 ## Privacy
 
 No license plates, faces, names or enforcement records are collected. Photos are processed on the device and never saved
-or uploaded. The field log holds counts and times only.
+or uploaded. The field log holds counts and times only. Details and the remaining risks: [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ## Credits
 

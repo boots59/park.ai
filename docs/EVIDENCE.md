@@ -46,6 +46,7 @@ Update this whenever a fact changes. "Verified" means someone read the primary s
   - A truck drives through the whole deck and scans every license plate. Plates without a permit are sent to a monitor, who then walks to those cars.
   - Monitors are supposed to walk the whole deck as well; some rely on the truck's scans instead.
   - Not asked or not known: how often the truck passes, whether each scan is stored with a level or location and a time, and whether the parking office would share scan counts.
+- A KSU staff member told Kell (2026-11-19) that privacy is the reason KSU has not had an app for this. Which privacy concern, and whether that is the office's official position, were not established. See `docs/PRIVACY.md`.
 - Still unknown: how often a monitor covers West Deck, whether a round covers every level, and whether the scanner logs scans by time and place.
 
 ## Unknown
