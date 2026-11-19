@@ -7,6 +7,8 @@ The protocol is in [FIELD-DAY.md](FIELD-DAY.md) and [TONIGHT.md](TONIGHT.md).
 | Measure | Value | Date | How |
 |---|---|---|---|
 | Number of levels | | | |
+| Bay layout | Each level also has North and South bays, which the 3D model does not have | 2026-11-19 | Kell, on site |
+| Total stalls, all types, whole deck | **662** (as reported; per-bay breakdown pending the exported log) | 2026-11-19, morning | Kell, on foot, tap counter in the field kit; one counter, not double-checked. The 3D model's estimate was 651 |
 | Stalls per bay (counted on foot) | | | |
 | Restricted stalls per bay | | | |
 | Entrances and exits | | | |

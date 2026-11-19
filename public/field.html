@@ -45,6 +45,10 @@ const QUESTIONS = [
   { id: 'levels', text: '5. Did you try more than one level or lot before you found a space?', options: ['Yes', 'No'], onlyIf: 'Yes' },
   { id: 'would', text: '6. If you had known before driving in which level had room, what would you have done?', options: ['Gone straight to that level', 'Picked a different deck or lot', 'Nothing different', 'Not sure'], onlyIf: 'Yes' },
   { id: 'late', text: '7. This semester, has parking made you late to class?', options: ['Never', 'Once or twice', 'Several times'] },
+  { id: 'gaveup', text: '8. This semester, have you given up on a deck and parked somewhere else?', options: ['Never', 'Once or twice', 'Several times'] },
+  { id: 'days', text: '9. How many days a week do you drive to campus?', options: ['1-2', '3-4', '5 or more'] },
+  { id: 'check', text: '10. Before driving in, would you check a page that shows which level has room?', options: ['Yes, most times', 'Sometimes', 'No'] },
+  { id: 'tap', text: '11. After parking, would you tap one button to tell the next driver how full your level was?', options: ['Yes', 'Maybe', 'No'] },
 ];
 const KEY = 'west-deck-fieldkit-v1';
 let data = { responses: [], tallies: [], stalls: [] }, form = {}, tally = null, timer = 0;
@@ -63,7 +67,7 @@ function pick(id, i) { const q = QUESTIONS.find(q => q.id === id); form[id] = q.
 function resetForm() { form = {}; renderForm(); $('pollMsg').textContent = ''; }
 function saveResponse() {
   const missing = QUESTIONS.filter(q => visible(q) && !form[q.id]);
-  if (missing.length) { $('pollMsg').textContent = 'Still unanswered: question ' + missing.map(q => q.text[0]).join(', ') + '. Tap an answer, or Clear to drop this response.'; return; }
+  if (missing.length) { $('pollMsg').textContent = 'Still unanswered: question ' + missing.map(q => parseInt(q.text)).join(', ') + '. Tap an answer, or Clear to drop this response.'; return; }
   data.responses.push({ time: stamp(), ...form }); save(); form = {}; renderForm();
   $('pollMsg').textContent = 'Saved. ' + data.responses.length + ' responses so far.';
 }
@@ -82,8 +86,8 @@ function drawStalls() {
     `<button class="add" onclick="tapStall('${k}',1)" aria-label="${label} plus one">+1</button>` +
     (i ? `<button onclick="tapStall('${k}',-1)" aria-label="${label} minus one">−1</button>` : `<button class="add" onclick="tapStall('${k}',5)" aria-label="${label} plus five">+5</button>`) + '</div>').join('');
   const rows = data.stalls, sum = k => rows.reduce((n, r) => n + r[k], 0);
-  $('stallTable').innerHTML = rows.length ? '<p class="q">Saved</p><table><tr><th>Level</th><th>Bay</th><th>Row</th><th>Reg</th><th>Acc</th><th>Fac</th><th>Other</th></tr>' +
-    rows.map(r => `<tr><td>${esc(r.level)}</td><td>${esc(r.bay)}</td><td>${esc(r.row)}</td><td>${r.regular}</td><td>${r.accessible}</td><td>${r.faculty}</td><td>${r.other}</td></tr>`).join('') +
+  $('stallTable').innerHTML = rows.length ? '<p class="q">Saved</p><table><tr><th>Level</th><th>Bay</th><th>Row</th><th>Reg</th><th>Acc</th><th>Fac</th><th>Other</th><th></th></tr>' +
+    rows.map((r, i) => `<tr><td>${esc(r.level)}</td><td>${esc(r.bay)}</td><td>${esc(r.row)}</td><td>${r.regular}</td><td>${r.accessible}</td><td>${r.faculty}</td><td>${r.other}</td><td><button onclick="editStalls(${i})" aria-label="Edit labels of row ${i + 1}" style="min-height:32px;padding:4px 10px">Edit</button></td></tr>`).join('') +
     `<tr><th colspan="3">Total (${sum('regular') + sum('accessible') + sum('faculty') + sum('other')} stalls)</th><th>${sum('regular')}</th><th>${sum('accessible')}</th><th>${sum('faculty')}</th><th>${sum('other')}</th></tr></table>` +
     '<p><button onclick="deleteLastStalls()">Delete last saved bay</button></p>' : '';
 }
@@ -96,6 +100,14 @@ function saveStalls() {
   if (!KINDS.some(([k]) => row[k])) { $('stallMsg').textContent = 'Nothing counted yet.'; return; }
   data.stalls.push(row); save(); draft.taps = []; draft.row = ''; saveDraft(); drawStalls();
   $('stallMsg').textContent = `Saved Level ${row.level} ${row.bay}: ${row.regular} regular, ${row.accessible} accessible, ${row.faculty} faculty/staff, ${row.other} other. Pick the next bay.`;
+}
+// Fix a label on a saved bay (the counts are not changed).
+function editStalls(i) {
+  const r = data.stalls[i]; if (!r) return;
+  const level = prompt('Level', r.level); if (level === null) return;
+  const bay = prompt('Bay (West, Centre ramp, East, North, South, Other)', r.bay); if (bay === null) return;
+  const row = prompt('Row or note (for example: inside, outside)', r.row); if (row === null) return;
+  Object.assign(r, { level: level.trim().slice(0, 12), bay: bay.trim().slice(0, 30), row: row.trim().slice(0, 60), edited: stamp() }); save(); drawStalls();
 }
 function deleteLastStalls() { if (data.stalls.length && confirm('Delete the last saved bay?')) { data.stalls.pop(); save(); drawStalls(); } }
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
