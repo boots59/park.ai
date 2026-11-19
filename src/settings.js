@@ -9,7 +9,8 @@ const Settings = {
   maxCount: 999,          // largest count a person can enter
 
   // --- Estimate between counts (see estimate() in src/model.js) ---
-  variability: 0.8,       // how unpredictable a bay is, in spaces per square-root-minute
+  variability: 0.4,       // how unpredictable a bay is, in spaces per square-root-minute. Measured 0.26 on Nov 19
+                          // (11:15-12:00, 10 bays); set about 1.5 times higher because that is one late-morning hour
   rangeZ: 1.64,           // range width in spreads: 1.64 aims to hold the truth about 9 times in 10
   trendMinGapMinutes: 3,  // two counts closer together than this are noise, not a trend
   trendMaxGapMinutes: 60, // two counts further apart than this say nothing about now

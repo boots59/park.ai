@@ -50,7 +50,7 @@ recompute with `node scripts/analyze-field.cjs data/field/2026-11-19-bay-counts.
 |---|---|---|---|
 | Later real count inside the range (target: about 9 in 10) | 9 of 9. The ranges were wide, so this is weak evidence that they are well sized | 9 bay pairs, 19-25 min apart | 2026-11-19 |
 | Average miss of the middle estimate (spaces) | 0.8 | same 9 pairs | 2026-11-19 |
-| Measured variability (the page assumes 0.8) | 0.26: bays changed about a third as fast as assumed, at this hour on this day. The setting has not been changed on one morning's data | 10 bay pairs | 2026-11-19 |
+| Measured variability | 0.26 to 0.27. The page first assumed 0.8, far too wide. It is now set to 0.4, about 1.5 times the measured value, because the measurement covers one late-morning hour. With 0.4 the later count still fell inside the range in 10 of 10 cases, but that is a check on the same data the setting came from | 10 bay pairs | 2026-11-19 |
 
 ## Is the problem real?
 | Measure | Value | Sample | Date |

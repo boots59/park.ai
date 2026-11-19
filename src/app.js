@@ -24,9 +24,29 @@ const now = () => Date.now() + offset;
 const $ = id => document.getElementById(id);
 
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify({ records, offset })); }
+  try { localStorage.setItem(KEY, JSON.stringify({ records, offset, demo })); }
   catch (e) { feedback('Storage unavailable. This demo lasts only until the page closes.', true); }
 }
+// Two demo data sets (single-device mode only):
+//   'nov19'  a replay of the real count Kell made in West Deck on Thu Nov 19, 2026 (second pass, 11:49-11:57 AM),
+//            shown as if it were 11:58 AM that day, with the first pass (11:16-11:35) as each bay's earlier count.
+//   'sample' made-up numbers that show every display state.
+let demo = 'nov19', startedFresh = false;
+function seedNov19() {
+  const t = now(), ago = m => t - m * 60e3;
+  const rec = (count, minsAgo, before, gap) => ({ count, start: ago(minsAgo), end: ago(minsAgo - 0.5), version: 2,
+    category: CATEGORY, method: 'manual', photos: [], prev: { count: before, start: ago(minsAgo + gap) } });
+  //                 pass 2, minutes before 11:58, pass 1, minutes between the passes   (data/field/2026-11-19-bay-counts.csv)
+  records = { L3_East: rec(4, 9, 6, 33), L3_South: rec(6, 8, 6, 24), L3_West: rec(18, 8, 19, 24), L3_Centre: rec(17, 7, 16, 21), L3_North: rec(0, 0.5, 0, 29),
+              L2_South: rec(2, 5.5, 2, 19), L2_East: rec(1, 5, 4, 22), L2_North: rec(0, 4.5, 1, 22), L2_West: rec(22, 4, 21, 22), L2_Centre: rec(0, 2.5, 0, 21) };
+}
+const NOTICE = {
+  nov19: '<b>A replay, not live. Do not use for parking decisions.</b> These are the counts one student made in West Deck on Thursday, Nov 19, 2026, shown as if it were 11:58 AM that day. Not KSU data and not a KSU system.',
+  sample: '<b>Demo only. Do not use for parking decisions.</b> The open-space counts shown are made-up sample data. Stall numbers were counted on foot by one student on Nov 19, 2026. No KSU affiliation, live feed, or reserved space guarantee.',
+};
+function loadDemo(kind) { cancelSurvey(); demo = kind === 'sample' ? 'sample' : 'nov19'; offset = 0; (demo === 'sample' ? seed : seedNov19)(); reports = []; saveReports(); save(); render(); }
+function dismissIntro() { $('intro').classList.add('hidden'); try { localStorage.setItem('west-deck-intro-v1', '1'); } catch (e) {} }
+
 // ILLUSTRATIVE sample data, not observations. Covers every display state:
 // just counted, ageing with and without a trend, and unknown.
 function seed() {
@@ -39,10 +59,10 @@ function seed() {
 function load() {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY));
-    if (saved && typeof saved.offset === 'number') { records = ParkingModel.sanitize(saved.records, ZONE_IDS); offset = Sync.on ? 0 : saved.offset; return; }
+    if (saved && typeof saved.offset === 'number') { records = ParkingModel.sanitize(saved.records, ZONE_IDS); offset = Sync.on ? 0 : saved.offset; demo = saved.demo === 'sample' ? 'sample' : saved.demo === 'own' ? 'own' : 'nov19'; return; }
   } catch (e) {}
   if (Sync.on) { records = {}; return; } // shared mode starts empty: no sample data mixed with real entries
-  seed();
+  startedFresh = true; seedNov19(); // a first visit opens on the replay of the real count
 }
 function loadReports() { try { reports = ParkingModel.cleanReports(JSON.parse(localStorage.getItem(REPORT_KEY)), ZONE_IDS, now()); } catch (e) { reports = []; } }
 function saveReports() { try { localStorage.setItem(REPORT_KEY, JSON.stringify(reports)); } catch (e) {} }
@@ -138,8 +158,9 @@ function render() {
   const t = now();
   renderVerdict(t);
   $('cards').innerHTML = LEVELS.map(n => levelCard(n, t)).join('');
-  $('clock').textContent = 'Simulated clock: ' + new Date(t).toLocaleTimeString() + ' · +' +
-    Math.round(offset / 60e3) + ' min · sample counts; stall numbers counted on foot Nov 19.';
+  $('clock').textContent = (demo === 'nov19' ? 'Replay of Thu Nov 19, as if 11:58 AM' : demo === 'sample' ? 'Made-up sample data' : 'Counts entered on this device') +
+    ' · clock moved forward ' + Math.round(offset / 60e3) + ' min · stall numbers counted on foot Nov 19.';
+  if (!Sync.on) $('notice').innerHTML = demo === 'own' ? '<b>Test entries, not verified. Do not use for parking decisions.</b> Whatever is shown was typed in on this device. Not KSU data and not a KSU system.' : NOTICE[demo];
   renderNext();
   if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z); return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
   renderSelection();
@@ -386,8 +407,8 @@ function startSharing() {
 
 // ---- Demo controls ----
 function advance(m) { offset += m * 60e3; save(); render(); }
-function resetDemo() { cancelSurvey(); offset = 0; seed(); reports = []; saveReports(); save(); render(); }
-function clearDemo() { cancelSurvey(); records = {}; reports = []; saveReports(); save(); render(); }
+function resetDemo() { loadDemo(demo === 'own' ? 'nov19' : demo); }
+function clearDemo() { cancelSurvey(); records = {}; reports = []; demo = 'own'; saveReports(); save(); render(); } // from here on, whatever is shown was entered on this device
 
 // ---- 3D model (optional: the page works without it) ----
 async function mountViewer() {
@@ -413,6 +434,7 @@ function toggleSpread() {
 }
 
 load(); loadReports(); fillBayOptions(); renderLog(); render();
+try { if (!localStorage.getItem('west-deck-intro-v1')) $('intro').classList.remove('hidden'); } catch (e) {}
 renderParked();
 // Links: ?report opens straight at the student report panel; ?bay=L2_West also picks the bay (for a QR code posted in that bay).
 if (typeof location !== 'undefined') {

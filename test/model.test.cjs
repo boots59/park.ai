@@ -1,5 +1,7 @@
 // Run: node test/model.test.cjs   (pure logic, no browser)
 const assert = require('node:assert/strict');
+// These tests check the logic, so they pin the tunable settings they were written against.
+Object.assign(require('../src/settings.js'), { variability: 0.8 });
 const m = require('../src/model.js');
 const t = 1_000_000_000, MIN = 60e3, CAT = 'Example general permit (illustrative)';
 const zones = ['L1_West', 'L1_Centre', 'L1_East'];

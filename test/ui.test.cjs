@@ -5,14 +5,17 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), vm = requ
 const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
 const appJs = html.match(/<script id="app-js">([\s\S]*?)<\/script>/)[1];
 
-function boot(storage = {}, { syncUrl = '', fetch } = {}) {
+function boot(storage = {}, { syncUrl = '', fetch, replay = false } = {}) {
   const els = {};
   const element = id => els[id] ??= { value: id === 'bay' ? 'L3_West' : '', checked: false, disabled: false,
     textContent: '', innerHTML: '', attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k] ?? null; },
     classList: { set: new Set(), toggle(c, on) { on ?? !this.set.has(c) ? this.set.add(c) : this.set.delete(c); }, add(c) { this.set.add(c); }, remove(c) { this.set.delete(c); } } };
   const ctx = vm.createContext({ document: { getElementById: element }, localStorage: { getItem: k => storage[k] ?? null, setItem: (k, v) => { storage[k] = v; } },
     window: { addEventListener() {} }, setInterval() {}, Date, Number, Math, JSON, Error, Object, Set, Array, Promise, String, encodeURIComponent, fetch });
-  vm.runInContext(appJs.replace("syncUrl: '',", 'syncUrl: ' + JSON.stringify(syncUrl) + ','), ctx);
+  // Logic tests pin the estimate's variability at the value they were written against; the replay test uses the shipped value.
+  const source = replay ? appJs : appJs.replace(/variability: [\d.]+,/, 'variability: 0.8,');
+  vm.runInContext(source.replace("syncUrl: '',", 'syncUrl: ' + JSON.stringify(syncUrl) + ','), ctx);
+  if (!replay) vm.runInContext("startedFresh && loadDemo('sample')", ctx); // most tests use the made-up sample; a real first visit opens on the Nov 19 replay
   return { els, ctx, storage, run: code => vm.runInContext(code, ctx), saved: () => JSON.parse(storage['west-deck-prototype-v2']).records };
 }
 let pass = 0; const test = (name, fn) => { fn(); pass++; console.log('ok -', name); };
@@ -45,6 +48,15 @@ test('staff are told which bay to count next', () => {
   assert.match(b.els.countNext.innerHTML, /Count next:.*Level 2 · South bay.*\(its range is 2 to 16\)/);   // the widest range in the sample data
   b.run('clearDemo()');
   assert.match(b.els.countNext.innerHTML, /\(nothing is known about it\)/);
+});
+test('a first visit opens on the replay of the real Nov 19 count, labelled as a replay', () => {
+  const b = boot({}, { replay: true });
+  assert.match(b.els.verdict.innerHTML, /Room likely.*<b>56–83<\/b> open · estimated open/);   // 70 were counted; five bays are 5-9 minutes old in the replay
+  assert.match(b.els.verdict.innerHTML, /Try first:.*Level 2 · West bay · <b>22<\/b> open/);
+  assert.match(b.els.notice.innerHTML, /A replay, not live.*Thursday, Nov 19, 2026/);
+  assert.match(b.els.clock.textContent, /Replay of Thu Nov 19/);
+  b.run("loadDemo('sample')"); assert.match(b.els.notice.innerHTML, /made-up sample data/);
+  b.run('clearDemo()'); assert.match(b.els.notice.innerHTML, /typed in on this device/);
 });
 test('coverage must be confirmed before saving', () => {
   const b = boot(); b.run('clearDemo(); startSurvey()');
