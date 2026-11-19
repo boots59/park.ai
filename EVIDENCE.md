@@ -14,6 +14,13 @@ Update this whenever a fact changes. "Verified" means someone read the primary s
 | ParkSynk (Spring 2024 ISE senior design) targeted the **Marietta** campus with an app and sensors | DigitalCommons egr_srdsn/101 abstract (full report not read) | 2026-11-18 |
 | The 3D model file contains 3 level groups, 9 bay meshes, and named materials as its README says | Inspected the GLB | 2026-11-18 |
 | The page opens from a file with network blocked and does not scroll sideways at 375px; 3D renders in software WebGL | `npm run check:browser` | 2026-11-18 (headless Chromium, not a real phone) |
+| The AI vehicle count runs fully in the browser: YOLOX-s (Apache-2.0, COCO-trained) on ONNX Runtime Web | `npm run check:browser` | 2026-11-18 (headless Chromium on a desktop CPU: about 1 s per photo after a 2 s first load) |
+| On one outdoor street photo with small, partly hidden cars, the model found 16 vehicles and the boxes sat on cars | Looked at the annotated output | 2026-11-18 (one photo, not a parking deck, no hand count: this shows the pipeline works, not how accurate it is) |
+
+## AI vehicle count: what is NOT known yet
+- Accuracy inside West Deck (dim light, cars hiding each other, cars seen end-on). The field log measures it: model number beside the confirmed number, per photo.
+- Speed on a real phone. Only a desktop CPU was tested.
+- "Open = stalls − vehicles" needs KSU's real stall count per bay and permit type. Today it uses the 3D model's estimate and counts vehicles in restricted spaces too.
 
 ## From the 3D model's own README (not independently checked)
 - Outline 118.6 × 55.4 m, top deck 319.15 m, 3.1 m floor-to-floor: USGS 3DEP lidar flown April 2019.
@@ -27,7 +34,7 @@ Update this whenever a fact changes. "Verified" means someone read the primary s
 - Registration was due by the end of Monday, Nov 16.
 - Tracks (one project can enter several): **AI Club** ($800/$200), **IEEE CS** (a game built with AI: not this project), **Nudox** ($900, most organized codebase; criteria announced at the event, not in the slides), **it.** ($800; the slides show placeholders only).
 - AI Club rubric (100): campus impact 25 (real data: surveys, counts, wait times), **use of AI 25 ("AI is the core of the solution, not an add-on")**, feasibility 20, creativity 15, pitch 15.
-- The prototype currently runs **no AI model**, so it would score poorly on "use of AI" as it stands.
+- The prototype now runs an AI model (see "AI vehicle count" below). Its accuracy in the deck is unmeasured until the field day.
 
 ## Unknown
 Real level count; stalls per bay and permit type; where the restricted spaces are; whether staff would take part; any existing per-floor feed; Nudox and it. judging criteria; whether Kell registered.

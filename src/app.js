@@ -88,17 +88,18 @@ function fillBayOptions() {
 }
 function startSurvey() {
   const zone = $('bay').value;
-  survey = { zone, start: now(), version: records[zone]?.version || 0 };
-  $('count').value = 0; $('coverage').checked = false;
+  survey = { zone, start: now(), realStart: Date.now(), version: records[zone]?.version || 0, photos: [] };
+  $('count').value = 0; $('coverage').checked = false; renderScan();
   $('surveyFields').classList.remove('hidden');
-  $('start').disabled = true; $('bay').disabled = true;
+  $('start').disabled = true; $('bay').disabled = true; $('observer').disabled = true;
   $('modelled').textContent = 'Modelled stalls in this bay: ' + DECK.zones[zone].stalls + ' (3D model estimate, not a KSU figure).';
   feedback('Survey of ' + bayName(zone) + ' in progress. Nothing is published until you complete it.');
 }
 function cancelSurvey(message = 'Survey closed. No unfinished count was saved.') {
   survey = null;
   $('surveyFields').classList.add('hidden');
-  $('start').disabled = false; $('bay').disabled = false;
+  $('start').disabled = false; $('bay').disabled = false; $('observer').disabled = false;
+  $('scanCanvas').classList.add('hidden'); // the photo preview is discarded with the survey
   feedback(message);
 }
 function adjust(n) { const i = $('count'); i.value = Math.min(ParkingModel.MAX_COUNT, Math.max(0, (Number(i.value) || 0) + n)); }
@@ -108,14 +109,88 @@ function finishSurvey() {
   const raw = $('count').value;
   try {
     if (raw === '') throw Error('Enter a count, including 0 when no spaces are open.');
-    const count = Number(raw), zone = survey.zone;
-    records = ParkingModel.complete(records, survey, count, now(), CATEGORY);
-    save();
+    const count = Number(raw), zone = survey.zone, started = survey.realStart;
+    records = ParkingModel.complete(records, survey, count, now(), CATEGORY, { photos: survey.photos });
+    save(); logSurvey(zone, records[zone], started);
     const over = count > DECK.zones[zone].stalls
       ? ' Note: that is above the modelled stall count (' + DECK.zones[zone].stalls + '), so the model may be wrong. Worth recording.' : '';
     cancelSurvey(bayName(zone) + ' saved. The previous count was replaced, not added.' + over);
     render();
   } catch (e) { feedback(e.message, true); }
+}
+
+// ---- AI assist: a model counts vehicles in a photo, a person confirms ----
+async function scanPhoto(input) {
+  const file = input.files && input.files[0];
+  if (!survey || !file) return;
+  const status = $('scanStatus'), mine = survey;
+  status.textContent = 'Counting vehicles on this device… the first photo also loads the model.';
+  try {
+    if (!window.CarCounter) throw Error('AI count is not available in this build. Count by eye instead.');
+    const result = await window.CarCounter.count(file, $('scanCanvas'));
+    if (survey !== mine) return; // survey was cancelled or finished while the model ran
+    survey.photos.push({ ai: result.count, confirmed: result.count });
+    $('scanCanvas').classList.remove('hidden');
+    status.textContent = '';
+  } catch (e) { status.textContent = e.message; }
+  input.value = ''; // let the same photo be chosen again
+  renderScan();
+}
+function adjustPhoto(n) {
+  const last = survey?.photos.at(-1); if (!last) return;
+  last.confirmed = Math.min(ParkingModel.MAX_COUNT, Math.max(0, last.confirmed + n)); renderScan();
+}
+function removePhoto() { if (survey?.photos.pop()) { $('scanCanvas').classList.add('hidden'); renderScan(); } }
+function useSuggestion() {
+  if (!survey?.photos.length) return;
+  $('count').value = ParkingModel.suggestOpen(DECK.zones[survey.zone].stalls, survey.photos).open;
+}
+function renderScan() {
+  const el = $('scanPanel'), photos = survey?.photos || [];
+  if (!photos.length) { el.innerHTML = ''; return; }
+  const last = photos.at(-1), stalls = DECK.zones[survey.zone].stalls, s = ParkingModel.suggestOpen(stalls, photos);
+  el.innerHTML = `<p><b>Photo ${photos.length}:</b> the model found <b>${last.ai}</b> vehicles. Check the numbered boxes, then correct the number if it missed or doubled any.</p>` +
+    `<div class="number-controls"><button class="secondary" aria-label="One fewer vehicle" onclick="adjustPhoto(-1)">−</button>` +
+    `<output class="confirmed" aria-label="Confirmed vehicles in this photo">${last.confirmed}</output>` +
+    `<button class="secondary" aria-label="One more vehicle" onclick="adjustPhoto(1)">+</button></div>` +
+    `<p class="small">Bay so far: <b>${s.vehicles}</b> vehicles in ${photos.length} photo${photos.length > 1 ? 's' : ''}. Don't photograph the same cars twice.</p>` +
+    `<p class="small">Suggestion: ${stalls} modelled stalls − ${s.vehicles} vehicles = <b>${s.open} open</b>. The stall number is a model estimate, and vehicles in restricted spaces are included, so check before you save.</p>` +
+    `<div class="row"><button class="secondary" onclick="useSuggestion()">Use ${s.open} as the count</button><button class="secondary" onclick="removePhoto()">Remove last photo</button></div>`;
+}
+
+// ---- Field log: every completed survey, for the validation study ----
+const LOG_KEY = 'west-deck-fieldlog-v1';
+let fieldLog = [];
+try { const l = JSON.parse(localStorage.getItem(LOG_KEY)); if (Array.isArray(l)) fieldLog = l.filter(e => e && typeof e.zone === 'string' && DECK.zones[e.zone]); } catch (e) {}
+function logSurvey(zone, rec, realStart) {
+  const end = Date.now(), obs = $('observer').value === 'B' ? 'B' : 'A';
+  fieldLog.push({ zone, observer: obs, start: new Date(realStart).toISOString(), end: new Date(end).toISOString(),
+    seconds: Math.round((end - realStart) / 1000), open: rec.count, method: rec.method, photos: rec.photos,
+    clockOffsetMin: Math.round(offset / 60e3) });
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(fieldLog)); } catch (e) {}
+  renderLog();
+}
+function fieldLogCsv() {
+  const head = 'zone,observer,start_iso,end_iso,duration_s,open_count,method,photos,ai_vehicles,confirmed_vehicles,per_photo_ai>confirmed,demo_clock_offset_min';
+  const sum = (ps, k) => ps.reduce((n, p) => n + p[k], 0);
+  return [head, ...fieldLog.map(e => { const ps = ParkingModel.cleanExtra(e).photos; return [e.zone, e.observer, e.start, e.end,
+    Number(e.seconds) || 0, Number(e.open) || 0, ps.length ? 'ai-assisted' : 'manual', ps.length, sum(ps, 'ai'), sum(ps, 'confirmed'),
+    ps.map(p => p.ai + '>' + p.confirmed).join('|'), Number(e.clockOffsetMin) || 0].join(','); })].join('\n') + '\n';
+}
+function renderLog() {
+  const acc = ParkingModel.aiAccuracy(fieldLog.flatMap(e => ParkingModel.cleanExtra(e).photos));
+  $('logSummary').textContent = fieldLog.length + ' completed survey' + (fieldLog.length === 1 ? '' : 's') + ' logged on this device.' +
+    (acc ? ` Model vs. person on ${acc.photos} photo${acc.photos === 1 ? '' : 's'}: exact on ${acc.exact}, average error ${acc.meanAbsError.toFixed(1)} vehicles (${acc.missed} missed, ${acc.extra} extra).` : '');
+}
+function exportLog() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([fieldLogCsv()], { type: 'text/csv' }));
+  a.download = 'west-deck-field-log-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-') + '.csv';
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function clearLog() {
+  if (typeof confirm === 'function' && !confirm('Delete the field log on this device? Export it first if you need it.')) return;
+  fieldLog = []; try { localStorage.setItem(LOG_KEY, '[]'); } catch (e) {} renderLog();
 }
 
 // ---- Demo controls ----
@@ -166,7 +241,7 @@ function toggleSpread() {
   if (viewer) viewer.setSpread(on);
 }
 
-load(); fillBayOptions(); renderMovements(); render();
+load(); fillBayOptions(); renderMovements(); renderLog(); render();
 window.addEventListener('storage', e => {
   if (e.key !== KEY) return;
   try { const d = JSON.parse(e.newValue); if (d && typeof d.offset === 'number') { records = ParkingModel.sanitize(d.records, ZONE_IDS); offset = d.offset; render(); } } catch (err) {}

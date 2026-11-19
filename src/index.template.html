@@ -13,7 +13,7 @@ nav{display:flex;gap:6px;border-bottom:1px solid #cdd7ca;margin:30px 0 22px;over
 .small{font-size:12px;color:#60725e;line-height:1.5}label{display:block;font-size:13px;font-weight:bold;margin:18px 0 8px}select,input{width:100%;padding:13px;border:1px solid #bac9b6;border-radius:7px;background:#fff;color:#173b2b}
 .primary{background:#214c36;color:white;border-radius:7px;padding:14px 20px;margin-top:18px}.secondary{background:#e5ebdf;color:#25432c;padding:10px 14px;border-radius:7px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.hidden{display:none!important}button:disabled{opacity:.5;cursor:not-allowed}
 .controls{margin-top:28px;border-top:1px solid #ccd7c6;padding-top:22px}.feedback{color:#24522b;min-height:24px;margin-top:16px}.error{color:#a42e20}footer{padding:28px 0;font-size:12px;color:#6b7c66;line-height:1.6}
-.number-controls{display:grid;grid-template-columns:50px 1fr 50px;gap:10px}.number-controls button{margin:0}.number-controls input{text-align:center;font-size:24px}li{line-height:1.6;margin-bottom:9px}.bays li{margin-bottom:0}
+.number-controls{display:grid;grid-template-columns:50px 1fr 50px;gap:10px}.number-controls button{margin:0}.number-controls input,.confirmed{text-align:center;font-size:24px}.confirmed{align-self:center;font-weight:700}.assist{border:1px dashed #bac9b6;border-radius:10px;padding:14px;margin-top:14px}#scanCanvas{width:100%;height:auto;border-radius:8px;margin-top:10px;display:block}li{line-height:1.6;margin-bottom:9px}.bays li{margin-bottom:0}
 @media(max-width:860px){.grid{grid-template-columns:1fr}.layout{grid-template-columns:1fr}}
 @media(max-width:760px){h1{letter-spacing:-2px}header{padding:20px 16px}main{padding:30px 16px}.card{padding:18px}.count{font-size:48px}.badge{font-size:9px}nav button{padding:14px 10px}.panel{padding:18px}#deck3d{height:280px}}
 </style></head><body><header><div class="brand">WEST<span> / deck</span></div><span class="badge">Concept prototype · simulated</span></header><main>
@@ -38,8 +38,16 @@ nav{display:flex;gap:6px;border-bottom:1px solid #cdd7ca;margin:30px 0 22px;over
 <section id="staff" class="hidden"><div class="layout"><div class="panel"><div class="eyebrow">One bounded observation</div><h2>Walk. Count. Complete.</h2>
 <p class="small">Pick one bay. Start at zero, walk the whole bay once, and count only spaces that the example general permit may use. Don't mix partial walks or count a space twice.</p>
 <label for="bay">Bay to survey (illustrative layout)</label><select id="bay"></select>
+<label for="observer">Observer (a letter, not a name)</label><select id="observer"><option value="A">Observer A</option><option value="B">Observer B</option></select>
 <button class="primary" id="start" onclick="startSurvey()">Start bay survey</button>
-<div id="surveyFields" class="hidden"><p id="modelled" class="small"></p><label for="count">Open spaces, example general permit</label>
+<div id="surveyFields" class="hidden"><p id="modelled" class="small"></p>
+<div class="assist"><div class="eyebrow">AI assist · optional</div>
+<p class="small">Photograph one section of the bay. A model running on this device counts the vehicles; you check the numbered boxes and correct the number. The photo is not saved or uploaded.</p>
+<button class="secondary" onclick="document.getElementById('photo').click()">Photograph a section</button>
+<input id="photo" type="file" accept="image/*" capture="environment" class="hidden" onchange="scanPhoto(this)">
+<div id="scanStatus" class="small" role="status" aria-live="polite"></div>
+<canvas id="scanCanvas" class="hidden" aria-label="Your photo with a numbered box on each vehicle the model found"></canvas>
+<div id="scanPanel"></div></div><label for="count">Open spaces, example general permit</label>
 <div class="number-controls"><button class="secondary" aria-label="Subtract one space" onclick="adjust(-1)">−</button><input id="count" type="number" inputmode="numeric" min="0" max="999" step="1" value="0"><button class="secondary" aria-label="Add one space" onclick="adjust(1)">+</button></div>
 <label><input type="checkbox" id="coverage" style="width:auto;margin-right:8px"> I walked this whole bay once.</label>
 <button class="primary" onclick="finishSurvey()">Complete &amp; replace observation</button> <button class="secondary" onclick="cancelSurvey()">Cancel</button></div>
@@ -50,6 +58,9 @@ nav{display:flex;gap:6px;border-bottom:1px solid #cdd7ca;margin:30px 0 22px;over
 <li>A survey open more than 20 minutes is rejected. Start again.</li>
 <li>Partial or cancelled surveys never reach students.</li>
 <li>Zero means you found no usable open spaces. Unknown means no recent survey.</li></ol>
+<h2>Field log</h2><p id="logSummary" class="small"></p>
+<div class="row"><button class="secondary" onclick="exportLog()">Export field log (CSV)</button><button class="secondary" onclick="clearLog()">Clear field log</button></div>
+<p class="small">Each completed survey is logged with its real start and end time, the count, and for AI-assisted counts the model's number beside the confirmed one. No photos, names or plates.</p>
 <div class="notice">Local demo only: this browser stores the simulated records. No staff login, shared server or audit log. Real use needs KSU approval and coordination between observers.</div></div></div></section>
 
 <section id="backup" class="hidden"><div class="layout"><div class="panel"><div class="eyebrow">Optional fallback · simulated reports</div><h2>Report a deck entry or exit</h2>
@@ -62,19 +73,21 @@ nav{display:flex;gap:6px;border-bottom:1px solid #cdd7ca;margin:30px 0 22px;over
 
 <section id="about" class="hidden"><div class="panel"><h2>A credible one-deck pilot</h2>
 <p>Test the staff workflow and whether students understand the display before claiming to solve parking. Confirm with KSU Parking &amp; Transportation: the real number of levels, eligible stalls per bay and permit type, and whether they would take part.</p>
-<ul><li><b>Built now:</b> bay surveys, replace-not-add, timestamps from survey start, expiry, unknown states, level totals only when complete, local storage, and a 3D view.</li>
+<ul><li><b>Built now:</b> AI-assisted vehicle counts with human confirmation, a field log, bay surveys, replace-not-add, timestamps from survey start, expiry, unknown states, level totals only when complete, local storage, and a 3D view.</li>
 <li><b>3D model:</b> made from public USGS lidar and USDA aerial photos. It shows where bays are. It does not detect cars or open spaces.</li>
 <li><b>Student backup:</b> simulated entry/exit reports, kept separate as a low-trust signal. No QR codes yet.</li>
 <li><b>Cameras:</b> not connected. KSU's Video Monitoring Standard (Sept 2024) routes live viewing and new cameras through the Department of Public Safety.</li>
 <li><b>Privacy:</b> no plates, faces, student identity or enforcement records.</li>
-<li><b>AI:</b> this prototype runs no AI model. AI-assisted development is not an AI-powered product.</li></ul>
+<li><b>AI:</b> an object-detection model (YOLOX-s, trained on the public COCO dataset) counts vehicles in a staff photo, on the device. A person confirms every number. Its accuracy inside this deck is not yet measured; the field log records the model's number beside the confirmed one so it can be.</li></ul>
 <p class="small">This prototype cannot reserve spaces, validate a permit, prevent tickets or detect accidents. Use it to test an idea, not to make parking decisions.</p></div></section>
 
 <div class="controls"><div class="row"><b class="small">Demo controls</b><button class="secondary" onclick="advance(6)">Advance 6 minutes</button><button class="secondary" onclick="advance(15)">Advance 15 minutes</button><button class="secondary" onclick="resetDemo()">Reset sample data</button><button class="secondary" onclick="clearDemo()">Clear observations</button></div><p id="clock" class="small"></p></div>
-<footer>WEST / deck · Concept by Kell Enow · 3D model contributed by a collaborator · Browser-local prototype, no data sent anywhere.<br>Model data: USGS 3DEP lidar · Imagery: USDA NAIP · Level count: © OpenStreetMap contributors (ODbL)</footer></main>
+<footer>WEST / deck · Concept by Kell Enow · 3D model contributed by a collaborator · Browser-local prototype, no data sent anywhere.<br>Model data: USGS 3DEP lidar · Imagery: USDA NAIP · Level count: © OpenStreetMap contributors (ODbL) · Detection: YOLOX (Apache-2.0), ONNX Runtime Web (MIT) · 3D: three.js (MIT)</footer></main>
 <script id="viewer-js">/*VIEWER*/</script>
 <script id="app-js">
 /*DECK*/
 /*MODEL*/
+/*DETECT*/
+/*AI*/
 /*APP*/
 </script></body></html>

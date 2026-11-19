@@ -1,41 +1,81 @@
-// Run: node build.cjs && node test/browser.check.cjs [outDir]
-// Real headless Chromium (software WebGL). Opens the page from file:// with all
-// network blocked, at phone and desktop widths, and saves screenshots.
-const { chromium } = require('playwright'), path = require('node:path'), fs = require('node:fs'), assert = require('node:assert/strict');
-const page = 'file://' + path.join(__dirname, '../dist/West-Deck-Prototype.html');
+// Run: npm run build && npm run check:browser [outDir]
+// Real headless Chromium (software WebGL), phone and desktop widths, screenshots.
+//  1. Opens the page from file:// with the network blocked: the core must work offline.
+//  2. Serves dist/ over local http and runs the AI count on a photo, if a fixture
+//     exists at test/fixtures/street.jpg (not in git: use a photo you may share).
+const { chromium } = require('playwright'), path = require('node:path'), fs = require('node:fs'), http = require('node:http'), assert = require('node:assert/strict');
+const dist = path.join(__dirname, '../dist'), file = 'file://' + path.join(dist, 'West-Deck-Prototype.html');
 const out = process.argv[2] || path.join(__dirname, '../screenshots'); fs.mkdirSync(out, { recursive: true });
+const fixture = path.join(__dirname, 'fixtures/street.jpg');
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm', '.onnx': 'application/octet-stream' };
+
+function serve() {
+  const server = http.createServer((req, res) => {
+    const f = path.join(dist, path.normalize(decodeURIComponent(req.url.split('?')[0])).replace(/^(\.\.[/\\])+/, ''));
+    if (!f.startsWith(dist) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
+    res.writeHead(200, { 'content-type': TYPES[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(res);
+  });
+  return new Promise(r => server.listen(0, '127.0.0.1', () => r(server)));
+}
+
 (async () => {
   const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
+
   for (const [w, h] of [[375, 812], [1280, 900]]) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2 });
-    await ctx.route(/^https?:/, r => r.abort()); // prove it needs no network
+    await ctx.route(/^https?:/, r => r.abort()); // prove the core needs no network
     const p = await ctx.newPage(), errors = [];
     p.on('pageerror', e => errors.push(e.message));
-    await p.goto(page);
+    await p.goto(file);
     await p.waitForFunction(() => /rotate|unavailable/.test(document.getElementById('viewerNote').textContent), null, { timeout: 30000 });
-    const note = await p.textContent('#viewerNote');
-    assert.match(note, /Drag to rotate/, '3D view did not mount: ' + note);
+    assert.match(await p.textContent('#viewerNote'), /Drag to rotate/, '3D view did not mount');
     const overflow = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     assert.ok(overflow <= 0, `page scrolls sideways by ${overflow}px at ${w}px`);
 
-    // Tap the middle of the 3D view; whatever bay is there should be selected.
-    await p.locator('#deck3d').scrollIntoViewIfNeeded();
+    await p.locator('#deck3d').scrollIntoViewIfNeeded(); // tap the middle of the 3D view
     const box = await p.locator('#deck3d canvas').boundingBox();
     await p.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5);
-    const sel = await p.textContent("#selection");
-    assert.doesNotMatch(sel, /Tap a bay/, "tapping the model centre selected no bay");
-    await p.locator('#deck3d').scrollIntoViewIfNeeded();
+    assert.doesNotMatch(await p.textContent('#selection'), /Tap a bay/, 'tapping the model centre selected no bay');
     await p.screenshot({ path: `${out}/student-${w}.png`, fullPage: true });
-    await p.click('#spread'); await p.locator('#deck3d').screenshot({ path: `${out}/deck3d-stacked-${w}.png` });
 
     await p.click('#staffTab'); await p.selectOption('#bay', 'L1_East'); await p.click('#start');
     await p.click('[aria-label="Add one space"]'); await p.check('#coverage'); await p.click('text=Complete & replace');
-    const fb = await p.textContent('#feedback');
-    assert.match(fb, /Level 1 · East bay saved/);
+    assert.match(await p.textContent('#feedback'), /Level 1 · East bay saved/);
+    assert.match(await p.textContent('#logSummary'), /1 completed survey logged/);
+    const staffOverflow = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    assert.ok(staffOverflow <= 0, `staff view scrolls sideways by ${staffOverflow}px at ${w}px`);
     await p.screenshot({ path: `${out}/staff-${w}.png`, fullPage: true });
-    console.log(`${w}px ok · overflow ${overflow}px · tap: "${sel.slice(0, 60)}…" · errors: ${errors.length}`);
     assert.deepEqual(errors, []);
+    console.log(`offline file ${w}px ok`);
     await ctx.close();
+  }
+
+  if (!fs.existsSync(path.join(dist, 'ai/yolox_s.onnx'))) console.log('SKIPPED AI check: no model in dist/ai (npm run fetch-model && npm run build)');
+  else if (!fs.existsSync(fixture)) console.log('SKIPPED AI check: no photo at test/fixtures/street.jpg');
+  else {
+    const server = await serve(), url = `http://127.0.0.1:${server.address().port}/West-Deck-Prototype.html`;
+    const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 2 });
+    const p = await ctx.newPage(), errors = [];
+    p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url); await p.click('#staffTab'); await p.selectOption('#bay', 'L3_West'); await p.click('#start');
+    const t0 = Date.now();
+    await p.setInputFiles('#photo', fixture);
+    await p.waitForFunction(() => document.getElementById('scanPanel').textContent || /Count by eye|not available/.test(document.getElementById('scanStatus').textContent), null, { timeout: 120000 });
+    const panel = await p.textContent('#scanPanel'), found = Number((panel.match(/found (\d+) vehicles/) || [])[1]);
+    assert.ok(found >= 1, 'model found no vehicles: ' + (panel || await p.textContent('#scanStatus')));
+    await p.click('[aria-label="One more vehicle"]');
+    await p.click('text=/^Use \\d+ as the count$/'); await p.check('#coverage');
+    await p.locator('#scanCanvas').scrollIntoViewIfNeeded();
+    const aiOverflow = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    assert.ok(aiOverflow <= 0, `AI panel scrolls sideways by ${aiOverflow}px`);
+    await p.screenshot({ path: `${out}/staff-ai-375.png`, fullPage: true });
+    await p.click('text=Complete & replace');
+    assert.match(await p.textContent('#feedback'), /Level 3 · West bay saved/);
+    const csv = await p.evaluate(() => fieldLogCsv());
+    assert.match(csv, new RegExp(`ai-assisted,1,${found},${found + 1},${found}>${found + 1},0`));
+    assert.deepEqual(errors, []);
+    console.log(`AI check ok: model found ${found} vehicles in the test photo, ${((Date.now() - t0) / 1000).toFixed(1)} s including model load`);
+    await ctx.close(); server.close();
   }
   await browser.close();
   console.log('Browser check passed. Screenshots in', path.relative(process.cwd(), out) || '.');

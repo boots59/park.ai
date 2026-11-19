@@ -60,8 +60,26 @@ test('sanitize drops malformed or unknown entries', () => {
   const out = m.sanitize({ L1_West: good, L1_East: { count: '<img src=x>', start: t, end: t, version: 1, category: CAT },
     L9_Nowhere: good, L1_Centre: { ...good, end: t - 1 } }, zones);
   assert.deepEqual(Object.keys(out), ['L1_West']);
+  assert.equal(out.L1_West.method, 'manual');
   assert.deepEqual(m.sanitize(null, zones), {});
   assert.deepEqual(m.sanitize('junk', zones), {});
+});
+
+test('AI-assisted counts keep AI and confirmed numbers per photo', () => {
+  const r = m.complete({}, { zone: 'L1_West', start: t, version: 0 }, 18, t, CAT,
+    { photos: [{ ai: 30, confirmed: 31 }, { ai: 29, confirmed: 30 }, { ai: 'x', confirmed: 2 }, null] });
+  assert.equal(r.L1_West.method, 'ai-assisted');
+  assert.deepEqual(r.L1_West.photos, [{ ai: 30, confirmed: 31 }, { ai: 29, confirmed: 30 }]); // junk dropped
+  assert.equal(m.complete({}, { zone: 'L1_West', start: t, version: 0 }, 5, t, CAT).L1_West.method, 'manual');
+});
+test('suggested open = stalls - confirmed vehicles, floor at zero', () => {
+  assert.deepEqual(m.suggestOpen(79, [{ ai: 30, confirmed: 31 }, { ai: 29, confirmed: 30 }]), { vehicles: 61, open: 18 });
+  assert.deepEqual(m.suggestOpen(10, [{ ai: 12, confirmed: 12 }]), { vehicles: 12, open: 0 });
+});
+test('AI accuracy summary counts misses and extras', () => {
+  assert.equal(m.aiAccuracy([]), null);
+  assert.deepEqual(m.aiAccuracy([{ ai: 8, confirmed: 10 }, { ai: 5, confirmed: 5 }, { ai: 7, confirmed: 6 }]),
+    { photos: 3, exact: 1, meanAbsError: 1, missed: 2, extra: 1 });
 });
 
 console.log(`\n${pass} model tests passed.`);

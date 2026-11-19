@@ -21,7 +21,7 @@ if (!no3d) {
 
 const tpl = rd('src/index.template.html');
 const parts = { '/*VIEWER*/': viewer, '/*DECK*/': 'const DECK=' + JSON.stringify(DECK) + ';',
-  '/*MODEL*/': rd('src/model.js'), '/*APP*/': rd('src/app.js') };
+  '/*MODEL*/': rd('src/model.js'), '/*DETECT*/': rd('src/detect.js'), '/*AI*/': rd('src/ai.js'), '/*APP*/': rd('src/app.js') };
 let html = tpl;
 for (const [marker, code] of Object.entries(parts)) {
   if (!html.includes(marker)) throw Error('Template is missing ' + marker);
@@ -32,3 +32,15 @@ fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
 const file = path.join(root, 'dist', no3d ? 'West-Deck-Prototype-lite.html' : 'West-Deck-Prototype.html');
 fs.writeFileSync(file, html);
 console.log('built', path.relative(root, file), (html.length / 1024).toFixed(0) + ' KB');
+
+// AI assets sit BESIDE the page in dist/ai/ (too big to inline: about 47 MB).
+// The page works without them; the AI count then asks staff to count by eye.
+if (!no3d) {
+  const ai = path.join(root, 'dist/ai'), ort = path.join(root, 'node_modules/onnxruntime-web/dist');
+  const model = path.join(root, 'assets/models/yolox_s.onnx');
+  fs.mkdirSync(ai, { recursive: true });
+  for (const f of ['ort.wasm.min.js', 'ort-wasm-simd-threaded.mjs', 'ort-wasm-simd-threaded.wasm'])
+    fs.copyFileSync(path.join(ort, f), path.join(ai, f));
+  if (fs.existsSync(model)) { fs.copyFileSync(model, path.join(ai, 'yolox_s.onnx')); console.log('copied AI runtime and model to dist/ai/'); }
+  else console.warn('WARNING: assets/models/yolox_s.onnx is missing, so the AI count will not work. Run: npm run fetch-model');
+}

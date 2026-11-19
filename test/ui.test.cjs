@@ -11,7 +11,7 @@ function boot(storage = {}) {
     textContent: '', innerHTML: '', attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k] ?? null; },
     classList: { set: new Set(), toggle(c, on) { on ?? !this.set.has(c) ? this.set.add(c) : this.set.delete(c); }, add(c) { this.set.add(c); }, remove(c) { this.set.delete(c); } } };
   const ctx = vm.createContext({ document: { getElementById: element }, localStorage: { getItem: k => storage[k] ?? null, setItem: (k, v) => { storage[k] = v; } },
-    window: { addEventListener() {} }, setInterval() {}, Date, Number, Math, JSON, Error, Object, Set });
+    window: { addEventListener() {} }, setInterval() {}, Date, Number, Math, JSON, Error, Object, Set, Array, Promise });
   vm.runInContext(appJs, ctx);
   return { els, ctx, storage, run: code => vm.runInContext(code, ctx), saved: () => JSON.parse(storage['west-deck-prototype-v2']).records };
 }
@@ -89,4 +89,52 @@ test('backup reports stay separate from surveys', () => {
   b.run("reportMovement('out')"); assert.match(b.els.reportFeedback.textContent, /Wait a moment/);
   b.run('render()'); assert.equal(b.els.cards.innerHTML, before);
 });
-console.log(`\n${pass} UI tests passed (fake document; not a visual test).`);
+// ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
+const photo = () => ({ files: [{}], value: 'x' });
+(async () => {
+  const atest = async (name, fn) => { await fn(); pass++; console.log('ok -', name); };
+  await atest('AI count is a suggestion the person corrects, then saves', async () => {
+    const b = boot(); b.ctx.window.CarCounter = { count: async () => ({ count: 30, ms: 5 }) };
+    b.run('clearDemo(); startSurvey()');
+    await b.run('scanPhoto')(photo());
+    assert.match(b.els.scanPanel.innerHTML, /found <b>30<\/b> vehicles/);
+    b.run('adjustPhoto(1)');                                  // the person saw one the model missed
+    assert.match(b.els.scanPanel.innerHTML, /79 modelled stalls − 31 vehicles = <b>48 open<\/b>/);
+    assert.equal(b.els.count.value, 0);                       // nothing is filled in until the person chooses
+    b.run('useSuggestion()'); assert.equal(b.els.count.value, 48);
+    b.els.coverage.checked = true; b.run('finishSurvey()');
+    const rec = b.saved().L3_West;
+    assert.equal(rec.count, 48); assert.equal(rec.method, 'ai-assisted');
+    assert.deepEqual(rec.photos, [{ ai: 30, confirmed: 31 }]);
+  });
+  await atest('field log records model vs person and exports CSV', async () => {
+    const b = boot(); b.ctx.window.CarCounter = { count: async () => ({ count: 12, ms: 5 }) };
+    b.run('clearDemo(); startSurvey()');
+    await b.run('scanPhoto')(photo()); await b.run('scanPhoto')(photo());
+    b.run('adjustPhoto(-2)'); b.els.count.value = '50'; b.els.coverage.checked = true; b.run('finishSurvey()');
+    b.run('startSurvey()'); b.els.count.value = '7'; b.els.coverage.checked = true; b.run('finishSurvey()');
+    const rows = b.run('fieldLogCsv()').trim().split('\n');
+    assert.equal(rows.length, 3);
+    assert.match(rows[1], /^L3_West,A,\d{4}-.*Z,\d{4}-.*Z,\d+,50,ai-assisted,2,24,22,12>12\|12>10,0$/);
+    assert.match(rows[2], /,7,manual,0,0,0,,0$/);
+    assert.match(b.els.logSummary.textContent, /2 completed surveys.*2 photos: exact on 1, average error 1\.0 vehicles \(0 missed, 2 extra\)/);
+    assert.equal(JSON.parse(b.storage['west-deck-fieldlog-v1']).length, 2);
+  });
+  await atest('AI failure leaves manual counting working', async () => {
+    const b = boot(); b.ctx.window.CarCounter = { count: async () => { throw Error('AI count needs the hosted version'); } };
+    b.run('clearDemo(); startSurvey()');
+    await b.run('scanPhoto')(photo());
+    assert.match(b.els.scanStatus.textContent, /hosted version/);
+    b.els.count.value = '3'; b.els.coverage.checked = true; b.run('finishSurvey()');
+    assert.equal(b.saved().L3_West.method, 'manual');
+  });
+  await atest('a photo result arriving after cancel is ignored', async () => {
+    let release; const b = boot();
+    b.ctx.window.CarCounter = { count: () => new Promise(r => { release = () => r({ count: 9, ms: 5 }); }) };
+    b.run('clearDemo(); startSurvey()');
+    const pending = b.run('scanPhoto')(photo());
+    b.run('cancelSurvey(); startSurvey()'); release(); await pending;
+    assert.equal(b.els.scanPanel.innerHTML, '');
+  });
+  console.log(`\n${pass} UI tests passed (fake document; not a visual test).`);
+})().catch(e => { console.error(e); process.exit(1); });
