@@ -27,7 +27,7 @@ async function mount(container, glbBase64, { onPick, bayIds = [] } = {}) {
   container.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#eef1ea');
+  scene.background = new THREE.Color('#efefed');
   scene.add(new THREE.HemisphereLight('#ffffff', '#b9c4b0', 1.6));
   const sun = new THREE.DirectionalLight('#fff1dd', 2.2);
   sun.position.set(-80, 120, 40);
