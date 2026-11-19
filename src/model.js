@@ -177,6 +177,15 @@ const ParkingModel = (() => {
     return { state, est };
   }
 
+  // Split a bay's regular stalls into three groups for the stall diagram:
+  // taken for sure, possibly taken (the uncertain part of an estimate), and
+  // open for sure. It says HOW MANY, never which ones. Null when nothing is known.
+  function stallSplit(stalls, est) {
+    if (!est) return null;
+    const open = Math.min(stalls, est.low), taken = Math.max(0, stalls - Math.min(stalls, est.high));
+    return { taken, maybe: stalls - taken - open, open };
+  }
+
   // Where to try first: bays with at least one space at the low end, most
   // spaces first, fresher count first on a tie. Empty when nothing qualifies.
   // It ranks whole bays; it does not know which individual spaces are open.
@@ -238,7 +247,7 @@ const ParkingModel = (() => {
     return out;
   }
 
-  return { status, trend, estimate, bayEstimate, cleanReports, typical, BANDS, complete, levelSummary, deckSummary, bayState, recommend, backtest, variability, sanitize,
+  return { status, trend, estimate, bayEstimate, cleanReports, typical, BANDS, complete, levelSummary, deckSummary, bayState, stallSplit, recommend, backtest, variability, sanitize,
     cleanExtra, suggestOpen, aiAccuracy, FRESH, HORIZON, MAX_SURVEY, MAX_COUNT, SIGMA, ROOM_AT, FULL_AT };
 })();
 if (typeof module !== 'undefined') module.exports = ParkingModel;

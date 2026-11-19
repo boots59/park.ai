@@ -99,6 +99,13 @@ test('bay state is judged on the low end of the estimate', () => {
   assert.equal(st(rec(0, 9)), 'few');     // range 0-4: a space may have opened
   assert.equal(st(undefined), 'unknown'); assert.equal(st(rec(9, 31)), 'unknown');
 });
+test('stall diagram split: taken, possibly taken, open', () => {
+  assert.equal(m.stallSplit(74, null), null);
+  assert.deepEqual(m.stallSplit(74, { low: 6, high: 6 }), { taken: 68, maybe: 0, open: 6 });
+  assert.deepEqual(m.stallSplit(74, { low: 2, high: 10 }), { taken: 64, maybe: 8, open: 2 });
+  assert.deepEqual(m.stallSplit(12, { low: 5, high: Infinity }), { taken: 0, maybe: 7, open: 5 });   // "plenty": at least 5, the rest unknown
+  assert.deepEqual(m.stallSplit(12, { low: 20, high: 20 }), { taken: 0, maybe: 0, open: 12 });       // a count above the stall number
+});
 test('recommendation ranks bays by spaces, then freshness, and never suggests a full or unknown bay', () => {
   const recs = { L1_West: rec(6, 2), L1_Centre: rec(0, 1), L1_East: rec(6, 1) };
   assert.deepEqual(m.recommend(recs, zones, t).map(b => b.zone), ['L1_East', 'L1_West']);

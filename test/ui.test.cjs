@@ -118,6 +118,14 @@ test('corrupt stored reports are ignored', () => {
   const b = boot({ 'west-deck-reports-v1': JSON.stringify([{ zone: 'L2_West', band: '<img src=x onerror=1>', t: Date.now() }, 'junk']) });
   assert.doesNotMatch(b.els.cards.innerHTML, /<img|students/);
 });
+test('each bay has a stall diagram with a text equivalent', () => {
+  const b = boot();
+  assert.match(b.els.cards.innerHTML, /aria-label="74 regular stalls: 68 taken, 6 open\. Which stalls is not known"/);             // Level 3 West: 6 counted
+  assert.match(b.els.cards.innerHTML, /aria-label="28 regular stalls: 20 taken, 8 possibly taken, 0 open\./);                       // Level 2 Centre: estimate 0-8
+  b.run('clearDemo()');
+  assert.match(b.els.cards.innerHTML, /aria-label="74 regular stalls, none with a current count"/);
+  assert.equal((b.els.cards.innerHTML.match(/<rect /g) || []).length, 428);                                                          // one box per regular stall
+});
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
 const photo = () => ({ files: [{}], value: 'x' });
 (async () => {
@@ -144,7 +152,7 @@ const photo = () => ({ files: [{}], value: 'x' });
     b.run('startSurvey()'); b.els.count.value = '7'; b.els.coverage.checked = true; b.run('finishSurvey()');
     const rows = b.run('fieldLogCsv()').trim().split('\n');
     assert.equal(rows.length, 3);
-    assert.match(rows[1], /^L3_West,A,\d{4}-.*Z,\d{4}-.*Z,\d+,50,ai-assisted,2,24,22,12>12\|12>10,0,tiled$/);
+    assert.match(rows[1], /^L3_West,A,\d{4}-.*Z,\d{4}-.*Z,\d+,50,ai-assisted,2,24,22,12>12\|12>10,0,(single|tiled)$/);
     assert.match(rows[2], /,7,manual,0,0,0,,0,$/);
     assert.match(b.els.logSummary.textContent, /2 completed surveys.*2 photos: exact on 1, average error 1\.0 vehicles \(0 missed, 2 extra\)/);
     assert.equal(JSON.parse(b.storage['west-deck-fieldlog-v1']).length, 2);

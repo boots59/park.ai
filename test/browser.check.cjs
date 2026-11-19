@@ -72,7 +72,7 @@ function serve() {
     await p.click('text=Complete & replace');
     assert.match(await p.textContent('#feedback'), /Level 3 · West bay saved/);
     const csv = await p.evaluate(() => fieldLogCsv());
-    assert.match(csv, new RegExp(`ai-assisted,1,${found},${found + 1},${found}>${found + 1},0,tiled`));
+    assert.match(csv, new RegExp(`ai-assisted,1,${found},${found + 1},${found}>${found + 1},0,(single|tiled)`));
     // Installable app: manifest and icon are served, and the service worker takes control.
     const man = await p.evaluate(async () => (await fetch(document.querySelector('link[rel=manifest]').href)).json());
     assert.equal(man.display, 'standalone'); assert.equal((await p.request.get(new URL(man.icons[1].src, url).href)).status(), 200);

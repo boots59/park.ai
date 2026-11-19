@@ -40,7 +40,7 @@ const Settings = {
   // --- AI vehicle count ---
   detectMinScore: 0.3,    // ignore detections the model is less sure of than this (0 to 1)
   detectMaxOverlap: 0.45, // boxes overlapping more than this are treated as the same vehicle
-  detectTiles: 2,         // 1 = look at the photo once. 2 = also look at 4 enlarged quarters, which finds small,
+  detectTiles: 1,         // 1 = look at the photo once. 2 = also look at 4 enlarged quarters, which finds small,
                           // far-away vehicles the single look misses, at about 5 times the processing time
   detectTileOverlap: 0.2, // how much neighbouring quarters overlap, so a vehicle on the seam is whole in one of them
   detectMaxContain: 0.6,  // a box mostly inside another box is the same vehicle seen twice
