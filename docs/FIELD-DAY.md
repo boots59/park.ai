@@ -16,8 +16,9 @@ uploaded or added to the repo (they contain license plates). Stay out of traffic
 Open the staff survey in the app. Use "Clear observations" first so sample data is gone. Every completed
 survey is saved to the field log with real times.
 
-1. **How fast counts go stale (30 min).** Pick one bay. Survey it every 3 minutes, 10 times. The change between
-   consecutive counts is the decay rate.
+1. **How fast counts go stale (30 min). The most important measurement.** Pick one bay. Survey it every 3 minutes,
+   10 times. The field log then scores the page's estimates against your later counts automatically
+   ("Estimate check" under Field log). If you can, repeat in a second bay.
 2. **Do two counters agree? (6 to 9 bays).** You as Observer A, a second person as Observer B, same bay, within
    5 minutes, without sharing numbers. If you count alone, count each bay twice and write "same observer" in
    your notes: that measures consistency, not independence.

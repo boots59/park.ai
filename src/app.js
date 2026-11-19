@@ -17,12 +17,15 @@ function save() {
   try { localStorage.setItem(KEY, JSON.stringify({ records, offset })); }
   catch (e) { feedback('Storage unavailable. This demo lasts only until the page closes.', true); }
 }
-// ILLUSTRATIVE sample data, not observations. Covers every display state.
+// ILLUSTRATIVE sample data, not observations. Covers every display state:
+// just counted, ageing with and without a trend, and unknown.
 function seed() {
-  const t = now(), rec = (count, minsAgo, dur = 2) =>
-    ({ count, start: t - minsAgo * 60e3, end: t - (minsAgo - dur) * 60e3, version: 1, category: CATEGORY });
-  records = { L3_West: rec(6, 2), L3_Centre: rec(0, 3), L3_East: rec(11, 1, 1),
-              L2_West: rec(4, 2), L2_Centre: rec(7, 8), L2_East: rec(2, 4) };
+  const t = now(), ago = m => t - m * 60e3;
+  const rec = (count, minsAgo, prev) => ({ count, start: ago(minsAgo), end: ago(minsAgo - 1), version: prev ? 2 : 1,
+    category: CATEGORY, method: 'manual', photos: [], ...(prev ? { prev: { count: prev[0], start: ago(prev[1]) } } : {}) });
+  records = { L3_West: rec(6, 2), L3_Centre: rec(0, 3), L3_East: rec(11, 1),
+              L2_West: rec(4, 2), L2_Centre: rec(7, 8, [12, 18]), L2_East: rec(2, 4),
+              L1_West: rec(9, 21) };
 }
 function load() {
   try {
@@ -34,33 +37,48 @@ function load() {
 function feedback(text, error = false) { const el = $('feedback'); el.textContent = text; el.classList.toggle('error', error); }
 
 function setView(id) {
-  for (const name of ['student', 'staff', 'backup', 'about']) {
+  for (const name of ['student', 'staff', 'about']) {
     $(name).classList.toggle('hidden', name !== id);
     $(name + 'Tab').classList.toggle('active', name === id);
     $(name + 'Tab').setAttribute('aria-selected', String(name === id));
   }
 }
 
-const STATUS_TEXT = { recent: 'Recent', stale: 'Stale', unknown: 'Unknown' };
+const STATUS_TEXT = { recent: 'Counted', estimate: 'Estimate', unknown: 'Unknown' };
+const minsAgo = (r, t) => Math.max(0, Math.floor((t - r.start) / 60e3));
+const range = e => e.low === e.high ? String(e.low) : e.low + '–' + e.high;
+const trendText = rate => Math.abs(rate) < 0.05 ? '' : (rate > 0 ? ', filling about ' : ', emptying about ') + Math.abs(rate).toFixed(1) + ' a minute';
+
 function bayRow(z, t) {
-  const r = records[z], s = ParkingModel.status(r, t);
-  const age = r ? Math.max(0, Math.floor((t - r.start) / 60e3)) + ' min ago' : 'no survey';
+  const r = records[z], s = ParkingModel.status(r, t), e = ParkingModel.estimate(r, t);
+  const detail = s === 'recent' ? minsAgo(r, t) + ' min ago' : s === 'estimate' ? `counted ${r.count}, ${minsAgo(r, t)} min ago`
+    : r ? `last count ${minsAgo(r, t)} min ago` : 'no survey';
   return `<li><button class="bay${z === selectedBay ? ' selected' : ''}" onclick="selectBay('${z}')" aria-pressed="${z === selectedBay}">` +
     `<span class="bay-name">${BAY_LABEL[DECK.zones[z].zone]}</span>` +
-    `<b class="bay-count">${s === 'recent' ? r.count : '—'}</b>` +
-    `<span class="status ${s}">${STATUS_TEXT[s]} · ${age}</span></button></li>`;
+    `<b class="bay-count">${e ? range(e) : '—'}</b>` +
+    `<span class="status ${s}">${STATUS_TEXT[s]} · ${detail}</span></button></li>`;
+}
+function summaryText(sum) {
+  return sum.state === 'unknown' ? ['—', 'availability not known']
+    : sum.state === 'partial' ? ['≥' + sum.low, `in ${sum.knownBays} of ${sum.bays} bays · the rest unknown`]
+    : sum.exact ? [String(sum.low), 'counted open · every bay counted in the last 5 minutes']
+    : [range(sum), 'estimated open · some counts are ageing'];
 }
 function levelCard(n, t) {
-  const sum = ParkingModel.levelSummary(records, zonesOf(n), t);
-  const [count, unit] = sum.state === 'complete' ? [sum.total, 'observed open · all bays recent']
-    : sum.state === 'partial' ? ['≥' + sum.atLeast, `in ${sum.recentBays} of ${sum.bays} bays · level total not known`]
-    : ['—', 'availability not known'];
+  const [count, unit] = summaryText(ParkingModel.levelSummary(records, zonesOf(n), t));
   return `<article class="card"><h3>Level ${n} <span class="small">/ ${n === LEVELS[0] ? 'top deck, ' : ''}example</span></h3>` +
     `<div class="count">${count}</div><div class="unit">${unit}</div>` +
     `<ul class="bays">${zonesOf(n).map(z => bayRow(z, t)).join('')}</ul></article>`;
 }
+const VERDICT = { room: 'Room likely', tight: 'Tight', full: 'Likely full', unknown: 'Not enough counts to say' };
+function renderVerdict(t) {
+  const d = ParkingModel.deckSummary(records, ZONE_IDS, t), [count, unit] = summaryText(d);
+  $('verdict').innerHTML = `<span class="verdict-word ${d.verdict}">${VERDICT[d.verdict]}</span>` +
+    `<span class="verdict-detail">${d.state === 'unknown' ? 'No bay has a usable count.' : `<b>${count}</b> open · ${unit}`}</span>`;
+}
 function render() {
   const t = now();
+  renderVerdict(t);
   $('cards').innerHTML = LEVELS.map(n => levelCard(n, t)).join('');
   $('clock').textContent = 'Simulated clock: ' + new Date(t).toLocaleTimeString() + ' · +' +
     Math.round(offset / 60e3) + ' min · illustrative values; real capacity unknown.';
@@ -75,9 +93,10 @@ function selectBay(z) {
 function renderSelection() {
   const el = $('selection'); if (!el) return;
   if (!selectedBay) { el.textContent = 'Tap a bay on the model or in a level card.'; return; }
-  const r = records[selectedBay], s = ParkingModel.status(r, now());
+  const t = now(), r = records[selectedBay], e = ParkingModel.estimate(r, t);
   el.textContent = bayName(selectedBay) + ' (' + BAY_NOTE[DECK.zones[selectedBay].zone] + '): ' +
-    (s === 'recent' ? r.count + ' observed open' : s === 'stale' ? 'stale, count hidden' : 'unknown') +
+    (!e ? 'unknown' : e.counted ? r.count + ' counted open, ' + minsAgo(r, t) + ' min ago'
+      : `estimated ${range(e)} open (${r.count} counted ${minsAgo(r, t)} min ago${trendText(e.rate)})`) +
     '. Modelled stalls: ' + DECK.zones[selectedBay].stalls + ' (from the 3D model, not KSU).';
 }
 
@@ -177,10 +196,19 @@ function fieldLogCsv() {
     Number(e.seconds) || 0, Number(e.open) || 0, ps.length ? 'ai-assisted' : 'manual', ps.length, sum(ps, 'ai'), sum(ps, 'confirmed'),
     ps.map(p => p.ai + '>' + p.confirmed).join('|'), Number(e.clockOffsetMin) || 0].join(','); })].join('\n') + '\n';
 }
+// Real counts per bay in time order, from the log: the data the estimate is checked against.
+function logSeries() {
+  const byZone = {};
+  for (const e of fieldLog) { const t = Date.parse(e.start); if (Number.isFinite(t) && Number.isInteger(e.open)) (byZone[e.zone] ??= []).push({ t, count: e.open }); }
+  return Object.values(byZone);
+}
 function renderLog() {
   const acc = ParkingModel.aiAccuracy(fieldLog.flatMap(e => ParkingModel.cleanExtra(e).photos));
+  const series = logSeries(), bt = ParkingModel.backtest(series), v = ParkingModel.variability(series);
   $('logSummary').textContent = fieldLog.length + ' completed survey' + (fieldLog.length === 1 ? '' : 's') + ' logged on this device.' +
-    (acc ? ` Model vs. person on ${acc.photos} photo${acc.photos === 1 ? '' : 's'}: exact on ${acc.exact}, average error ${acc.meanAbsError.toFixed(1)} vehicles (${acc.missed} missed, ${acc.extra} extra).` : '');
+    (acc ? ` Model vs. person on ${acc.photos} photo${acc.photos === 1 ? '' : 's'}: exact on ${acc.exact}, average error ${acc.meanAbsError.toFixed(1)} vehicles (${acc.missed} missed, ${acc.extra} extra).` : '') +
+    (bt ? ` Estimate check: the later real count fell inside the range in ${bt.inside} of ${bt.cases} cases; the middle estimate was off by ${bt.meanAbsError.toFixed(1)} spaces on average.` : '') +
+    (v !== null ? ` Measured variability: ${v.toFixed(2)} (the page assumes ${ParkingModel.SIGMA}).` : '');
 }
 function exportLog() {
   const a = document.createElement('a');
@@ -197,29 +225,6 @@ function clearLog() {
 function advance(m) { offset += m * 60e3; save(); render(); }
 function resetDemo() { cancelSurvey(); offset = 0; seed(); save(); render(); }
 function clearDemo() { cancelSurvey(); records = {}; save(); render(); }
-
-// ---- Student backup: simulated entry/exit reports (separate, low trust) ----
-const MOVEMENT_KEY = 'west-deck-demo-movements-v1';
-let movements = { in: 0, out: 0 }, lastReport = 0;
-try { const m = JSON.parse(localStorage.getItem(MOVEMENT_KEY));
-  if (m && Number.isInteger(m.in) && Number.isInteger(m.out) && m.in >= 0 && m.out >= 0) movements = m; } catch (e) {}
-function renderMovements() {
-  $('movementStats').innerHTML = '<p><b>' + movements.in + '</b> entry reports · <b>' + movements.out + '</b> exit reports</p>' +
-    '<p class="small">Reported net movement: ' + (movements.in - movements.out) + ' · this browser only · not a vehicle count</p>';
-}
-function reportMovement(direction) {
-  const t = Date.now();
-  if (t - lastReport < 3000) { $('reportFeedback').textContent = 'Wait a moment before another demo report. Repeated taps may duplicate an event.'; return; }
-  lastReport = t; movements[direction]++;
-  try { localStorage.setItem(MOVEMENT_KEY, JSON.stringify(movements)); } catch (e) {}
-  renderMovements();
-  $('reportFeedback').textContent = 'Simulated ' + (direction === 'in' ? 'entry' : 'exit') + ' report recorded. No vacancy estimate was changed.';
-}
-function clearReports() {
-  movements = { in: 0, out: 0 }; lastReport = 0;
-  try { localStorage.setItem(MOVEMENT_KEY, JSON.stringify(movements)); } catch (e) {}
-  renderMovements(); $('reportFeedback').textContent = 'Simulated movement reports cleared.';
-}
 
 // ---- 3D model (optional: the page works without it) ----
 async function mountViewer() {
@@ -241,7 +246,7 @@ function toggleSpread() {
   if (viewer) viewer.setSpread(on);
 }
 
-load(); fillBayOptions(); renderMovements(); renderLog(); render();
+load(); fillBayOptions(); renderLog(); render();
 window.addEventListener('storage', e => {
   if (e.key !== KEY) return;
   try { const d = JSON.parse(e.newValue); if (d && typeof d.offset === 'number') { records = ParkingModel.sanitize(d.records, ZONE_IDS); offset = d.offset; render(); } } catch (err) {}

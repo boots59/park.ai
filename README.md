@@ -1,8 +1,8 @@
 # WEST / deck: a parking survey prototype (simulated)
 
 A student concept for West Deck, KSU Kennesaw campus. Staff survey one **bay** at a time, optionally with an on-device AI model
-that counts vehicles in a photo and a person who confirms the number. Students see each bay's last count, its age,
-and a 3D view of the deck. **All data is illustrative. Not a KSU system.**
+that counts vehicles in a photo and a person who confirms the number. Students see each bay's count, or an estimate
+with a range once the count ages, a deck-level verdict and a 3D view. **All data is illustrative. Not a KSU system.**
 
 ## Open it
 `dist/West-Deck-Prototype.html`: one file, opens offline in any modern browser (about 1 MB because three.js and the 3D model are inside).
@@ -12,14 +12,14 @@ and a 3D view of the deck. **All data is illustrative. Not a KSU system.**
 ```bash
 npm install
 npm run fetch-model    # one-time: downloads the 36 MB detection model, checks its checksum
-npm test               # build + 38 Node tests (survey logic, detection maths, UI behaviour)
+npm test               # build + 44 Node tests (survey logic, detection maths, UI behaviour)
 npm run serve          # serves dist/ at http://127.0.0.1:8080/ (the AI count needs http)
 npm run check:browser  # headless Chromium at 375px and 1280px; runs the real model if test/fixtures/street.jpg exists
 ```
 
 | Path | What it is |
 |---|---|
-| `src/model.js` | Pure logic: status from survey start, replace-not-add, version check, level rollup, storage validation |
+| `src/model.js` | Pure logic: replace-not-add surveys, estimates with ranges and trends, level and deck summaries, checks against real counts, storage validation |
 | `src/detect.js` | Pure maths around the detection model: resize, tensor layout, box decoding, duplicate removal |
 | `src/ai.js` | Loads the model in the browser and counts vehicles in a photo, on the device |
 | `src/app.js` | Page behaviour: survey flow, AI assist, field log, cards, demo clock, backup reports, link to the 3D view |

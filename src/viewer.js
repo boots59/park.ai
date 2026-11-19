@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-const COLORS = { recent: '#2f8f4e', stale: '#d9a21b', unknown: '#9aa69a', selected: '#1f5fbf' };
+const COLORS = { recent: '#2f8f4e', estimate: '#d9a21b', unknown: '#9aa69a', selected: '#1f5fbf' };
 const LEVEL_GAP = 9; // metres added between levels when "spread levels" is on
 
 function base64ToArrayBuffer(b64) {
