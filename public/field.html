@@ -5,12 +5,12 @@ h1{font-size:24px;letter-spacing:-.6px;margin:8px 0}h2{font-size:18px;margin:0 0
 button:focus-visible{outline:3px solid #ce8a16;outline-offset:2px}.primary{background:#231f20;color:#fff}.opts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}.opts button[aria-pressed="true"]{background:#231f20;color:#fff}
 .q{font-weight:700;margin:14px 0 4px}.say{background:#fff6d6;border-radius:8px;padding:10px 12px;font-size:14px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.big{font-size:34px;font-weight:800}
 select,input{font:inherit;padding:10px;border:1px solid #bdbdbb;border-radius:8px;background:#fff}label{font-size:13px;font-weight:700}.ctr{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;margin-top:10px}.ctr .n{font-size:30px;font-weight:800;min-width:2.2em;text-align:right}.ctr button{min-width:56px;font-weight:700}.ctr.main button.add{background:#231f20;color:#fff;min-height:64px;font-size:20px}
-table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;padding:4px 6px;border-bottom:1px solid #e6e6e4}nav{display:flex;gap:6px;margin-top:10px}nav button[aria-selected="true"]{background:#231f20;color:#fff}.hidden{display:none}
+table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;padding:4px 6px;border-bottom:1px solid #e6e6e4}nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}nav button[aria-selected="true"]{background:#231f20;color:#fff}.hidden{display:none}
 </style></head><body><main>
 <div id="kitHead"><p class="small"><a href="./">← back to the app</a></p><h1>Field kit</h1>
 <p class="small">For the person collecting data. No names, no contact details, no photos. <span id="where">Everything is stored on this phone only.</span></p></div>
 <div id="surveyHead" class="hidden"><h1>Parking at KSU: 45-second survey</h1><p class="small">A student hackathon project, not a KSU survey. Anonymous: no name, no email, nothing that identifies you. Tap an answer for each question.</p></div>
-<nav role="tablist" id="tabs"><button id="tStalls" role="tab" aria-selected="true" onclick="show('stalls')">Stall count</button><button id="tPoll" role="tab" aria-selected="false" onclick="show('poll')">Poll</button><button id="tTally" role="tab" aria-selected="false" onclick="show('tally')">Circling</button><button id="tData" role="tab" aria-selected="false" onclick="show('data')">Results</button></nav>
+<nav role="tablist" id="tabs"><button id="tStalls" role="tab" aria-selected="true" onclick="show('stalls')">Stall count</button><button id="tPoll" role="tab" aria-selected="false" onclick="show('poll')">Poll</button><button id="tTally" role="tab" aria-selected="false" onclick="show('tally')">Circling</button><button id="tStaff" role="tab" aria-selected="false" onclick="show('staff')">Staff</button><button id="tData" role="tab" aria-selected="false" onclick="show('data')">Results</button></nav>
 
 <section id="stalls"><div class="panel"><h2>Stall count</h2>
 <p class="small">Count painted stalls, one bay (or one row) at a time. Tap as you walk; your taps are kept if the page reloads. Save at the end of each bay.</p>
@@ -32,6 +32,13 @@ table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;p
 <div class="row" style="margin-top:14px"><button onclick="tap('entered')">Car entered level<br><span class="big" id="nEntered">0</span></button><button onclick="tap('left')">Left without parking<br><span class="big" id="nLeft">0</span></button></div>
 <div class="row" style="margin-top:10px"><button onclick="undoTap()">Undo last tap</button><button onclick="endTally()">End and save</button></div>
 <p id="tallyMsg" class="small" role="status" aria-live="polite"></p></div></section>
+
+<section id="staff" class="hidden"><div class="panel"><h2>Staff interview</h2>
+<div class="say"><b>Say:</b> “I'm a student working on a parking project for a hackathon. Could I ask a few quick questions about how the deck is checked? No names, and ‘not sure’ is a fine answer.”</div>
+<div id="staffQuestions"></div>
+<p class="q">Anything else they said (no names)</p><textarea id="staffNote" rows="3" style="width:100%;font:inherit;padding:10px;border:1px solid #bdbdbb;border-radius:8px" maxlength="600"></textarea>
+<div class="row" style="margin-top:10px"><button class="primary" onclick="saveStaff()">Save this interview</button><button onclick="staffForm={};$('staffNote').value='';renderStaff()">Clear</button></div>
+<p id="staffMsg" class="small" role="status" aria-live="polite"></p></div></section>
 
 <section id="data" class="hidden"><div class="panel"><h2>Results so far</h2><div id="summary"></div>
 <div class="row" style="margin-top:12px"><button class="primary" onclick="exportCsv()">Export everything (CSV)</button><button onclick="undoResponse()">Delete last poll response</button><button onclick="clearAll()">Clear all</button></div></div></section>
@@ -58,6 +65,7 @@ const SURVEY = new URLSearchParams(location.search).has('survey'); // the page s
 let data = { responses: [], tallies: [], stalls: [] }, form = {}, tally = null, timer = 0;
 try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.responses) && Array.isArray(d.tallies)) data = d; } catch (e) {}
 if (!Array.isArray(data.stalls)) data.stalls = [];
+if (!Array.isArray(data.staff)) data.staff = [];
 const $ = id => document.getElementById(id), save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} backup(); };
 
 // ---- Optional upload to the shared database (see docs/SHARED-DATA.md) ----
@@ -81,7 +89,7 @@ async function submitSurvey(answer) {
 }
 const stamp = () => new Date().toISOString();
 
-function show(id) { for (const n of ['stalls', 'poll', 'tally', 'data']) { $(n).classList.toggle('hidden', n !== id); $('t' + n[0].toUpperCase() + n.slice(1)).setAttribute('aria-selected', String(n === id)); } if (id === 'data') renderSummary(); }
+function show(id) { for (const n of ['stalls', 'poll', 'tally', 'staff', 'data']) { $(n).classList.toggle('hidden', n !== id); $('t' + n[0].toUpperCase() + n.slice(1)).setAttribute('aria-selected', String(n === id)); } if (id === 'data') renderSummary(); }
 const visible = q => !q.onlyIf || form.drove === q.onlyIf;
 function renderForm() {
   $('questions').innerHTML = QUESTIONS.filter(visible).map(q => `<p class="q">${q.text}</p><div class="opts">` +
@@ -103,6 +111,33 @@ function saveResponse() {
   $('pollMsg').textContent = 'Saved. ' + data.responses.length + ' responses so far.';
 }
 function undoResponse() { if (data.responses.length && confirm('Delete the last poll response?')) { data.responses.pop(); save(); renderSummary(); } }
+
+// ---- Staff interview: a few tap answers and a short note. Every question may be left blank. ----
+const STAFF_Q = [
+  { id: 'role', text: '1. Their role', options: ['Parking monitor', 'Talon One / office', 'Supervisor', 'Other'] },
+  { id: 'truck', text: '2. How often does the plate-scanning truck go through West Deck on a busy day?', options: ['More than hourly', 'About hourly', 'Every few hours', 'Once a day', 'Not sure'] },
+  { id: 'foot', text: '3. How often does a monitor walk the whole deck?', options: ['More than hourly', 'About hourly', 'Every few hours', 'Once a day', 'Only when flagged', 'Not sure'] },
+  { id: 'scanLevel', text: '4. Does the scan system record which level each scan was on?', options: ['Yes', 'No', 'Not sure'] },
+  { id: 'scanCount', text: '5. Could it report how many plates were scanned per level, without the plates?', options: ['Yes', 'Probably', 'No', 'Not sure'] },
+  { id: 'tally', text: '6. Would tapping a count of open stalls while walking a bay be practical?', options: ['Yes, easily', 'Only if very quick', 'No', 'Not sure'] },
+  { id: 'fills', text: '7. When does West Deck usually fill on Tuesdays and Thursdays?', options: ['Before 9', '9 to 11', '11 to 1', 'After 1', 'It rarely fills', 'Not sure'] },
+  { id: 'asked', text: '8. How often do students ask where to park or complain about finding a space?', options: ['Daily', 'Weekly', 'Rarely', 'Not sure'] },
+  { id: 'faculty', text: '9. Are the faculty/staff stalls on Level 1 open to students at any time?', options: ['No, never', 'Yes, after certain hours', 'Not sure'] },
+  { id: 'cameras', text: '10. Who runs the cameras in the deck?', options: ['Public Safety', 'Parking', 'Not sure'] },
+  { id: 'pilot', text: '11. Would the office consider a small pilot after the hackathon?', options: ['Yes', 'Maybe', 'No', 'Need to ask someone else'] },
+];
+let staffForm = {};
+function renderStaff() {
+  $('staffQuestions').innerHTML = STAFF_Q.map(q => `<p class="q">${q.text}</p><div class="opts">` +
+    q.options.map((o, i) => `<button aria-pressed="${staffForm[q.id] === o}" onclick="pickStaff('${q.id}',${i})">${o}</button>`).join('') + '</div>').join('');
+}
+function pickStaff(id, i) { const o = STAFF_Q.find(q => q.id === id).options[i]; staffForm[id] = staffForm[id] === o ? undefined : o; renderStaff(); }
+function saveStaff() {
+  const note = $('staffNote').value.trim();
+  if (!note && !STAFF_Q.some(q => staffForm[q.id])) { $('staffMsg').textContent = 'Nothing entered yet.'; return; }
+  data.staff.push({ time: stamp(), ...staffForm, note }); save(); staffForm = {}; $('staffNote').value = ''; renderStaff();
+  $('staffMsg').textContent = 'Saved. ' + data.staff.length + ' staff interview(s) so far.';
+}
 
 // ---- Stall count: tap counters per bay, split by stall type ----
 const KINDS = [['regular', 'Regular'], ['accessible', 'Accessible'], ['faculty', 'Faculty / staff'], ['other', 'Other reserved']];
@@ -163,20 +198,22 @@ function renderSummary() {
   $('summary').innerHTML = `<p><b>${r.length}</b> poll responses, <b>${drove.length}</b> drove and parked today.</p>` +
     (drove.length ? `<p><b>${over5} of ${drove.length}</b> took more than 5 minutes to park.</p>` : '') +
     QUESTIONS.map(q => `<p class="q">${q.text}</p><table>${count(q.onlyIf ? drove : r, q.id)}</table>`).join('') +
+    `<p class="q">Staff interviews: ${data.staff.length}</p>` + data.staff.map(r => '<p class="small">' + STAFF_Q.filter(q => r[q.id]).map(q => esc(q.text.replace(/^\d+\. /, '')) + ' <b>' + esc(r[q.id]) + '</b>').join(' · ') + (r.note ? ' · Note: ' + esc(r.note) : '') + '</p>').join('') +
     `<p class="q">Circling tallies</p><table><tr><th>Start</th><th>Level</th><th>Entered</th><th>Left without parking</th></tr>` +
     data.tallies.map(t => `<tr><td>${new Date(t.start).toLocaleTimeString()}</td><td>${esc(t.level)}</td><td>${t.entered}</td><td>${t.left}</td></tr>`).join('') + '</table>';
 }
 function exportCsv() {
   const cell = v => '"' + String(v ?? '').replace(/"/g, '""') + '"', ids = QUESTIONS.map(q => q.id);
-  const lines = ['type,time,' + ids.join(',') + ',level,entered,left_without_parking,end_time,bay,row,regular,accessible,faculty_staff,other_reserved',
+  const lines = ['type,time,' + ids.join(',') + ',level,entered,left_without_parking,end_time,bay,row,regular,accessible,faculty_staff,other_reserved,' + STAFF_Q.map(q => 'staff_' + q.id).join(',') + ',staff_note',
+    ...data.staff.map(r => ['staff', r.time, ...ids.map(() => ''), '', '', '', '', '', '', '', '', '', '', ...STAFF_Q.map(q => r[q.id]), r.note].map(cell).join(',')),
     ...data.stalls.map(r => ['stalls', r.time, ...ids.map(() => ''), r.level, '', '', '', r.bay, r.row, r.regular, r.accessible, r.faculty, r.other].map(cell).join(',')),
     ...data.responses.map(r => ['poll', r.time, ...ids.map(i => r[i]), '', '', '', ''].map(cell).join(',')),
     ...data.tallies.map(t => ['tally', t.start, ...ids.map(() => ''), t.level, t.entered, t.left, t.end].map(cell).join(','))];
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n') + '\n'], { type: 'text/csv' }));
   a.download = 'west-deck-field-kit-' + stamp().slice(0, 16).replace(/[:T]/g, '-') + '.csv'; a.click(); URL.revokeObjectURL(a.href);
 }
-function clearAll() { if (confirm('Delete ALL poll responses and tallies on this phone? Export first.')) { data = { responses: [], tallies: [], stalls: [] }; save(); renderSummary(); drawStalls(); } }
-renderForm(); drawStalls();
+function clearAll() { if (confirm('Delete ALL poll responses and tallies on this phone? Export first.')) { data = { responses: [], tallies: [], stalls: [], staff: [] }; save(); renderSummary(); drawStalls(); } }
+renderForm(); drawStalls(); renderStaff();
 if (SURVEY) { // QR mode: only the survey
   for (const id of ['kitHead', 'tabs', 'say']) $(id).classList.add('hidden');
   $('surveyHead').classList.remove('hidden'); show('poll');

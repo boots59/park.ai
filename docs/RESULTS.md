@@ -55,11 +55,16 @@ recompute with `node scripts/analyze-field.cjs data/field/2026-11-19-bay-counts.
 ## Is the problem real?
 | Measure | Value | Sample | Date |
 |---|---|---|---|
-| Students who spent over 5 minutes finding a space | | | |
-| Students who tried more than one level or lot | | | |
-| Students made late by parking this semester | | | |
+| Students who spent over 5 minutes finding a space | 12 of 30. Among the 14 who arrived between 9 and 1: 9 of 14 | 30 students who drove that day, 27 of them parked in West Deck | 2026-11-19, 1:38-2:40 PM, asked in person near West Deck |
+| Students who tried more than one level or lot | 16 of 30. Among those who arrived 9 to 1: 11 of 14 | same 30 | same |
+| Students made late by parking this semester | 27 of 30 at least once; 18 of 30 several times | same 30 | same |
+| Students who have given up on a deck and parked elsewhere this semester | 23 of 30 at least once; 11 several times | same 30 | same |
+| Would check a page showing which level has room | 23 of 30 most times, 3 sometimes, 4 no | same 30 | same |
+| Would tap one button after parking to tell the next driver | 20 yes, 8 maybe, 2 no | same 30 | same |
 | Cars that entered a level and left without parking | | | |
-| Students who would have gone elsewhere with level information | | | |
+| With level information beforehand, would have... | gone straight to that level: 20; picked a different deck or lot: 5; not sure: 3; nothing different: 2 | same 30 | same |
+
+**Reading the poll:** 30 students Kell met near West Deck on one afternoon, answering from memory. It is not a sample of KSU students. "Would you" answers overstate what people actually do. Raw answers: `data/field/2026-11-19-student-poll.csv`.
 
 ## What we could not measure
 - Two independent observers: both passes were made by Kell (the second is labelled Observer B in the log to tell the passes apart; confirm).
