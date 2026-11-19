@@ -67,3 +67,4 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Field finding (Kell): a wide photo counted vehicles outside the deck. Fix: tap a box on the photo to leave that vehicle out. Left-out vehicles are logged separately and not counted as model errors.
 - Field finding (Kell): one photo of a whole bay finds about 11 vehicles at most. An enlarged-quarters mode exists (`Settings.detectTiles: 2`) but is off until the baseline batch is done.
 - Stall diagram per bay; student "I'm leaving" report; one-tap reporting with a remembered bay and `?bay=` links.
+- Positioning change (Kell): walking and tallying is the main staff count (big +1 button). The photo AI is tucked under "Camera AI test" and described as a trial for the deck's cameras.

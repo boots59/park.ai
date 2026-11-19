@@ -239,7 +239,7 @@ async function scanPhoto(input) {
     const result = await window.CarCounter.count(file, $('scanCanvas'));
     if (survey !== mine) return; // survey was cancelled or finished while the model ran
     survey.photos.push({ ai: result.count, confirmed: result.count, outside: 0, adjust: 0 });
-    $('scanCanvas').classList.remove('hidden');
+    $('scanCanvas').classList.remove('hidden'); $('assist').open = true;
     status.textContent = '';
   } catch (e) { status.textContent = e.message; }
   input.value = ''; // let the same photo be chosen again

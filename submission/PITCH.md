@@ -10,7 +10,8 @@ Fill each `[ ]` from `docs/RESULTS.md`. If a number was not measured, cut the se
 
 ## 1:00-2:00 Solution
 - Parking monitors already walk the deck on foot. Their phone becomes the sensor.
-- AI counts vehicles from a photo; the monitor confirms. Between counts, the page shows an honest range, not a stale number.
+- Monitors walk a bay and tally open stalls: the reliable count, with no hardware. Between counts, a statistical model shows an honest range, not a stale number.
+- A vehicle-detection model was tested on phone photos as a stand-in for the deck's own cameras. It is the automation path, with Public Safety's approval, not today's counting method.
 - Students who just parked add one tap (plenty, a few, full), so the app does not depend on staff alone. Built; not yet tried with real students.
 - Students get one answer before they drive in: Room likely, Tight, or Likely full.
 

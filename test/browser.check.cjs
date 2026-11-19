@@ -59,6 +59,7 @@ function serve() {
     p.on('pageerror', e => errors.push(e.message));
     await p.goto(url); await p.click('#staffTab'); await p.selectOption('#bay', 'L3_West'); await p.click('#start');
     const t0 = Date.now();
+    await p.click('#assist summary'); // the camera AI test is tucked under the tally
     await p.setInputFiles('#photo', fixture);
     await p.waitForFunction(() => document.getElementById('scanPanel').textContent || /Count by eye|not available/.test(document.getElementById('scanStatus').textContent), null, { timeout: 120000 });
     const panel = await p.textContent('#scanPanel'), found = Number((panel.match(/found (\d+) vehicles/) || [])[1]);
