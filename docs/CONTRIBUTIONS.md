@@ -11,7 +11,7 @@ Fill in the blanks yourself. A reviewer (or a Claude Corps application) will tru
 - _Add: what you tested, what you changed your mind about, who you talked to at KSU, the field counts you ran._
 
 ## Friend (name to confirm before crediting publicly)
-- The 3D West Deck model: lidar and aerial-photo measurements, Blender model, GLB exports, model README (the model file is not in this repository yet).
+- The 3D West Deck model: lidar and aerial-photo measurements, Blender model, GLB exports, model README (`assets/`, included with their permission, given 2026-11-19).
 
 ## Codex
 - The baseline prototype in `docs/baseline/` (_confirm: which parts did Codex write?_).

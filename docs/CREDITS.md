@@ -2,7 +2,7 @@
 
 ## People
 - **Kell Enow**: concept, product decisions, field measurements.
-- **A collaborator** (name added with their permission): the 3D model of West Deck.
+- **[Bookee2](https://github.com/Bookee2/SkillZ)**: the 3D model of West Deck (`assets/west_deck_plain.glb`), included with permission. _Kell: confirm how they want to be named._
 - **AI coding assistants**: Claude (Anthropic) and Codex (OpenAI) wrote code under Kell's direction. See [CONTRIBUTIONS.md](CONTRIBUTIONS.md).
 
 ## Code and models

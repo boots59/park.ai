@@ -67,8 +67,9 @@ submission/               pitch outline, demo script, submission checklist
 
 More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-**3D view:** the deck model file was made by a collaborator and is not in this repository yet. Without it the page builds
-and runs with the level cards only.
+**3D view:** `assets/west_deck_plain.glb` is a 3D model of the deck made by a collaborator ([Bookee2](https://github.com/Bookee2/SkillZ))
+from public lidar and aerial imagery, included with their permission. [assets/MODEL-README.md](assets/MODEL-README.md) says what in it is
+measured and what is guessed. If the file is removed, the page still builds and runs with the level cards only.
 
 ## Where the AI is
 

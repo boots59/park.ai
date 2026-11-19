@@ -6,8 +6,8 @@
 const fs = require('node:fs'), path = require('node:path');
 const root = path.join(__dirname, '..'), rd = p => fs.readFileSync(path.join(root, p), 'utf8');
 const glbPath = path.join(root, 'assets/west_deck_plain.glb');
-// The 3D deck model is a collaborator's file and is only in the repo with their
-// permission. Without it the page builds and works, minus the 3D view.
+// The 3D deck model is a collaborator's file, included with their permission.
+// If it is absent the page still builds and works, minus the 3D view.
 const no3d = process.argv.includes('--no-3d') || !fs.existsSync(glbPath);
 const lite = process.argv.includes('--no-3d');
 
