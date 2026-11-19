@@ -5,7 +5,9 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-const COLORS = { recent: '#2f8f4e', estimate: '#d9a21b', unknown: '#9aa69a', selected: '#1f5fbf' };
+// Bay colour = how much room (see ParkingModel.bayState). The number badge on
+// each bay carries the same information in text.
+const COLORS = { room: '#2f8f4e', few: '#d9a21b', full: '#b8402f', unknown: '#9aa69a' };
 // "Slide levels apart": each level moves sideways and up from the one below,
 // like pulling out drawers, so every bay can be seen and tapped.
 const LEVEL_SLIDE = 58; // metres sideways per level
@@ -65,17 +67,36 @@ async function mount(container, glbBase64, { onPick } = {}) {
     controls.update(); // applies the target: OrbitControls points the camera at it
   }
 
-  let statuses = {}, selected = null;
+  // A small text badge floats over each bay: its count or estimated range.
+  container.style.position = 'relative';
+  const labels = {};
+  for (const [name, mesh] of Object.entries(bays)) {
+    const el = document.createElement('div'); el.className = 'bay-label'; el.setAttribute('aria-hidden', 'true'); // same data is in the level cards
+    container.appendChild(el); labels[name] = el;
+  }
+  const p = new THREE.Vector3(), box = new THREE.Box3();
+  function placeLabels() {
+    const w = container.clientWidth, h = container.clientHeight;
+    for (const [name, el] of Object.entries(labels)) {
+      box.setFromObject(bays[name]).getCenter(p); p.project(camera); // middle of the bay, wherever its level has slid to
+      const show = p.z < 1 && el.textContent;
+      el.style.display = show ? '' : 'none';
+      if (show) el.style.transform = `translate(-50%,-50%) translate(${((p.x + 1) / 2 * w).toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
+    }
+  }
+
+  let states = {}, selected = null;
   function paint() {
     for (const [name, mesh] of Object.entries(bays)) {
-      const col = name === selected ? COLORS.selected : COLORS[statuses[name] || 'unknown'];
+      const info = states[name] || { state: 'unknown', label: '' }, col = COLORS[info.state] || COLORS.unknown;
+      labels[name].textContent = info.label; labels[name].classList.toggle('selected', name === selected);
       mesh.material.color.set(col);
       mesh.material.emissive.set(col);
-      mesh.material.emissiveIntensity = 0.35;
+      mesh.material.emissiveIntensity = name === selected ? 0.9 : 0.35; // the selected bay glows
     }
     render();
   }
-  function render() { renderer.render(scene, camera); }
+  function render() { scene.updateMatrixWorld(); renderer.render(scene, camera); placeLabels(); }
   function resize() {
     const w = container.clientWidth, h = container.clientHeight || 320;
     renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); fit(); render();
@@ -98,7 +119,7 @@ async function mount(container, glbBase64, { onPick } = {}) {
   resize();
   return {
     bayNames: Object.keys(bays),
-    setStatuses(map) { statuses = map; paint(); },
+    setBays(map) { states = map; paint(); }, // { bayName: { state: 'room'|'few'|'full'|'unknown', label: '6-14' } }
     select(name) { selected = name; paint(); },
     // Slide the levels apart (or back). Animated unless the viewer prefers reduced motion.
     setSpread(on, instant = matchMedia('(prefers-reduced-motion: reduce)').matches) {

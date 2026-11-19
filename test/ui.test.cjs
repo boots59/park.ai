@@ -25,6 +25,12 @@ test('seed shows a counted level, an estimated level, a partial level and a deck
   assert.match(els.cards.innerHTML, />≥2<\/div><div class="unit">in 1 of 3 bays/);      // Level 1: one old count, two unknown
   assert.match(els.verdict.innerHTML, /Room likely.*<b>≥25<\/b> open · in 7 of 9 bays/);
 });
+test('recommends where to try first, and says so plainly when nothing is known to be open', () => {
+  const b = boot();
+  assert.match(b.els.verdict.innerHTML, /Try first:.*Level 3 · East bay · <b>11<\/b> open<\/button>.*then.*Level 3 · West bay · <b>6<\/b> open/);
+  b.run('clearDemo()');
+  assert.match(b.els.verdict.innerHTML, /No bay has a known open space right now/);
+});
 test('coverage must be confirmed before saving', () => {
   const b = boot(); b.run('clearDemo(); startSurvey()');
   assert.equal(b.els.start.disabled, true);

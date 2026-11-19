@@ -20,7 +20,7 @@ See [DEMO-SCRIPT.md](DEMO-SCRIPT.md).
 - The AI: an open-source detection model running on the phone; it matched a person within `[±k]` vehicles on `[N]` photos.
 - The estimates: the real count fell inside the range `[A of B]` times.
 - Honest limits: one deck, one day of data, simulated display, no KSU agreement yet.
-- Next: KSU's real stall numbers; a two-week pilot with monitors; and the question of whether monitors' scanners already
+- Next: KSU's real stall numbers; a two-week pilot at West Deck with monitors; if it holds up, the same app on every deck on both campuses (a plan, not something tested); and the question of whether monitors' scanners already
   log enough to count cars with no extra work. KSU's reply so far: `[ ]`.
 
 ## Rubric map (AI Club track, 100 points)

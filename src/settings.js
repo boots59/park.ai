@@ -18,6 +18,9 @@ const Settings = {
   roomAt: 10,             // "Room likely" when at least this many spaces at the low end
   fullAt: 5,              // "Likely full" when every bay is known and at most this many at the high end
 
+  // --- One bay, in open spaces (3D colours and the "best bet") ---
+  bayRoomAt: 5,           // a bay is "room" (green) with at least this many spaces at the low end; fewer is "few" (amber)
+
   // --- What is being counted ---
   category: 'Example general permit (illustrative)',
 

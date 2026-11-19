@@ -7,7 +7,7 @@ const ParkingModel = (() => {
   const FRESH = S.freshMinutes * MIN, HORIZON = S.horizonMinutes * MIN, MAX_SURVEY = S.maxSurveyMinutes * MIN;
   const MAX_COUNT = S.maxCount, SIGMA = S.variability, Z = S.rangeZ;
   const TREND_MIN = S.trendMinGapMinutes * MIN, TREND_MAX = S.trendMaxGapMinutes * MIN;
-  const ROOM_AT = S.roomAt, FULL_AT = S.fullAt;
+  const ROOM_AT = S.roomAt, FULL_AT = S.fullAt, BAY_ROOM_AT = S.bayRoomAt;
 
   // Age is measured from the survey START. A walk takes minutes, and spaces
   // counted at the start may already have changed, so start is the honest
@@ -122,6 +122,26 @@ const ParkingModel = (() => {
     return { ...s, verdict };
   }
 
+  // One bay in one word, for colouring the 3D view. Judged on the LOW end of
+  // the estimate, so an ageing count never looks roomier than it may be.
+  //   room -> at least BAY_ROOM_AT spaces    few -> some, or possibly some
+  //   full -> none, even at the high end     unknown -> no usable count
+  function bayState(record, now) {
+    const est = estimate(record, now);
+    const state = !est ? 'unknown' : est.low >= BAY_ROOM_AT ? 'room' : est.high === 0 ? 'full' : 'few';
+    return { state, est };
+  }
+
+  // Where to try first: bays with at least one space at the low end, most
+  // spaces first, fresher count first on a tie. Empty when nothing qualifies.
+  // It ranks whole bays; it does not know which individual spaces are open.
+  function recommend(records, zoneIds, now, limit = 3) {
+    return zoneIds.map(zone => ({ zone, est: estimate(records[zone], now), start: records[zone]?.start }))
+      .filter(b => b.est && b.est.low >= 1)
+      .sort((a, b) => b.est.low - a.est.low || b.start - a.start)
+      .slice(0, limit).map(({ zone, est }) => ({ zone, est }));
+  }
+
   // Check the estimate against reality. `seriesList` holds, per bay, the real
   // counts in time order: [{ t, count }, ...]. For every earlier count we
   // estimate each later moment (5 to 30 minutes on) exactly as the page would,
@@ -173,7 +193,7 @@ const ParkingModel = (() => {
     return out;
   }
 
-  return { status, trend, estimate, complete, levelSummary, deckSummary, backtest, variability, sanitize,
+  return { status, trend, estimate, complete, levelSummary, deckSummary, bayState, recommend, backtest, variability, sanitize,
     cleanExtra, suggestOpen, aiAccuracy, FRESH, HORIZON, MAX_SURVEY, MAX_COUNT, SIGMA, ROOM_AT, FULL_AT };
 })();
 if (typeof module !== 'undefined') module.exports = ParkingModel;

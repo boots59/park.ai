@@ -40,3 +40,11 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - `build.cjs` moved to `scripts/build.cjs`; output renamed to `dist/index.html` and `dist/lite.html`.
 - Records moved to `docs/`; the original upload to `docs/baseline/`. New: `docs/ARCHITECTURE.md`, `docs/RESULTS.md`, `docs/CREDITS.md`, `submission/`.
 - `.github/workflows/pages.yml` publishes the demo, manual trigger only.
+
+## 2026-11-19, later (Claude)
+- 3D bays are coloured by room (green 5 or more, amber a few, red full, grey unknown) with a count badge on each, and update when a count is saved. `ParkingModel.bayState`, `Settings.bayRoomAt`.
+- "Try first" recommendation under the deck verdict (`ParkingModel.recommend`): whole bays, never individual spaces.
+- Levels slide apart sideways. The page is installable (`public/`: manifest, icons, service worker).
+- `public/field.html`: anonymous student poll and circling tally. `docs/FIELD-DAY.md` rewritten as a tiered timetable.
+- Pitch deck: live-demo link and QR code; plan to start at West Deck and extend to all decks on both campuses.
+- Known limit: counts live in one browser. Other phones do not see them until a shared server exists.

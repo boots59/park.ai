@@ -13,7 +13,8 @@ Built for the KSU AI Club Hackathon 2026 by Kell Enow.
 
 | For | Feature |
 |---|---|
-| Students | A deck verdict (Room likely, Tight, Likely full, Not enough counts), level cards, and per-bay numbers |
+| Students | A deck verdict (Room likely, Tight, Likely full, Not enough counts), a "try first" list of the best bays, level cards, and per-bay numbers |
+| Students | A 3D deck whose bays recolour (room, a few, full, unknown) the moment a count is saved |
 | Students | A count under 5 minutes old is shown as counted. From 5 to 30 minutes it becomes a range that widens with age and follows the bay's recent trend. After 30 minutes it says unknown |
 | Staff | A bounded survey of one bay: start, count, confirm coverage, complete. A new count replaces the old one |
 | Staff | **AI assist:** photograph a section, a detection model on the device counts the vehicles, the person corrects the number |

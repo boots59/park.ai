@@ -79,7 +79,14 @@ const VERDICT = { room: 'Room likely', tight: 'Tight', full: 'Likely full', unkn
 function renderVerdict(t) {
   const d = ParkingModel.deckSummary(records, ZONE_IDS, t), [count, unit] = summaryText(d);
   $('verdict').innerHTML = `<span class="verdict-word ${d.verdict}">${VERDICT[d.verdict]}</span>` +
-    `<span class="verdict-detail">${d.state === 'unknown' ? 'No bay has a usable count.' : `<b>${count}</b> open · ${unit}`}</span>`;
+    `<span class="verdict-detail">${d.state === 'unknown' ? 'No bay has a usable count.' : `<b>${count}</b> open · ${unit}`}</span>` + bestBet(t);
+}
+// "Where should I try first?" Whole bays only: nothing here knows which individual spaces are open.
+function bestBet(t) {
+  const picks = ParkingModel.recommend(records, ZONE_IDS, t);
+  if (!picks.length) return '<span class="best">No bay has a known open space right now. KSU\'s advice when a deck is full is a Shuttle Lot and the Big Owl Bus.</span>';
+  const item = ({ zone, est }) => `<button class="pick" onclick="selectBay('${zone}')">${bayName(zone)} · <b>${range(est)}</b> open${est.counted ? '' : ' (estimate)'}</button>`;
+  return `<span class="best"><b>Try first:</b> ${item(picks[0])}${picks.length > 1 ? ' <span class="then">then</span> ' + picks.slice(1).map(item).join(' ') : ''}</span>`;
 }
 function render() {
   const t = now();
@@ -87,11 +94,12 @@ function render() {
   $('cards').innerHTML = LEVELS.map(n => levelCard(n, t)).join('');
   $('clock').textContent = 'Simulated clock: ' + new Date(t).toLocaleTimeString() + ' · +' +
     Math.round(offset / 60e3) + ' min · illustrative values; real capacity unknown.';
-  if (viewer) viewer.setStatuses(Object.fromEntries(ZONE_IDS.map(z => [z, ParkingModel.status(records[z], t)])));
+  if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t); return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
   renderSelection();
 }
 function selectBay(z) {
   selectedBay = selectedBay === z ? null : z;
+  if (selectedBay) setView('student'); // a pick from the verdict shows on the model
   if (viewer) viewer.select(selectedBay);
   render();
 }

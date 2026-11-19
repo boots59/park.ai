@@ -91,6 +91,20 @@ test('deck verdict: room, tight, full, unknown', () => {
   assert.equal(v({ L1_West: rec(1), L1_Centre: rec(0) }), 'unknown');               // the third bay could hold anything
   assert.equal(v({}), 'unknown');
 });
+test('bay state is judged on the low end of the estimate', () => {
+  const st = r => m.bayState(r, t).state;
+  assert.equal(st(rec(11)), 'room'); assert.equal(st(rec(4)), 'few'); assert.equal(st(rec(0)), 'full');
+  assert.equal(st(rec(14, 9)), 'room');   // range 10-18
+  assert.equal(st(rec(6, 9)), 'few');     // range 2-10: might be nearly gone
+  assert.equal(st(rec(0, 9)), 'few');     // range 0-4: a space may have opened
+  assert.equal(st(undefined), 'unknown'); assert.equal(st(rec(9, 31)), 'unknown');
+});
+test('recommendation ranks bays by spaces, then freshness, and never suggests a full or unknown bay', () => {
+  const recs = { L1_West: rec(6, 2), L1_Centre: rec(0, 1), L1_East: rec(6, 1) };
+  assert.deepEqual(m.recommend(recs, zones, t).map(b => b.zone), ['L1_East', 'L1_West']);
+  assert.deepEqual(m.recommend({ L1_West: rec(0), L1_Centre: rec(3, 31) }, zones, t), []);
+  assert.equal(m.recommend(recs, zones, t, 1).length, 1);
+});
 test('backtest scores the estimate against later real counts', () => {
   assert.equal(m.backtest([[{ t, count: 5 }]]), null);
   const steady = [0, 6, 12, 18].map(k => ({ t: t + k * MIN, count: 20 - k })); // loses one space a minute
