@@ -66,7 +66,7 @@ src/viewer.js             3D deck view (three.js)
 src/app.js                page behaviour: survey flow, AI assist, field log, rendering
 src/index.template.html   markup and styles
 public/                   app icons, manifest, service worker, and field.html (anonymous student poll and circling tally)
-scripts/                  build, local server, model download
+scripts/                  build, local server, model download, field-log analysis
 test/                     model, detection and page tests; browser check
 docs/                     evidence log, architecture, field protocols, results, credits, contributions
 submission/               pitch outline, demo script, submission checklist
