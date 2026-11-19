@@ -25,7 +25,7 @@ every phone, give the app a shared database address. This is optional and takes 
         ".read": true,
         "$id": {
           ".write": "!data.exists()",
-          ".validate": "newData.hasChildren(['zone','band','t']) && newData.child('zone').isString() && newData.child('band').isString() && newData.child('band').val().matches(/^(plenty|few|full)$/) && newData.child('t').isNumber()"
+          ".validate": "newData.hasChildren(['zone','band','t']) && newData.child('zone').isString() && newData.child('band').isString() && newData.child('band').val().matches(/^(plenty|few|full|leaving)$/) && newData.child('t').isNumber()"
         }
       },
       "poll": {

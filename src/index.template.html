@@ -26,10 +26,11 @@ nav{display:flex;gap:6px;border-bottom:1px solid #cdd7ca;margin:30px 0 22px;over
 <div id="verdict" role="status" aria-live="polite"></div>
 <div id="cards" class="grid"></div>
 <p class="small" style="margin-top:10px">Stall diagrams: one box per regular stall. <span class="key" style="background:#5b6b61;margin-left:4px"></span>taken<span class="key" style="background:#c9d2c3"></span>possibly taken<span class="key" style="background:#e3f1dc;outline:1px solid #2f8f4e"></span>open<span class="key" style="outline:1px dashed #9aa69a"></span>unknown. A diagram shows how many stalls, not which ones, and uses sample counts in this demo.</p>
-<div class="panel"><div class="eyebrow">Just parked in West Deck?</div><h2>Tell the next driver, in one tap</h2>
-<p class="small">Only once you are parked and out of the car. No name, no account. Your tap is a lower-trust signal than a staff count and expires after 10 minutes.</p>
-<label for="reportBay">Where did you park?</label><select id="reportBay"></select>
+<div class="panel" id="reportPanel"><div class="eyebrow">Just parked in West Deck, or about to leave?</div><h2>Tell the next driver, in one tap</h2>
+<p class="small">Only when you are parked: out of the car after arriving, or before you start the engine to leave. Never while driving. No name, no account. Your tap is a lower-trust signal than a staff count and expires after 10 minutes (4 for a space that is opening).</p>
+<label for="reportBay">Which bay?</label><select id="reportBay"></select>
 <div class="row" style="margin-top:12px"><button class="secondary" onclick="reportBay('plenty')">Plenty of spaces (5+)</button><button class="secondary" onclick="reportBay('few')">A few left (1–4)</button><button class="secondary" onclick="reportBay('full')">I got the last one</button></div>
+<div class="row" style="margin-top:8px"><button class="secondary" onclick="reportBay('leaving')">I'm leaving: my space is opening</button></div>
 <div id="reportMsg" class="feedback" role="status" aria-live="polite"></div></div>
 <div class="layout"><div class="panel"><div class="eyebrow">3D deck model</div><h2>Find the bay, not just the floor</h2>
 <div id="deck3d" role="img" aria-label="3D model of the deck. Bays are tinted by how fresh their last survey is. The level cards give the same information as text."></div>

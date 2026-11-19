@@ -10,7 +10,9 @@ const ParkingModel = (() => {
   const ROOM_AT = S.roomAt, FULL_AT = S.fullAt, BAY_ROOM_AT = S.bayRoomAt;
   const REPORT_MS = S.studentReportMinutes * MIN;
   // What a student can report after parking, as a range of open spaces.
-  const BANDS = { plenty: [BAY_ROOM_AT, Infinity], few: [1, BAY_ROOM_AT - 1], full: [0, 0] };
+  // "leaving" is a student driving out: at least one space is opening in that bay.
+  const BANDS = { plenty: [BAY_ROOM_AT, Infinity], few: [1, BAY_ROOM_AT - 1], full: [0, 0], leaving: [1, Infinity] };
+  const lifetime = band => band === 'leaving' ? S.studentLeavingMinutes * MIN : REPORT_MS;
 
   // Age is measured from the survey START. A walk takes minutes, and spaces
   // counted at the start may already have changed, so start is the honest
@@ -113,7 +115,7 @@ const ParkingModel = (() => {
     const tagged = base && { ...base, source: base.counted ? 'counted' : 'estimate', students: 0 };
     if (base?.counted) return tagged;
     const since = record ? record.start : -Infinity;
-    const live = (reports || []).filter(r => r.zone === zone && r.t <= now && now - r.t < REPORT_MS && r.t > since).sort((a, b) => b.t - a.t);
+    const live = (reports || []).filter(r => r.zone === zone && r.t <= now && now - r.t < lifetime(r.band) && r.t > since).sort((a, b) => b.t - a.t);
     if (!live.length) return tagged;
     let [low, high] = BANDS[live[0].band];
     if (base) { const lo = Math.max(low, base.low), hi = Math.min(high, base.high); if (lo <= hi) { low = lo; high = hi; } }

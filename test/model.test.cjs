@@ -137,6 +137,14 @@ test('the newest report wins and agreeing reports are counted', () => {
   const e = m.bayEstimate(undefined, [rep('L1_West', 'plenty', 8), rep('L1_West', 'few', 3), rep('L1_West', 'few', 1)], 'L1_West', t);
   assert.deepEqual([e.band, e.students], ['few', 2]);
 });
+test('"I am leaving" means at least one space is opening, and expires sooner', () => {
+  const e = m.bayEstimate(undefined, [rep('L1_West', 'full', 3), rep('L1_West', 'leaving', 1)], 'L1_West', t);
+  assert.deepEqual([e.band, e.low, e.high], ['leaving', 1, Infinity]);       // newer than the "full" report
+  assert.equal(m.bayState(undefined, t, [rep('L1_West', 'leaving', 1)], 'L1_West').state, 'few');
+  assert.equal(m.bayEstimate(undefined, [rep('L1_West', 'leaving', 5)], 'L1_West', t), null);                  // gone after 4 minutes
+  const narrowed = m.bayEstimate(rec(1, 9), [rep('L1_West', 'leaving', 1)], 'L1_West', t);                     // ageing staff estimate 0-5
+  assert.deepEqual([narrowed.low, narrowed.high], [1, 5]);
+});
 test('student reports flow into bay state, summaries, the verdict and the recommendation', () => {
   const reports = [rep('L1_West', 'plenty', 2), rep('L1_Centre', 'full', 2)];
   assert.equal(m.bayState(undefined, t, reports, 'L1_West').state, 'room');

@@ -23,6 +23,7 @@ const Settings = {
 
   // --- Student reports ("I just parked here") ---
   studentReportMinutes: 10,   // a report older than this is ignored
+  studentLeavingMinutes: 4,   // an "I'm leaving" report is ignored sooner: a freed space is taken quickly
   studentRepeatMinutes: 5,    // one device may report the same bay once in this long
 
   // --- "Typical at this hour", shown only when a bay is otherwise unknown ---

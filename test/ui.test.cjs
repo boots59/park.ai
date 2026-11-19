@@ -109,6 +109,12 @@ test('a student report fills an unknown bay as a band and feeds the recommendati
   b.run('advance(11)');                                         // reports expire
   assert.match(b.els.cards.innerHTML, /status unknown">Unknown · no survey/);
 });
+test('a student leaving opens a space in their bay for a few minutes', () => {
+  const b = boot(); b.run('clearDemo()'); b.els.reportBay.value = 'L3_South'; b.run("reportBay('leaving')");
+  assert.match(b.els.cards.innerHTML, /bay-count">1\+<\/b><span class="status students">Student report · "a space just opened", 0 min ago/);
+  assert.match(b.els.reportMsg.textContent, /for the next 4 minutes/);
+  b.run('advance(6)'); assert.doesNotMatch(b.els.cards.innerHTML, /status students/);
+});
 test('a fresh staff count is not overridden by a student report', () => {
   const b = boot(); b.els.reportBay.value = 'L3_East'; b.run("reportBay('full')"); // sample data: 11 counted 1 min ago
   assert.match(b.els.cards.innerHTML, /bay-count">11<\/b><span class="status recent">Counted/);

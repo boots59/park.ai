@@ -18,7 +18,7 @@ const stallNote = z => counted(z)
 let records = {}, offset = 0, survey = null, viewer = null, selectedBay = null;
 let reports = [];          // student reports: [{ zone, band, t }]
 const REPORT_KEY = 'west-deck-reports-v1', REPORTED_KEY = 'west-deck-reported-v1';
-const BAND_TEXT = { plenty: 'plenty of spaces', few: 'a few left', full: 'full' };
+const BAND_TEXT = { plenty: 'plenty of spaces', few: 'a few left', full: 'full', leaving: 'a space just opened' };
 const est = (z, t) => ParkingModel.bayEstimate(records[z], reports, z, t);
 const now = () => Date.now() + offset;
 const $ = id => document.getElementById(id);
@@ -167,7 +167,7 @@ function reportBay(band) {
   if (typeof shareReport === 'function') shareReport(report);
   render();
   msg.textContent = 'Thank you. ' + (est(zone, t)?.source === 'students'
-    ? bayName(zone) + ' now shows "' + BAND_TEXT[band] + '" as a student report for the next 10 minutes.'
+    ? bayName(zone) + ' now shows "' + BAND_TEXT[band] + '" as a student report for the next ' + (band === 'leaving' ? Settings.studentLeavingMinutes : Settings.studentReportMinutes) + ' minutes.'
     : 'A staff count of ' + bayName(zone) + ' from the last 5 minutes is stronger evidence, so the display keeps it for now.');
 }
 
@@ -366,6 +366,8 @@ function toggleSpread() {
 }
 
 load(); loadReports(); fillBayOptions(); renderLog(); render();
+// A link, QR code or home-screen shortcut ending in ?report opens straight at the student report panel.
+if (typeof location !== 'undefined' && /[?&]report\b/.test(location.search || '')) { setView('student'); const el = $('reportPanel'); if (el.scrollIntoView) el.scrollIntoView(); }
 window.addEventListener('storage', e => {
   if (e.key === REPORT_KEY) { loadReports(); render(); return; }
   if (e.key !== KEY) return;
