@@ -10,7 +10,7 @@ table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;p
 <div id="kitHead"><p class="small"><a href="./">← back to the app</a></p><h1>Field kit</h1>
 <p class="small">For the person collecting data. No names, no contact details, no photos. <span id="where">Everything is stored on this phone only.</span></p></div>
 <div id="surveyHead" class="hidden"><h1>Parking at KSU: 45-second survey</h1><p class="small">A student hackathon project, not a KSU survey. Anonymous: no name, no email, nothing that identifies you. Tap an answer for each question.</p></div>
-<nav role="tablist" id="tabs"><button id="tStalls" role="tab" aria-selected="true" onclick="show('stalls')">Stall count</button><button id="tPoll" role="tab" aria-selected="false" onclick="show('poll')">Poll</button><button id="tTally" role="tab" aria-selected="false" onclick="show('tally')">Circling</button><button id="tStaff" role="tab" aria-selected="false" onclick="show('staff')">Staff</button><button id="tData" role="tab" aria-selected="false" onclick="show('data')">Results</button></nav>
+<nav role="tablist" id="tabs"><button id="tStalls" role="tab" aria-selected="true" onclick="show('stalls')">Stall count</button><button id="tPoll" role="tab" aria-selected="false" onclick="show('poll')">Poll</button><button id="tTally" role="tab" aria-selected="false" onclick="show('tally')">Circling</button><button id="tStaff" role="tab" aria-selected="false" onclick="show('staff')">Staff</button><button id="tShare" role="tab" aria-selected="false" onclick="show('share')">QR codes</button><button id="tData" role="tab" aria-selected="false" onclick="show('data')">Results</button></nav>
 
 <section id="stalls"><div class="panel"><h2>Stall count</h2>
 <p class="small">Count painted stalls, one bay (or one row) at a time. Tap as you walk; your taps are kept if the page reloads. Save at the end of each bay.</p>
@@ -39,6 +39,12 @@ table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;p
 <p class="q">Anything else they said (no names)</p><textarea id="staffNote" rows="3" style="width:100%;font:inherit;padding:10px;border:1px solid #bdbdbb;border-radius:8px" maxlength="600"></textarea>
 <div class="row" style="margin-top:10px"><button class="primary" onclick="saveStaff()">Save this interview</button><button onclick="staffForm={};$('staffNote').value='';renderStaff()">Clear</button></div>
 <p id="staffMsg" class="small" role="status" aria-live="polite"></p></div></section>
+
+<section id="share" class="hidden"><div class="panel"><h2>Let people scan</h2>
+<p class="small">Hold this screen up, or print the sign. On a phone, tap a code to open it.</p>
+<div class="row" style="gap:24px;align-items:flex-start">
+<a href="field.html?survey" style="max-width:200px;color:inherit;text-decoration:none"><img src="qr-survey.png" width="200" height="200" alt="QR code for the 45-second parking survey" style="background:#fff;border:1px solid #dddddb;border-radius:8px"><br><b>45-second parking survey</b><br><span class="small">Anonymous. A student project, not a KSU survey. Answers go to the shared database, not this phone.</span></a>
+<a href="./" style="max-width:200px;color:inherit;text-decoration:none"><img src="qr-app.png" width="200" height="200" alt="QR code that opens the app" style="background:#fff;border:1px solid #dddddb;border-radius:8px"><br><b>Open the app</b><br><span class="small">boots59.github.io/park.ai</span></a></div></div></section>
 
 <section id="data" class="hidden"><div class="panel"><h2>Results so far</h2><div id="summary"></div>
 <div class="row" style="margin-top:12px"><button class="primary" onclick="exportCsv()">Export everything (CSV)</button><button onclick="undoResponse()">Delete last poll response</button><button onclick="clearAll()">Clear all</button></div></div></section>
@@ -89,7 +95,7 @@ async function submitSurvey(answer) {
 }
 const stamp = () => new Date().toISOString();
 
-function show(id) { for (const n of ['stalls', 'poll', 'tally', 'staff', 'data']) { $(n).classList.toggle('hidden', n !== id); $('t' + n[0].toUpperCase() + n.slice(1)).setAttribute('aria-selected', String(n === id)); } if (id === 'data') renderSummary(); }
+function show(id) { for (const n of ['stalls', 'poll', 'tally', 'staff', 'share', 'data']) { $(n).classList.toggle('hidden', n !== id); $('t' + n[0].toUpperCase() + n.slice(1)).setAttribute('aria-selected', String(n === id)); } if (id === 'data') renderSummary(); }
 const visible = q => !q.onlyIf || form.drove === q.onlyIf;
 function renderForm() {
   $('questions').innerHTML = QUESTIONS.filter(visible).map(q => `<p class="q">${q.text}</p><div class="opts">` +
