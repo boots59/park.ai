@@ -240,7 +240,7 @@ async function mountViewer() {
   }
   try {
     viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay });
-    viewer.setSpread($('spread').getAttribute('aria-pressed') === 'true'); // spread by default: lower bays visible
+    viewer.setSpread($('spread').getAttribute('aria-pressed') === 'true', true); // apart by default, no animation on load
     $('viewerNote').textContent = 'Drag to rotate. Tap a bay to see its observation.';
     render();
   } catch (e) {
@@ -261,3 +261,6 @@ window.addEventListener('storage', e => {
 });
 setInterval(render, 10000);
 mountViewer();
+// Installable app: only when served from a web address (not from a file).
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && typeof location !== 'undefined' && /^https?:$/.test(location.protocol))
+  navigator.serviceWorker.register('sw.js').catch(() => {});

@@ -7,7 +7,7 @@ const { chromium } = require('playwright'), path = require('node:path'), fs = re
 const dist = path.join(__dirname, '../dist'), file = 'file://' + path.join(dist, 'index.html');
 const out = process.argv[2] || path.join(__dirname, '../screenshots'); fs.mkdirSync(out, { recursive: true });
 const fixture = path.join(__dirname, 'fixtures/street.jpg');
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm', '.onnx': 'application/octet-stream' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm', '.onnx': 'application/octet-stream', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
 function serve() {
   const server = http.createServer((req, res) => {
@@ -73,6 +73,10 @@ function serve() {
     assert.match(await p.textContent('#feedback'), /Level 3 · West bay saved/);
     const csv = await p.evaluate(() => fieldLogCsv());
     assert.match(csv, new RegExp(`ai-assisted,1,${found},${found + 1},${found}>${found + 1},0`));
+    // Installable app: manifest and icon are served, and the service worker takes control.
+    const man = await p.evaluate(async () => (await fetch(document.querySelector('link[rel=manifest]').href)).json());
+    assert.equal(man.display, 'standalone'); assert.equal((await p.request.get(new URL(man.icons[1].src, url).href)).status(), 200);
+    assert.ok(await p.evaluate(() => navigator.serviceWorker.ready.then(r => !!r.active)), 'service worker did not activate');
     assert.deepEqual(errors, []);
     console.log(`AI check ok: model found ${found} vehicles in the test photo, ${((Date.now() - t0) / 1000).toFixed(1)} s including model load`);
     await ctx.close(); server.close();

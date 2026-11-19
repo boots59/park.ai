@@ -3,7 +3,7 @@
 // (The AI count cannot run from a page opened as a file.)
 const http = require('node:http'), fs = require('node:fs'), path = require('node:path');
 const dist = path.join(__dirname, '../dist'), port = Number(process.env.PORT) || 8080;
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 http.createServer((req, res) => {
   let f = path.join(dist, path.normalize(decodeURIComponent(req.url.split('?')[0])));
   if (req.url === '/') f = path.join(dist, 'index.html');

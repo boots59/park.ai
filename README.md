@@ -59,6 +59,7 @@ src/ai.js                 runs the detection model in the browser
 src/viewer.js             3D deck view (three.js)
 src/app.js                page behaviour: survey flow, AI assist, field log, rendering
 src/index.template.html   markup and styles
+public/                   app icons, manifest and service worker (make the page installable on a phone)
 scripts/                  build, local server, model download
 test/                     model, detection and page tests; browser check
 docs/                     evidence log, architecture, field protocols, results, credits, contributions

@@ -6,7 +6,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 const COLORS = { recent: '#2f8f4e', estimate: '#d9a21b', unknown: '#9aa69a', selected: '#1f5fbf' };
-const LEVEL_GAP = 9; // metres added between levels when "spread levels" is on
+// "Slide levels apart": each level moves sideways and up from the one below,
+// like pulling out drawers, so every bay can be seen and tapped.
+const LEVEL_SLIDE = 58; // metres sideways per level
+const LEVEL_LIFT = 5;   // metres up per level
+const SLIDE_MS = 450;   // animation length
 
 function base64ToArrayBuffer(b64) {
   const bin = atob(b64), bytes = new Uint8Array(bin.length);
@@ -40,7 +44,8 @@ async function mount(container, glbBase64, { onPick } = {}) {
     }
   });
   const levels = [1, 2, 3].map(n => gltf.scene.getObjectByName('Level_' + n)).filter(Boolean);
-  const baseY = levels.map(l => l.position.y);
+  const base = levels.map(l => l.position.clone());
+  let apart = 0, anim = 0; // apart: 0 = stacked, 1 = fully slid apart
 
   const camera = new THREE.PerspectiveCamera(35, 1, 1, 3000);
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -95,7 +100,16 @@ async function mount(container, glbBase64, { onPick } = {}) {
     bayNames: Object.keys(bays),
     setStatuses(map) { statuses = map; paint(); },
     select(name) { selected = name; paint(); },
-    setSpread(on) { levels.forEach((l, i) => { l.position.y = baseY[i] + (on ? i * LEVEL_GAP : 0); }); fit(); render(); },
+    // Slide the levels apart (or back). Animated unless the viewer prefers reduced motion.
+    setSpread(on, instant = matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const from = apart, to = on ? 1 : 0, t0 = performance.now();
+      cancelAnimationFrame(anim);
+      const place = k => { apart = k; levels.forEach((l, i) => l.position.set(base[i].x + i * LEVEL_SLIDE * k, base[i].y + i * LEVEL_LIFT * k, base[i].z)); fit(); render(); };
+      if (instant) return place(to);
+      const step = now => { const u = Math.min(1, (now - t0) / SLIDE_MS), ease = u * u * (3 - 2 * u);
+        place(from + (to - from) * ease); if (u < 1) anim = requestAnimationFrame(step); };
+      anim = requestAnimationFrame(step);
+    },
   };
 }
 

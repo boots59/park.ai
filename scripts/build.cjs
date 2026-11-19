@@ -39,6 +39,9 @@ const file = path.join(root, 'dist', lite ? 'lite.html' : 'index.html');
 fs.writeFileSync(file, html);
 console.log('built', path.relative(root, file), (html.length / 1024).toFixed(0) + ' KB' + (no3d && !lite ? ' (no 3D view: assets/west_deck_plain.glb is not present)' : ''));
 
+// Static files for the installable app (icons, manifest, service worker).
+for (const f of fs.readdirSync(path.join(root, 'public'))) fs.copyFileSync(path.join(root, 'public', f), path.join(root, 'dist', f));
+
 // AI assets sit BESIDE the page in dist/ai/ (too big to inline: about 47 MB).
 // The page works without them; the AI count then asks staff to count by eye.
 if (!lite) {
