@@ -21,6 +21,19 @@ const Settings = {
   // --- One bay, in open spaces (3D colours and the "best bet") ---
   bayRoomAt: 5,           // a bay is "room" (green) with at least this many spaces at the low end; fewer is "few" (amber)
 
+  // --- Student reports ("I just parked here") ---
+  studentReportMinutes: 10,   // a report older than this is ignored
+  studentRepeatMinutes: 5,    // one device may report the same bay once in this long
+
+  // --- "Typical at this hour", shown only when a bay is otherwise unknown ---
+  typicalWindowMinutes: 45,   // past counts within this many minutes of the current time of day
+  typicalMinSamples: 3,       // need at least this many past counts to say anything
+
+  // --- Sharing between phones (leave empty for single-device mode) ---
+  // A Firebase Realtime Database address, e.g. 'https://your-project-default-rtdb.firebaseio.com'.
+  // See docs/SHARED-DATA.md before filling this in.
+  syncUrl: '',
+
   // --- What is being counted ---
   category: 'Example general permit (illustrative)',
 

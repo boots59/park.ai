@@ -76,11 +76,11 @@ test('complete() keeps the replaced count only as the trend reference', () => {
 });
 test('level summary: exact, range, partial, unknown', () => {
   const all = { L1_West: rec(3), L1_Centre: rec(0), L1_East: rec(5) };
-  assert.deepEqual(m.levelSummary(all, zones, t), { state: 'complete', low: 8, high: 8, exact: true, knownBays: 3, bays: 3 });
+  assert.deepEqual(m.levelSummary(all, zones, t), { state: 'complete', low: 8, high: 8, exact: true, students: false, knownBays: 3, bays: 3 });
   const ageing = { ...all, L1_East: rec(5, 9) };
-  assert.deepEqual(m.levelSummary(ageing, zones, t), { state: 'complete', low: 4, high: 12, exact: false, knownBays: 3, bays: 3 });
+  assert.deepEqual(m.levelSummary(ageing, zones, t), { state: 'complete', low: 4, high: 12, exact: false, students: false, knownBays: 3, bays: 3 });
   const gone = { ...all, L1_East: rec(5, 31) };
-  assert.deepEqual(m.levelSummary(gone, zones, t), { state: 'partial', low: 3, high: 3, exact: true, knownBays: 2, bays: 3 });
+  assert.deepEqual(m.levelSummary(gone, zones, t), { state: 'partial', low: 3, high: 3, exact: true, students: false, knownBays: 2, bays: 3 });
   assert.deepEqual(m.levelSummary({}, zones, t), { state: 'unknown', knownBays: 0, bays: 3 });
 });
 test('deck verdict: room, tight, full, unknown', () => {
@@ -104,6 +104,52 @@ test('recommendation ranks bays by spaces, then freshness, and never suggests a 
   assert.deepEqual(m.recommend(recs, zones, t).map(b => b.zone), ['L1_East', 'L1_West']);
   assert.deepEqual(m.recommend({ L1_West: rec(0), L1_Centre: rec(3, 31) }, zones, t), []);
   assert.equal(m.recommend(recs, zones, t, 1).length, 1);
+});
+const rep = (zone, band, minsAgo) => ({ zone, band, t: t - minsAgo * MIN });
+test('a student report fills in an unknown bay, and expires', () => {
+  const e = m.bayEstimate(undefined, [rep('L1_West', 'few', 2)], 'L1_West', t);
+  assert.equal(e.source, 'students'); assert.deepEqual([e.low, e.high, e.students], [1, 4, 1]);
+  assert.equal(m.bayEstimate(undefined, [rep('L1_West', 'few', 11)], 'L1_West', t), null);  // older than 10 min
+  assert.equal(m.bayEstimate(undefined, [rep('L1_East', 'few', 2)], 'L1_West', t), null);   // a different bay
+  assert.equal(m.bayEstimate(undefined, [rep('L1_West', 'plenty', 1)], 'L1_West', t).high, Infinity);
+});
+test('a fresh staff count always beats student reports', () => {
+  const e = m.bayEstimate(rec(6, 2), [rep('L1_West', 'full', 1)], 'L1_West', t);
+  assert.equal(e.source, 'counted'); assert.equal(e.low, 6);
+});
+test('a report newer than an ageing staff count narrows it, or replaces it when they disagree', () => {
+  const ageing = rec(6, 9);                                       // estimate 2-10
+  const agree = m.bayEstimate(ageing, [rep('L1_West', 'few', 3)], 'L1_West', t);
+  assert.deepEqual([agree.low, agree.high, agree.source], [2, 4, 'students']);   // overlap of 2-10 and 1-4
+  const clash = m.bayEstimate(ageing, [rep('L1_West', 'full', 3)], 'L1_West', t);
+  assert.deepEqual([clash.low, clash.high], [0, 0]);
+  const before = m.bayEstimate(ageing, [rep('L1_West', 'full', 12)], 'L1_West', t);
+  assert.equal(before.source, 'estimate');                        // report made before the staff count: ignored
+});
+test('the newest report wins and agreeing reports are counted', () => {
+  const e = m.bayEstimate(undefined, [rep('L1_West', 'plenty', 8), rep('L1_West', 'few', 3), rep('L1_West', 'few', 1)], 'L1_West', t);
+  assert.deepEqual([e.band, e.students], ['few', 2]);
+});
+test('student reports flow into bay state, summaries, the verdict and the recommendation', () => {
+  const reports = [rep('L1_West', 'plenty', 2), rep('L1_Centre', 'full', 2)];
+  assert.equal(m.bayState(undefined, t, reports, 'L1_West').state, 'room');
+  assert.equal(m.bayState(undefined, t, reports, 'L1_Centre').state, 'full');
+  const s = m.levelSummary({}, zones, t, reports);
+  assert.deepEqual([s.state, s.low, s.high, s.students, s.knownBays], ['partial', 5, Infinity, true, 2]);
+  assert.equal(m.deckSummary({ L1_East: rec(6) }, zones, t, reports).verdict, 'room');
+  assert.deepEqual(m.recommend({}, zones, t, 3, reports).map(b => b.zone), ['L1_West']);
+});
+test('reports from storage or the network are validated', () => {
+  const out = m.cleanReports([rep('L1_West', 'few', 1), { zone: 'L9_X', band: 'few', t }, { zone: 'L1_West', band: '<b>', t }, { zone: 'L1_West', band: 'full', t: t + 3600e3 }, null, 'x'], zones, t);
+  assert.deepEqual(out, [rep('L1_West', 'few', 1)]);
+  assert.deepEqual(m.cleanReports('junk', zones, t), []);
+});
+test('typical-at-this-hour needs enough past counts from earlier days', () => {
+  const DAY = 1440 * MIN, h = (days, offMin, count, zone = 'L1_West') => ({ zone, t: t - days * DAY + offMin * MIN, count });
+  const hist = [h(1, 10, 4), h(2, -20, 9), h(7, 0, 6), h(1, 200, 30), h(1, 5, 50, 'L1_East')];
+  assert.deepEqual(m.typical(hist, 'L1_West', t), { low: 4, high: 9, samples: 3 });   // the +200 min count and the other bay are excluded
+  assert.equal(m.typical(hist.slice(0, 2), 'L1_West', t), null);                       // only two samples
+  assert.equal(m.typical([{ zone: 'L1_West', t: t - 30 * MIN, count: 5 }, h(1, 0, 5), h(2, 0, 5)], 'L1_West', t), null); // today's count does not count as history
 });
 test('backtest scores the estimate against later real counts', () => {
   assert.equal(m.backtest([[{ t, count: 5 }]]), null);

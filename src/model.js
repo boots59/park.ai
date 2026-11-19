@@ -8,6 +8,9 @@ const ParkingModel = (() => {
   const MAX_COUNT = S.maxCount, SIGMA = S.variability, Z = S.rangeZ;
   const TREND_MIN = S.trendMinGapMinutes * MIN, TREND_MAX = S.trendMaxGapMinutes * MIN;
   const ROOM_AT = S.roomAt, FULL_AT = S.fullAt, BAY_ROOM_AT = S.bayRoomAt;
+  const REPORT_MS = S.studentReportMinutes * MIN;
+  // What a student can report after parking, as a range of open spaces.
+  const BANDS = { plenty: [BAY_ROOM_AT, Infinity], few: [1, BAY_ROOM_AT - 1], full: [0, 0] };
 
   // Age is measured from the survey START. A walk takes minutes, and spaces
   // counted at the start may already have changed, so start is the honest
@@ -96,17 +99,59 @@ const ParkingModel = (() => {
       missed: err.filter(e => e < 0).reduce((n, e) => n - e, 0), extra: err.filter(e => e > 0).reduce((n, e) => n + e, 0) };
   }
 
+  // ---- Student reports: a second, lower-trust source ----
+  // A student who has just parked taps "plenty", "a few" or "full" for their
+  // bay. Rules:
+  //  - A staff count under 5 minutes old always wins; reports are ignored.
+  //  - Otherwise the NEWEST report made after the staff count sets the bay's
+  //    range. If that range overlaps the ageing staff estimate, the overlap is
+  //    used (two sources agreeing narrow the answer).
+  //  - Reports expire after Settings.studentReportMinutes.
+  // `students` says how many current reports agree with the newest one.
+  function bayEstimate(record, reports, zone, now) {
+    const base = estimate(record, now);
+    const tagged = base && { ...base, source: base.counted ? 'counted' : 'estimate', students: 0 };
+    if (base?.counted) return tagged;
+    const since = record ? record.start : -Infinity;
+    const live = (reports || []).filter(r => r.zone === zone && r.t <= now && now - r.t < REPORT_MS && r.t > since).sort((a, b) => b.t - a.t);
+    if (!live.length) return tagged;
+    let [low, high] = BANDS[live[0].band];
+    if (base) { const lo = Math.max(low, base.low), hi = Math.min(high, base.high); if (lo <= hi) { low = lo; high = hi; } }
+    return { low, high, mid: Number.isFinite(high) ? Math.round((low + high) / 2) : low, rate: 0, counted: false,
+      source: 'students', band: live[0].band, reportedAt: live[0].t, students: live.filter(r => r.band === live[0].band).length };
+  }
+  // Keep only well-formed reports for known bays (storage and the network can hold anything).
+  function cleanReports(raw, zoneIds, now) {
+    return (Array.isArray(raw) ? raw : []).filter(r => r && zoneIds.includes(r.zone) && BANDS[r.band] && Number.isFinite(r.t) && r.t <= now + MIN)
+      .map(r => ({ zone: r.zone, band: r.band, t: r.t })).sort((a, b) => a.t - b.t).slice(-500);
+  }
+
+  // ---- "Typical at this hour": what past counts say when nothing current is known ----
+  // `history` is [{ zone, t, count }] of past staff counts. Uses counts from
+  // EARLIER DAYS taken within the window around the current time of day.
+  // Returns null unless there are enough of them. It is context, not a count:
+  // the page shows it only for a bay that is otherwise unknown.
+  function typical(history, zone, now) {
+    const minuteOfDay = t => { const d = new Date(t); return d.getHours() * 60 + d.getMinutes(); };
+    const m = minuteOfDay(now), win = S.typicalWindowMinutes;
+    const near = (history || []).filter(h => h && h.zone === zone && Number.isInteger(h.count) && now - h.t > 12 * 60 * MIN)
+      .filter(h => { const d = Math.abs(minuteOfDay(h.t) - m); return Math.min(d, 1440 - d) <= win; }).map(h => h.count);
+    if (near.length < S.typicalMinSamples) return null;
+    return { low: Math.min(...near), high: Math.max(...near), samples: near.length };
+  }
+
   // Add up bays. A bay with no usable count is never guessed: the summary
   // says how many bays it covers instead.
   //   complete -> every bay known: low..high (exact when all were just counted)
   //   partial  -> some bays known: "at least `low`" in knownBays of bays
   //   unknown  -> nothing known
-  function summary(records, zoneIds, now) {
-    const known = zoneIds.map(z => estimate(records[z], now)).filter(Boolean);
+  // `reports` (student reports) is optional everywhere below.
+  function summary(records, zoneIds, now, reports) {
+    const known = zoneIds.map(z => bayEstimate(records[z], reports, z, now)).filter(Boolean);
     if (!known.length) return { state: 'unknown', knownBays: 0, bays: zoneIds.length };
     const low = known.reduce((n, e) => n + e.low, 0), high = known.reduce((n, e) => n + e.high, 0);
     return { state: known.length === zoneIds.length ? 'complete' : 'partial', low, high,
-      exact: known.every(e => e.counted), knownBays: known.length, bays: zoneIds.length };
+      exact: known.every(e => e.counted), students: known.some(e => e.source === 'students'), knownBays: known.length, bays: zoneIds.length };
   }
   const levelSummary = summary;
 
@@ -115,8 +160,8 @@ const ParkingModel = (() => {
   //   full    -> every bay known and at most FULL_AT spaces at the high end
   //   tight   -> every bay known, somewhere in between
   //   unknown -> not enough bays counted to say
-  function deckSummary(records, zoneIds, now) {
-    const s = summary(records, zoneIds, now);
+  function deckSummary(records, zoneIds, now, reports) {
+    const s = summary(records, zoneIds, now, reports);
     const verdict = s.state === 'unknown' ? 'unknown' : s.low >= ROOM_AT ? 'room'
       : s.state !== 'complete' ? 'unknown' : s.high <= FULL_AT ? 'full' : 'tight';
     return { ...s, verdict };
@@ -126,8 +171,8 @@ const ParkingModel = (() => {
   // the estimate, so an ageing count never looks roomier than it may be.
   //   room -> at least BAY_ROOM_AT spaces    few -> some, or possibly some
   //   full -> none, even at the high end     unknown -> no usable count
-  function bayState(record, now) {
-    const est = estimate(record, now);
+  function bayState(record, now, reports, zone) {
+    const est = bayEstimate(record, reports, zone, now);
     const state = !est ? 'unknown' : est.low >= BAY_ROOM_AT ? 'room' : est.high === 0 ? 'full' : 'few';
     return { state, est };
   }
@@ -135,8 +180,8 @@ const ParkingModel = (() => {
   // Where to try first: bays with at least one space at the low end, most
   // spaces first, fresher count first on a tie. Empty when nothing qualifies.
   // It ranks whole bays; it does not know which individual spaces are open.
-  function recommend(records, zoneIds, now, limit = 3) {
-    return zoneIds.map(zone => ({ zone, est: estimate(records[zone], now), start: records[zone]?.start }))
+  function recommend(records, zoneIds, now, limit = 3, reports) {
+    return zoneIds.map(zone => { const est = bayEstimate(records[zone], reports, zone, now); return { zone, est, start: est?.reportedAt ?? records[zone]?.start }; })
       .filter(b => b.est && b.est.low >= 1)
       .sort((a, b) => b.est.low - a.est.low || b.start - a.start)
       .slice(0, limit).map(({ zone, est }) => ({ zone, est }));
@@ -193,7 +238,7 @@ const ParkingModel = (() => {
     return out;
   }
 
-  return { status, trend, estimate, complete, levelSummary, deckSummary, bayState, recommend, backtest, variability, sanitize,
+  return { status, trend, estimate, bayEstimate, cleanReports, typical, BANDS, complete, levelSummary, deckSummary, bayState, recommend, backtest, variability, sanitize,
     cleanExtra, suggestOpen, aiAccuracy, FRESH, HORIZON, MAX_SURVEY, MAX_COUNT, SIGMA, ROOM_AT, FULL_AT };
 })();
 if (typeof module !== 'undefined') module.exports = ParkingModel;
