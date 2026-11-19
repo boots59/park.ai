@@ -36,6 +36,11 @@ Update this whenever a fact changes. "Verified" means someone read the primary s
 - AI Club rubric (100): campus impact 25 (real data: surveys, counts, wait times), **use of AI 25 ("AI is the core of the solution, not an add-on")**, feasibility 20, creativity 15, pitch 15.
 - The prototype now runs an AI model (see "AI vehicle count" below). Its accuracy in the deck is unmeasured until the field day.
 
+## Reported by Kell from his own observation (2026-11-18; not confirmed by KSU)
+- Parking is patrolled by parking monitors: typically students in yellow vests with a handheld scanner, on foot.
+- Cleaning staff move through the decks by vehicle.
+- Still unknown: how often a monitor covers West Deck, whether a round covers every level, and whether the scanner logs scans by time and place.
+
 ## Unknown
 Real level count; stalls per bay and permit type; where the restricted spaces are; whether staff would take part; any existing per-floor feed; Nudox and it. judging criteria; whether Kell registered.
 
