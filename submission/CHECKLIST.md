@@ -17,6 +17,8 @@ Required: a PowerPoint pitch deck, plus a demo video or a note that the demo wil
 - [ ] How the collaborator wants to be named on the credits slide
 
 ## Before the pitch
+- [ ] Live site is published and the QR code on slide 5 opens it on a phone
+- [ ] Live demo already open in a browser tab before you start; you can drag the 3D deck and switch back to the slides
 - [ ] Demo runs on the laptop you will present with, with Wi-Fi off
 - [ ] Phone demo link works, or the video is ready as a fallback
 - [ ] Rehearsed twice with a timer, under 5 minutes
