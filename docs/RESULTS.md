@@ -38,6 +38,8 @@ The protocol is in [FIELD-DAY.md](FIELD-DAY.md) and [TONIGHT.md](TONIGHT.md).
 | Measure | Value | Sample | Date |
 |---|---|---|---|
 | Students who spent over 5 minutes finding a space | | | |
+| Students who tried more than one level or lot | | | |
+| Students made late by parking this semester | | | |
 | Cars that entered a level and left without parking | | | |
 | Students who would have gone elsewhere with level information | | | |
 

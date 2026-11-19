@@ -1,0 +1,95 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WEST / deck · field kit</title><style>
+:root{font-family:Inter,Arial,sans-serif;color:#172e2c}*{box-sizing:border-box}body{margin:0;background:#f2f4ed}main{max-width:640px;margin:auto;padding:16px}
+h1{font-size:24px;letter-spacing:-.6px;margin:8px 0}h2{font-size:18px;margin:0 0 8px}p{line-height:1.5}.small{font-size:13px;color:#56685b}
+.panel{background:#fff;border:1px solid #dce3d8;border-radius:14px;padding:16px;margin:14px 0}button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:12px 14px;background:#e5ebdf;color:#25432c;min-height:44px}
+button:focus-visible{outline:3px solid #ce8a16;outline-offset:2px}.primary{background:#214c36;color:#fff}.opts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}.opts button[aria-pressed="true"]{background:#214c36;color:#fff}
+.q{font-weight:700;margin:14px 0 4px}.say{background:#fbf5db;border-radius:8px;padding:10px 12px;font-size:14px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.big{font-size:34px;font-weight:800}
+table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;padding:4px 6px;border-bottom:1px solid #e3e9df}nav{display:flex;gap:6px;margin-top:10px}nav button[aria-selected="true"]{background:#214c36;color:#fff}.hidden{display:none}
+</style></head><body><main>
+<p class="small"><a href="./">← back to the app</a></p><h1>Field kit</h1>
+<p class="small">For the person collecting data. Answers are stored on this phone only. No names, no contact details, no photos.</p>
+<nav role="tablist"><button id="tPoll" role="tab" aria-selected="true" onclick="show('poll')">Student poll</button><button id="tTally" role="tab" aria-selected="false" onclick="show('tally')">Circling tally</button><button id="tData" role="tab" aria-selected="false" onclick="show('data')">Results</button></nav>
+
+<section id="poll"><div class="panel"><div class="say"><b>Say:</b> “Hi, I'm a student doing a 30-second anonymous poll about parking for a hackathon project. No names. Do you have a moment?”</div>
+<div id="questions"></div>
+<div class="row"><button class="primary" onclick="saveResponse()">Save this response</button><button onclick="resetForm()">Clear</button></div>
+<p id="pollMsg" class="small" role="status" aria-live="polite"></p></div></section>
+
+<section id="tally" class="hidden"><div class="panel"><h2>Circling tally</h2>
+<p class="small">Stand somewhere safe where you can see cars come onto one level. Tap once per car. “Left without parking” means it drove through the level and went on to another level or out.</p>
+<div class="row"><button class="primary" id="tStart" onclick="startTally()">Start a 15-minute tally</button><span id="tClock" class="small"></span></div>
+<div class="row" style="margin-top:14px"><button onclick="tap('entered')">Car entered level<br><span class="big" id="nEntered">0</span></button><button onclick="tap('left')">Left without parking<br><span class="big" id="nLeft">0</span></button></div>
+<div class="row" style="margin-top:10px"><button onclick="undoTap()">Undo last tap</button><button onclick="endTally()">End and save</button></div>
+<p id="tallyMsg" class="small" role="status" aria-live="polite"></p></div></section>
+
+<section id="data" class="hidden"><div class="panel"><h2>Results so far</h2><div id="summary"></div>
+<div class="row" style="margin-top:12px"><button class="primary" onclick="exportCsv()">Export everything (CSV)</button><button onclick="undoResponse()">Delete last poll response</button><button onclick="clearAll()">Clear all</button></div></div></section>
+</main><script>
+// Field kit: a short anonymous poll and a circling tally, stored on this device only.
+// To change the questions, edit QUESTIONS. Each answer is one tap.
+const QUESTIONS = [
+  { id: 'drove', text: '1. Did you drive to campus and park today?', options: ['Yes', 'No'] },
+  { id: 'where', text: '2. Where did you park?', options: ['West Deck', 'Another deck', 'A surface lot', 'Shuttle lot', 'Off campus'], onlyIf: 'Yes' },
+  { id: 'arrived', text: '3. About what time did you arrive?', options: ['Before 9', '9 to 11', '11 to 1', 'After 1'], onlyIf: 'Yes' },
+  { id: 'minutes', text: '4. From reaching the deck or lot to being parked, about how many minutes?', options: ['0-2', '3-5', '6-10', '11-20', 'Over 20'], onlyIf: 'Yes' },
+  { id: 'levels', text: '5. Did you try more than one level or lot before you found a space?', options: ['Yes', 'No'], onlyIf: 'Yes' },
+  { id: 'would', text: '6. If you had known before driving in which level had room, what would you have done?', options: ['Gone straight to that level', 'Picked a different deck or lot', 'Nothing different', 'Not sure'], onlyIf: 'Yes' },
+  { id: 'late', text: '7. This semester, has parking made you late to class?', options: ['Never', 'Once or twice', 'Several times'] },
+];
+const KEY = 'west-deck-fieldkit-v1';
+let data = { responses: [], tallies: [] }, form = {}, tally = null, timer = 0;
+try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.responses) && Array.isArray(d.tallies)) data = d; } catch (e) {}
+const $ = id => document.getElementById(id), save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} };
+const stamp = () => new Date().toISOString();
+
+function show(id) { for (const n of ['poll', 'tally', 'data']) { $(n).classList.toggle('hidden', n !== id); $('t' + n[0].toUpperCase() + n.slice(1)).setAttribute('aria-selected', String(n === id)); } if (id === 'data') renderSummary(); }
+const visible = q => !q.onlyIf || form.drove === q.onlyIf;
+function renderForm() {
+  $('questions').innerHTML = QUESTIONS.filter(visible).map(q => `<p class="q">${q.text}</p><div class="opts">` +
+    q.options.map((o, i) => `<button aria-pressed="${form[q.id] === o}" onclick="pick('${q.id}',${i})">${o}</button>`).join('') + '</div>').join('');
+}
+function pick(id, i) { const q = QUESTIONS.find(q => q.id === id); form[id] = q.options[i]; if (id === 'drove') for (const k of QUESTIONS) if (k.onlyIf) delete form[k.id]; renderForm(); }
+function resetForm() { form = {}; renderForm(); $('pollMsg').textContent = ''; }
+function saveResponse() {
+  const missing = QUESTIONS.filter(q => visible(q) && !form[q.id]);
+  if (missing.length) { $('pollMsg').textContent = 'Still unanswered: question ' + missing.map(q => q.text[0]).join(', ') + '. Tap an answer, or Clear to drop this response.'; return; }
+  data.responses.push({ time: stamp(), ...form }); save(); form = {}; renderForm();
+  $('pollMsg').textContent = 'Saved. ' + data.responses.length + ' responses so far.';
+}
+function undoResponse() { if (data.responses.length && confirm('Delete the last poll response?')) { data.responses.pop(); save(); renderSummary(); } }
+
+function startTally() { tally = { start: stamp(), level: prompt('Which level are you watching? (for your notes)') || '', taps: [] }; $('tStart').disabled = true; clearInterval(timer); timer = setInterval(drawTally, 1000); drawTally(); $('tallyMsg').textContent = ''; }
+function tap(kind) { if (!tally) { $('tallyMsg').textContent = 'Press Start first.'; return; } tally.taps.push(kind); drawTally(); }
+function undoTap() { if (tally) { tally.taps.pop(); drawTally(); } }
+function drawTally() {
+  const n = k => tally ? tally.taps.filter(t => t === k).length : 0; $('nEntered').textContent = n('entered'); $('nLeft').textContent = n('left');
+  if (tally) { const s = Math.floor((Date.now() - Date.parse(tally.start)) / 1000); $('tClock').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + (s >= 900 ? ' · 15 minutes reached, you can end' : ''); }
+}
+function endTally() {
+  if (!tally) return; clearInterval(timer);
+  const n = k => tally.taps.filter(t => t === k).length;
+  data.tallies.push({ start: tally.start, end: stamp(), level: tally.level, entered: n('entered'), left: n('left') }); save();
+  $('tallyMsg').textContent = `Saved: ${n('entered')} entered, ${n('left')} left without parking.`; tally = null; $('tStart').disabled = false; $('tClock').textContent = ''; drawTally();
+}
+
+function renderSummary() {
+  const r = data.responses, drove = r.filter(x => x.drove === 'Yes'), over5 = drove.filter(x => ['6-10', '11-20', 'Over 20'].includes(x.minutes)).length;
+  const count = (list, id) => { const q = QUESTIONS.find(q => q.id === id); return q.options.map(o => `<tr><td>${o}</td><td>${list.filter(x => x[id] === o).length}</td></tr>`).join(''); };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  $('summary').innerHTML = `<p><b>${r.length}</b> poll responses, <b>${drove.length}</b> drove and parked today.</p>` +
+    (drove.length ? `<p><b>${over5} of ${drove.length}</b> took more than 5 minutes to park.</p>` : '') +
+    QUESTIONS.map(q => `<p class="q">${q.text}</p><table>${count(q.onlyIf ? drove : r, q.id)}</table>`).join('') +
+    `<p class="q">Circling tallies</p><table><tr><th>Start</th><th>Level</th><th>Entered</th><th>Left without parking</th></tr>` +
+    data.tallies.map(t => `<tr><td>${new Date(t.start).toLocaleTimeString()}</td><td>${esc(t.level)}</td><td>${t.entered}</td><td>${t.left}</td></tr>`).join('') + '</table>';
+}
+function exportCsv() {
+  const cell = v => '"' + String(v ?? '').replace(/"/g, '""') + '"', ids = QUESTIONS.map(q => q.id);
+  const lines = ['type,time,' + ids.join(',') + ',level,entered,left_without_parking,end_time',
+    ...data.responses.map(r => ['poll', r.time, ...ids.map(i => r[i]), '', '', '', ''].map(cell).join(',')),
+    ...data.tallies.map(t => ['tally', t.start, ...ids.map(() => ''), t.level, t.entered, t.left, t.end].map(cell).join(','))];
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n') + '\n'], { type: 'text/csv' }));
+  a.download = 'west-deck-field-kit-' + stamp().slice(0, 16).replace(/[:T]/g, '-') + '.csv'; a.click(); URL.revokeObjectURL(a.href);
+}
+function clearAll() { if (confirm('Delete ALL poll responses and tallies on this phone? Export first.')) { data = { responses: [], tallies: [] }; save(); renderSummary(); } }
+renderForm();
+</script></body></html>
