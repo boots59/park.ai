@@ -40,15 +40,18 @@
   async function count(file, canvas) {
     const session = await ready();
     const img = await decodeImage(file), W = img.width, H = img.height;
-    const box = CarDetect.letterbox(W, H, SIZE);
-    const small = document.createElement('canvas'); small.width = box.w; small.height = box.h;
-    const g = small.getContext('2d', { willReadFrequently: true });
-    g.drawImage(img, 0, 0, box.w, box.h);
-    const input = CarDetect.toTensor(g.getImageData(0, 0, box.w, box.h).data, box.w, box.h, SIZE);
-    const t0 = performance.now();
-    const out = await session.run({ [session.inputNames[0]]: new ort.Tensor('float32', input, [1, 3, SIZE, SIZE]) });
-    const ms = Math.round(performance.now() - t0);
-    const dets = CarDetect.vehicles(out[session.outputNames[0]].data, SIZE, box.scale);
+    const small = document.createElement('canvas'), g = small.getContext('2d', { willReadFrequently: true });
+    const t0 = performance.now(), found = [];
+    // Look at the whole photo, then at enlarged overlapping quarters (see CarDetect.regions).
+    for (const r of CarDetect.regions(W, H)) {
+      const box = CarDetect.letterbox(r.w, r.h, SIZE);
+      small.width = box.w; small.height = box.h;
+      g.drawImage(img, r.x, r.y, r.w, r.h, 0, 0, box.w, box.h);
+      const input = CarDetect.toTensor(g.getImageData(0, 0, box.w, box.h).data, box.w, box.h, SIZE);
+      const out = await session.run({ [session.inputNames[0]]: new ort.Tensor('float32', input, [1, 3, SIZE, SIZE]) });
+      for (const d of CarDetect.vehicles(out[session.outputNames[0]].data, SIZE, box.scale)) found.push({ ...d, x: d.x + r.x, y: d.y + r.y });
+    }
+    const dets = CarDetect.merge(found), ms = Math.round(performance.now() - t0);
     if (canvas) draw(canvas, img, W, H, dets);
     if (img.close) img.close();
     return { count: dets.length, ms };

@@ -69,12 +69,36 @@ const CarDetect = (() => {
     return kept;
   }
 
+  // Looking at enlarged pieces of a photo finds the same vehicle more than once:
+  // whole in one piece, cut off at the edge of the next. Ordinary overlap (IoU)
+  // misses that, because a cut-off box is much smaller than the whole one. So
+  // here a box is also dropped when most of it lies inside a box already kept.
+  function merge(dets, maxIou = S.detectMaxOverlap, maxContain = S.detectMaxContain) {
+    const inside = (a, b) => { // share of the smaller box covered by the other
+      const x1 = Math.max(a.x, b.x), y1 = Math.max(a.y, b.y), x2 = Math.min(a.x + a.w, b.x + b.w), y2 = Math.min(a.y + a.h, b.y + b.h);
+      return Math.max(0, x2 - x1) * Math.max(0, y2 - y1) / (Math.min(a.w * a.h, b.w * b.h) || 1);
+    };
+    const kept = [];
+    for (const d of [...dets].sort((a, b) => b.w * b.h - a.w * a.h)) // largest first, so the whole vehicle wins over its fragments
+      if (kept.every(k => iou(k, d) <= maxIou && inside(k, d) <= maxContain)) kept.push(d);
+    return kept;
+  }
+  // The pieces of a photo to look at: the whole thing, then an n x n grid of overlapping enlarged pieces.
+  function regions(width, height, n = S.detectTiles, overlap = S.detectTileOverlap) {
+    const out = [{ x: 0, y: 0, w: width, h: height }];
+    if (n < 2) return out;
+    const w = width / (n - (n - 1) * overlap), h = height / (n - (n - 1) * overlap);
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+      out.push({ x: Math.round(c * w * (1 - overlap)), y: Math.round(r * h * (1 - overlap)), w: Math.round(w), h: Math.round(h) });
+    return out;
+  }
+
   // Whole pipeline after the model has run.
   function vehicles(data, size, scale, opts = {}) {
     if (data.length % 85 !== 0) throw Error('Unexpected model output size.');
     return nms(decode(data, size, scale, opts), opts.maxIou);
   }
 
-  return { letterbox, toTensor, decode, iou, nms, vehicles, VEHICLE_CLASSES, STRIDES, PAD };
+  return { letterbox, toTensor, decode, iou, nms, merge, regions, vehicles, VEHICLE_CLASSES, STRIDES, PAD };
 })();
 if (typeof module !== 'undefined') module.exports = CarDetect;

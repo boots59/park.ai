@@ -57,5 +57,18 @@ test('iou basics', () => {
   assert.equal(d.iou(a, { x: 20, y: 20, w: 5, h: 5 }), 0);
   assert.ok(Math.abs(d.iou(a, { x: 5, y: 0, w: 10, h: 10 }) - 1 / 3) < 1e-9);
 });
+test('regions: the whole photo plus four overlapping quarters', () => {
+  assert.deepEqual(d.regions(1000, 500, 1), [{ x: 0, y: 0, w: 1000, h: 500 }]);
+  const r = d.regions(1800, 900, 2, 0.2);
+  assert.equal(r.length, 5);
+  assert.deepEqual(r[1], { x: 0, y: 0, w: 1000, h: 500 });
+  assert.deepEqual(r[4], { x: 800, y: 400, w: 1000, h: 500 });   // reaches exactly to the far corner
+});
+test('merge: a vehicle seen whole and as a cut-off fragment counts once', () => {
+  const whole = { x: 100, y: 100, w: 200, h: 100, score: 0.6 }, fragment = { x: 100, y: 100, w: 90, h: 100, score: 0.9 }; // IoU only 0.45
+  const other = { x: 400, y: 100, w: 200, h: 100, score: 0.5 }, neighbour = { x: 290, y: 100, w: 200, h: 100, score: 0.5 };
+  assert.deepEqual(d.merge([fragment, whole, other]), [whole, other]);
+  assert.equal(d.merge([whole, neighbour]).length, 2);            // side-by-side cars that barely overlap stay separate
+});
 test('wrong-sized model output is rejected', () => assert.throws(() => d.vehicles(new Float32Array(100), 640, 1), /Unexpected/));
 console.log(`\n${pass} detection tests passed.`);

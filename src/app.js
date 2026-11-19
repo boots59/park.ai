@@ -243,16 +243,17 @@ function logSurvey(zone, rec, realStart) {
   const end = Date.now(), obs = $('observer').value === 'B' ? 'B' : 'A';
   fieldLog.push({ zone, observer: obs, start: new Date(realStart).toISOString(), end: new Date(end).toISOString(),
     seconds: Math.round((end - realStart) / 1000), open: rec.count, method: rec.method, photos: rec.photos,
+    aiMode: rec.photos.length ? (Settings.detectTiles > 1 ? 'tiled' : 'single') : '',
     clockOffsetMin: Math.round(offset / 60e3) });
   try { localStorage.setItem(LOG_KEY, JSON.stringify(fieldLog)); } catch (e) {}
   renderLog();
 }
 function fieldLogCsv() {
-  const head = 'zone,observer,start_iso,end_iso,duration_s,open_count,method,photos,ai_vehicles,confirmed_vehicles,per_photo_ai>confirmed,demo_clock_offset_min';
+  const head = 'zone,observer,start_iso,end_iso,duration_s,open_count,method,photos,ai_vehicles,confirmed_vehicles,per_photo_ai>confirmed,demo_clock_offset_min,ai_mode';
   const sum = (ps, k) => ps.reduce((n, p) => n + p[k], 0);
   return [head, ...fieldLog.map(e => { const ps = ParkingModel.cleanExtra(e).photos; return [e.zone, e.observer, e.start, e.end,
     Number(e.seconds) || 0, Number(e.open) || 0, ps.length ? 'ai-assisted' : 'manual', ps.length, sum(ps, 'ai'), sum(ps, 'confirmed'),
-    ps.map(p => p.ai + '>' + p.confirmed).join('|'), Number(e.clockOffsetMin) || 0].join(','); })].join('\n') + '\n';
+    ps.map(p => p.ai + '>' + p.confirmed).join('|'), Number(e.clockOffsetMin) || 0, e.aiMode === 'tiled' || e.aiMode === 'single' ? e.aiMode : (ps.length ? 'single' : '')].join(','); })].join('\n') + '\n';
 }
 // Real counts per bay in time order, from the log: the data the estimate is checked against.
 function logSeries() {
