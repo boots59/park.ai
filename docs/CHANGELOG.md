@@ -1,6 +1,6 @@
 # Changelog (pass this to Codex before it edits anything)
 
-File ownership this round: **Claude** owns `src/*`, `build.cjs`, `test/*`. Docs (`*.md`) are open to anyone, one editor at a time.
+File ownership this round: **Claude** owns `src/*`, `scripts/*`, `data/*`, `test/*`. Docs (`*.md`) are open to anyone, one editor at a time.
 Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 
 ## 2026-11-18 (Claude)
@@ -33,3 +33,10 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - **Removed** the student entry/exit reports tab and its code: without a verified starting count and near-complete participation it cannot yield a usable number.
 - Status name `stale` is now `estimate` (CSS class, viewer colour key).
 - Tests: 21 model, 7 detection, 16 UI.
+
+## 2026-11-19 (Claude): repository organised for submission
+- Now lives at github.com/boots59/park.ai. Build output (`dist/`), the detection model, the 3D model file and the outreach drafts are not in git.
+- `src/settings.js` holds every tunable number; `data/deck.json` holds bays and stall numbers with their source (`model` or `counted`).
+- `build.cjs` moved to `scripts/build.cjs`; output renamed to `dist/index.html` and `dist/lite.html`.
+- Records moved to `docs/`; the original upload to `docs/baseline/`. New: `docs/ARCHITECTURE.md`, `docs/RESULTS.md`, `docs/CREDITS.md`, `submission/`.
+- `.github/workflows/pages.yml` publishes the demo, manual trigger only.

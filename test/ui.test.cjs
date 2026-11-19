@@ -1,4 +1,4 @@
-// Run: node build.cjs && node test/ui.test.cjs
+// Run: npm run build && node test/ui.test.cjs
 // Runs the built page's app script against a tiny fake `document` (no browser),
 // so it checks behaviour, not looks. See browser.check.cjs for a real browser.
 const assert = require('node:assert/strict'), fs = require('node:fs'), vm = require('node:vm'), path = require('node:path');

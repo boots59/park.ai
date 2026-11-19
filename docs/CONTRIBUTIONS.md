@@ -11,15 +11,15 @@ Fill in the blanks yourself. A reviewer (or a Claude Corps application) will tru
 - _Add: what you tested, what you changed your mind about, who you talked to at KSU, the field counts you ran._
 
 ## Friend (name to confirm before crediting publicly)
-- The 3D West Deck model: lidar and aerial-photo measurements, Blender model, GLB exports, model README (`assets/`).
+- The 3D West Deck model: lidar and aerial-photo measurements, Blender model, GLB exports, model README (the model file is not in this repository yet).
 
 ## Codex
-- The baseline prototype in `baseline/` (_confirm: which parts did Codex write?_).
+- The baseline prototype in `docs/baseline/` (_confirm: which parts did Codex write?_).
 
 ## Claude (this session)
-- Checked the primary sources in `EVIDENCE.md`, challenged assumptions, and proposed the validation study.
+- Checked the primary sources in `docs/EVIDENCE.md`, challenged assumptions, and proposed the validation study.
 - Wrote `src/model.js` (bay records, age from survey start, 20-minute limit, level rollup, storage checks),
-  `src/app.js` (adapted from the baseline), `src/viewer.js`, `build.cjs` and all tests in `test/`.
+  `src/app.js` (adapted from the baseline), `src/viewer.js`, `scripts/build.cjs` and all tests in `test/`.
 - Proposed the AI-assisted count after reading the hackathon rubric, chose the model (YOLOX-s, for its Apache-2.0 licence and small-object accuracy), and wrote `src/detect.js`, `src/ai.js`, the field log and their tests. _Kell: you asked for a plan to win and I built this on my own recommendation; confirm or reject it._
 - Drafted the outreach emails and the field-day protocol.
 - With Kell's latitude: replaced "hide old counts" with estimates and ranges, added the deck verdict and the estimate check, and removed the student entry/exit reports that Kell had originally asked for.

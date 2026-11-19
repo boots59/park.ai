@@ -1,6 +1,6 @@
 // Downloads the vehicle-detection model (YOLOX-s, Apache-2.0) and verifies it.
 //   npm run fetch-model
-// The 36 MB file is kept out of git; build.cjs copies it into dist/ai/.
+// The 36 MB file is kept out of git; scripts/build.cjs copies it into dist/ai/.
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const URL_ = 'https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.onnx';
 const SHA256 = 'c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063';

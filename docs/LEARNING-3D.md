@@ -17,7 +17,7 @@ they live on their author's computer, so the steps below are a description, not 
 2. **Exercise:** colour bays by *count* instead of freshness (e.g. darker green = more open). Add a test, then decide whether
    it misleads (a count of 2 in a 79-stall bay is not "green").
 3. **Exercise:** add a text label floating over each bay (`CSS2DRenderer` from three.js).
-4. **Exercise:** open `assets/west_deck_plain.glb` in https://gltf-viewer.donmccurdy.com/ to see the scene tree.
+4. **Exercise:** open the model file `west_deck_plain.glb` (from your collaborator's zip) in https://gltf-viewer.donmccurdy.com/ to see the scene tree.
 
 ## Then the measuring side (Python, needs Blender later)
 1. Install Blender (free) and open `WestDeck_model.blend` (in the original zip). Select `Level_2`, move it, export glTF.

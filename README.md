@@ -1,45 +1,90 @@
-# WEST / deck: a parking survey prototype (simulated)
+# WEST / deck
 
-A student concept for West Deck, KSU Kennesaw campus. Staff survey one **bay** at a time, optionally with an on-device AI model
-that counts vehicles in a photo and a person who confirms the number. Students see each bay's count, or an estimate
-with a range once the count ages, a deck-level verdict and a 3D view. **All data is illustrative. Not a KSU system.**
+**Know before you drive in.** A student prototype for West Deck on KSU's Kennesaw campus: people on the ground count open
+spaces one bay at a time, an on-device AI model helps them count, and students see the count, or an honest estimate with
+a range once the count starts to age.
+
+> **Status: concept prototype with simulated data.** Not a KSU system and not affiliated with KSU. Nothing here is a
+> real-time feed. What is measured, assumed and simulated is tracked in [docs/EVIDENCE.md](docs/EVIDENCE.md).
+
+Built for the KSU AI Club Hackathon 2026 by Kell Enow.
+
+## What it does
+
+| For | Feature |
+|---|---|
+| Students | A deck verdict (Room likely, Tight, Likely full, Not enough counts), level cards, and per-bay numbers |
+| Students | A count under 5 minutes old is shown as counted. From 5 to 30 minutes it becomes a range that widens with age and follows the bay's recent trend. After 30 minutes it says unknown |
+| Staff | A bounded survey of one bay: start, count, confirm coverage, complete. A new count replaces the old one |
+| Staff | **AI assist:** photograph a section, a detection model on the device counts the vehicles, the person corrects the number |
+| The project | A field log that scores the AI against the person, and the estimates against later real counts |
 
 ## Run it
+
 ```bash
 npm install
-npm run fetch-model   # one-time: the 36 MB detection model
+npm run fetch-model   # one-time: downloads the 36 MB detection model and checks its checksum
 npm run build
 npm run serve         # then open http://127.0.0.1:8080/
 ```
-The built page is one HTML file in `dist/` plus an `ai/` folder for the detection model. Build output is not kept in git.
 
-**3D view:** the deck model (`assets/west_deck_plain.glb`) was made by a collaborator and is not in this repository yet.
-Without it the page builds and runs with the level cards only. `assets/west_deck.json` holds that model's bay layout and
-stall estimates, which are not KSU figures.
+`dist/index.html` also opens straight from disk with no network; only the AI count needs the page to be served.
 
-## Develop
+## Test it
+
 ```bash
-npm install
-npm run fetch-model    # one-time: downloads the 36 MB detection model, checks its checksum
-npm test               # build + 44 Node tests (survey logic, detection maths, UI behaviour)
-npm run serve          # serves dist/ at http://127.0.0.1:8080/ (the AI count needs http)
-npm run check:browser  # headless Chromium at 375px and 1280px; runs the real model if test/fixtures/street.jpg exists
+npm test               # build + 44 tests: survey logic, detection maths, page behaviour
+npm run check:browser  # headless Chromium at phone and desktop widths; runs the real model if test/fixtures/street.jpg exists
 ```
 
-| Path | What it is |
-|---|---|
-| `src/model.js` | Pure logic: replace-not-add surveys, estimates with ranges and trends, level and deck summaries, checks against real counts, storage validation |
-| `src/detect.js` | Pure maths around the detection model: resize, tensor layout, box decoding, duplicate removal |
-| `src/ai.js` | Loads the model in the browser and counts vehicles in a photo, on the device |
-| `src/app.js` | Page behaviour: survey flow, AI assist, field log, cards, demo clock, backup reports, link to the 3D view |
-| `src/viewer.js` | three.js viewer: loads the model, tints bays, tap to select, spread levels |
-| `src/index.template.html` | Markup and CSS with `/*VIEWER*/ /*DECK*/ /*MODEL*/ /*APP*/` markers |
-| `build.cjs` | Bundles the viewer (esbuild), embeds the GLB as base64, writes `dist/` |
-| `assets/` | `west_deck.json`: bay layout and stall estimates from a collaborator's 3D model |
-| `baseline/` | The prototype exactly as uploaded before this work |
-| `scripts/` | `fetch-model.cjs` (model download), `serve.cjs` (local server) |
-| `docs/FIELD-DAY.md` | Thursday's measurement protocol and student poll |
-| `EVIDENCE.md` | What is verified, assumed, simulated or proposed |
-| `CONTRIBUTIONS.md` | Who did what, for an honest record |
-| `LEARNING-3D.md` | How the 3D model was made and how to learn to do it |
-| `CHANGELOG.md` | Changes per step, to pass to other collaborators (Codex) |
+## Change it
+
+| To change | Edit | Notes |
+|---|---|---|
+| Stall numbers, bays, levels, labels | [`data/deck.json`](data/deck.json) | Set `source` to `counted` when a number was counted on foot; the page then stops calling it a model estimate |
+| Time limits, range width, verdict thresholds, detection confidence | [`src/settings.js`](src/settings.js) | Every value is explained in the file |
+| What students and staff see | [`src/index.template.html`](src/index.template.html), [`src/app.js`](src/app.js) | Markup and wording; page behaviour |
+| How counts, estimates and summaries are computed | [`src/model.js`](src/model.js) | Pure functions, covered by `test/model.test.cjs` |
+
+After any change run `npm test`. If a test fails because you changed a number on purpose, update the expected value in the test.
+
+## How it is organised
+
+```
+data/deck.json            bays and stall numbers (the one file to edit after a field count)
+src/settings.js           every tunable number and label
+src/model.js              survey rules, estimates, summaries, accuracy checks (pure logic)
+src/detect.js             maths around the detection model (pure logic)
+src/ai.js                 runs the detection model in the browser
+src/viewer.js             3D deck view (three.js)
+src/app.js                page behaviour: survey flow, AI assist, field log, rendering
+src/index.template.html   markup and styles
+scripts/                  build, local server, model download
+test/                     model, detection and page tests; browser check
+docs/                     evidence log, architecture, field protocols, results, credits, contributions
+submission/               pitch outline, demo script, submission checklist
+```
+
+More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+**3D view:** the deck model file was made by a collaborator and is not in this repository yet. Without it the page builds
+and runs with the level cards only.
+
+## Where the AI is
+
+1. **In the product:** an open-source object-detection model (YOLOX-s, trained on the public COCO dataset) counts vehicles
+   in a staff photo, entirely on the device. A person confirms every number. Between counts, a small statistical model
+   estimates each bay with a range.
+2. **In the making:** the code was written with AI coding assistants (Claude, Codex) under Kell's direction.
+   [docs/CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md) records who did what.
+
+Neither has been validated in West Deck yet. [docs/RESULTS.md](docs/RESULTS.md) holds the measurements as they come in.
+
+## Privacy
+
+No license plates, faces, names or enforcement records are collected. Photos are processed on the device and never saved
+or uploaded. The field log holds counts and times only.
+
+## Credits
+
+See [docs/CREDITS.md](docs/CREDITS.md) for libraries, the model, data sources and people.

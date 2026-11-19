@@ -4,7 +4,7 @@
 // the ai/ folder next to the page, so the rest of the page works without them.
 (() => {
   const SIZE = 640;                 // the model's input is 640 x 640
-  const BASE = 'ai/';               // folder beside the page (see build.cjs)
+  const BASE = 'ai/';               // folder beside the page (see scripts/build.cjs)
   const MODEL = 'yolox_s.onnx';     // YOLOX-s, Apache-2.0, trained on COCO
   let loading = null;
 

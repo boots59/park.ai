@@ -1,5 +1,5 @@
 // DeckViewer: shows the friend's West Deck glTF model and tints each bay by
-// survey freshness. Bundled by build.cjs (esbuild) into one inline script, so
+// survey freshness. Bundled by scripts/build.cjs (esbuild) into one inline script, so
 // the final HTML needs no network. Exposes window.DeckViewer.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
