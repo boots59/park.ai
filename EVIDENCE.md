@@ -22,8 +22,15 @@ Update this whenever a fact changes. "Verified" means someone read the primary s
 - **Levels 1–2 copy the top deck's layout.** Modelled.
 - **651 stalls (79/39–80/69–73 per bay): the model's numbers, not KSU's.**
 
+## Hackathon (from the AI Club Hackathon 2026 opening-ceremony slides, read 2026-11-19)
+- Nov 16–20, KSU Marietta campus. **Submit Fri Nov 20, 12:00 PM**: PowerPoint pitch deck plus a demo video, or a note that you'll demo live. Pitch and judging Fri 5:30–8:30 PM, 5 minutes per team.
+- Registration was due by the end of Monday, Nov 16.
+- Tracks (one project can enter several): **AI Club** ($800/$200), **IEEE CS** (a game built with AI: not this project), **Nudox** ($900, most organized codebase; criteria announced at the event, not in the slides), **it.** ($800; the slides show placeholders only).
+- AI Club rubric (100): campus impact 25 (real data: surveys, counts, wait times), **use of AI 25 ("AI is the core of the solution, not an add-on")**, feasibility 20, creativity 15, pitch 15.
+- The prototype currently runs **no AI model**, so it would score poorly on "use of AI" as it stands.
+
 ## Unknown
-Real level count; stalls per bay and permit type; where the restricted spaces are; whether staff would take part; any existing per-floor feed; hackathon rubric and deadline.
+Real level count; stalls per bay and permit type; where the restricted spaces are; whether staff would take part; any existing per-floor feed; Nudox and it. judging criteria; whether Kell registered.
 
 ## Simulated (in the prototype)
 All counts, timestamps, observers, entry/exit reports, the "example general permit" category, and the 5/15/20-minute thresholds.
