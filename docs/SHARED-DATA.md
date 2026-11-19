@@ -32,6 +32,10 @@ every phone, give the app a shared database address. This is optional and takes 
         ".read": false,
         "$id": { ".write": "!data.exists()" }
       },
+      "pollcount": {
+        ".read": true,
+        "$id": { ".write": "!data.exists()", ".validate": "newData.hasChildren(['t']) && newData.child('t').isNumber()" }
+      },
       "fieldkit": {
         ".read": false,
         "$device": { ".write": true }

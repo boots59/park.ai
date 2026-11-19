@@ -40,10 +40,11 @@ table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;p
 <div class="row" style="margin-top:10px"><button class="primary" onclick="saveStaff()">Save this interview</button><button onclick="staffForm={};$('staffNote').value='';renderStaff()">Clear</button></div>
 <p id="staffMsg" class="small" role="status" aria-live="polite"></p></div></section>
 
-<section id="share" class="hidden"><div class="panel"><h2>Let people scan</h2>
-<p class="small">Hold this screen up, or print the sign. On a phone, tap a code to open it.</p>
+<section id="share" class="hidden"><div class="panel"><h2>Survey: scan to answer</h2>
+<p class="big" id="surveyCount" role="status" aria-live="polite" style="margin:4px 0">…</p>
+<p class="small">Many people can scan and answer at once, each on their own phone.</p>
 <div class="row" style="gap:24px;align-items:flex-start">
-<a href="field.html?survey" style="max-width:200px;color:inherit;text-decoration:none"><img src="qr-survey.png" width="200" height="200" alt="QR code for the 45-second parking survey" style="background:#fff;border:1px solid #dddddb;border-radius:8px"><br><b>45-second parking survey</b><br><span class="small">Anonymous. A student project, not a KSU survey. Answers go to the shared database, not this phone.</span></a>
+<a href="field.html?survey" style="max-width:300px;color:inherit;text-decoration:none"><img src="qr-survey.png" width="300" height="300" alt="QR code for the 45-second parking survey" style="background:#fff;border:1px solid #dddddb;border-radius:8px;max-width:100%;height:auto"><br><b>45-second parking survey</b><br><span class="small">Anonymous. A student project, not a KSU survey. Answers go to the shared database, not this phone.</span></a>
 <a href="./" style="max-width:200px;color:inherit;text-decoration:none"><img src="qr-app.png" width="200" height="200" alt="QR code that opens the app" style="background:#fff;border:1px solid #dddddb;border-radius:8px"><br><b>Open the app</b><br><span class="small">boots59.github.io/park.ai</span></a></div></div></section>
 
 <section id="data" class="hidden"><div class="panel"><h2>Results so far</h2><div id="summary"></div>
@@ -92,10 +93,20 @@ async function backup() {
 async function submitSurvey(answer) {
   const r = await fetch(SYNC + '/v1/poll.json', { method: 'POST', body: JSON.stringify(answer) });
   if (!r.ok) throw Error('not saved');
+  // A public tally mark (a time and nothing else) so the collector can see how many answers have come in.
+  fetch(SYNC + '/v1/pollcount.json', { method: 'POST', body: JSON.stringify({ t: Date.now() }) }).catch(() => {});
 }
 const stamp = () => new Date().toISOString();
 
-function show(id) { for (const n of ['stalls', 'poll', 'tally', 'staff', 'share', 'data']) { $(n).classList.toggle('hidden', n !== id); $('t' + n[0].toUpperCase() + n.slice(1)).setAttribute('aria-selected', String(n === id)); } if (id === 'data') renderSummary(); }
+// How many survey answers exist: scanned ones (from the shared tally) plus the ones asked in person on this phone.
+async function countSurveys() {
+  const mine = data.responses.length; let scanned = null;
+  if (SYNC) try { const r = await fetch(SYNC + '/v1/pollcount.json?shallow=true'); if (r.ok) { const j = await r.json(); scanned = j ? Object.keys(j).length : 0; } } catch (e) {}
+  $('surveyCount').textContent = scanned === null ? mine + ' asked in person (scanned count unavailable)' : (scanned + mine) + ' answers: ' + scanned + ' scanned + ' + mine + ' in person';
+}
+let countTimer = 0;
+function show(id) { clearInterval(countTimer); if (id === 'share') { countSurveys(); countTimer = setInterval(countSurveys, 15000); }
+  for (const n of ['stalls', 'poll', 'tally', 'staff', 'share', 'data']) { $(n).classList.toggle('hidden', n !== id); $('t' + n[0].toUpperCase() + n.slice(1)).setAttribute('aria-selected', String(n === id)); } if (id === 'data') renderSummary(); }
 const visible = q => !q.onlyIf || form.drove === q.onlyIf;
 function renderForm() {
   $('questions').innerHTML = QUESTIONS.filter(visible).map(q => `<p class="q">${q.text}</p><div class="opts">` +
@@ -224,5 +235,5 @@ if (SURVEY) { // QR mode: only the survey
   for (const id of ['kitHead', 'tabs', 'say']) $(id).classList.add('hidden');
   $('surveyHead').classList.remove('hidden'); show('poll');
   if (!SYNC) { $('questions').innerHTML = ''; $('pollButtons').classList.add('hidden'); $('pollMsg').textContent = 'This survey is not collecting answers yet. Please find the student running it.'; }
-} else if (SYNC) backup();
+} else { if (SYNC) backup(); const tab = location.hash.slice(1); if (['stalls', 'poll', 'tally', 'staff', 'share', 'data'].includes(tab)) show(tab); }
 </script></body></html>
