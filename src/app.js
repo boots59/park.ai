@@ -238,7 +238,7 @@ async function scanPhoto(input) {
     if (!window.CarCounter) throw Error('AI count is not available in this build. Count by eye instead.');
     const result = await window.CarCounter.count(file, $('scanCanvas'));
     if (survey !== mine) return; // survey was cancelled or finished while the model ran
-    survey.photos.push({ ai: result.count, confirmed: result.count });
+    survey.photos.push({ ai: result.count, confirmed: result.count, outside: 0, adjust: 0 });
     $('scanCanvas').classList.remove('hidden');
     status.textContent = '';
   } catch (e) { status.textContent = e.message; }
@@ -247,9 +247,18 @@ async function scanPhoto(input) {
 }
 function adjustPhoto(n) {
   const last = survey?.photos.at(-1); if (!last) return;
-  last.confirmed = Math.min(ParkingModel.MAX_COUNT, Math.max(0, last.confirmed + n)); renderScan();
+  last.adjust = Math.max(-(last.ai - last.outside), last.adjust + n); settlePhoto(last); renderScan();
 }
-function removePhoto() { if (survey?.photos.pop()) { $('scanCanvas').classList.add('hidden'); renderScan(); } }
+// Confirmed = what the model found, minus boxes left out as outside the bay, plus or minus the person's own correction.
+function settlePhoto(p) { p.confirmed = Math.min(ParkingModel.MAX_COUNT, Math.max(0, p.ai - p.outside + p.adjust)); }
+// Tap a numbered box on the photo to leave it out: a car outside the deck, in the aisle, or in another bay.
+function tapBox(event) {
+  const last = survey?.photos.at(-1); if (!last || !window.CarCounter?.toggle) return;
+  const out = window.CarCounter.toggle($('scanCanvas'), event.clientX, event.clientY);
+  if (out === null) return;
+  last.outside = out; settlePhoto(last); renderScan();
+}
+function removePhoto() { if (survey?.photos.pop()) { $('scanCanvas').classList.add('hidden'); window.CarCounter?.forget?.(); renderScan(); } }
 function useSuggestion() {
   if (!survey?.photos.length) return;
   $('count').value = ParkingModel.suggestOpen(DECK.zones[survey.zone].stalls, survey.photos).open;
@@ -258,7 +267,7 @@ function renderScan() {
   const el = $('scanPanel'), photos = survey?.photos || [];
   if (!photos.length) { el.innerHTML = ''; return; }
   const last = photos.at(-1), stalls = DECK.zones[survey.zone].stalls, s = ParkingModel.suggestOpen(stalls, photos);
-  el.innerHTML = `<p><b>Photo ${photos.length}:</b> the model found <b>${last.ai}</b> vehicles. Check the numbered boxes, then correct the number if it missed or doubled any.</p>` +
+  el.innerHTML = `<p><b>Photo ${photos.length}:</b> the model found <b>${last.ai}</b> vehicles. <b>Tap any box that is not in this bay</b> (a car outside the deck, in the aisle, or in another bay) to leave it out${last.outside ? ': <b>' + last.outside + ' left out</b>' : ''}. Then use − and + if it missed or doubled any.</p>` +
     `<div class="number-controls"><button class="secondary" aria-label="One fewer vehicle" onclick="adjustPhoto(-1)">−</button>` +
     `<output class="confirmed" aria-label="Confirmed vehicles in this photo">${last.confirmed}</output>` +
     `<button class="secondary" aria-label="One more vehicle" onclick="adjustPhoto(1)">+</button></div>` +
@@ -281,11 +290,11 @@ function logSurvey(zone, rec, realStart) {
   renderLog();
 }
 function fieldLogCsv() {
-  const head = 'zone,observer,start_iso,end_iso,duration_s,open_count,method,photos,ai_vehicles,confirmed_vehicles,per_photo_ai>confirmed,demo_clock_offset_min,ai_mode';
+  const head = 'zone,observer,start_iso,end_iso,duration_s,open_count,method,photos,ai_vehicles,confirmed_vehicles,per_photo_ai>confirmed,demo_clock_offset_min,ai_mode,vehicles_left_out_as_outside_bay';
   const sum = (ps, k) => ps.reduce((n, p) => n + p[k], 0);
   return [head, ...fieldLog.map(e => { const ps = ParkingModel.cleanExtra(e).photos; return [e.zone, e.observer, e.start, e.end,
     Number(e.seconds) || 0, Number(e.open) || 0, ps.length ? 'ai-assisted' : 'manual', ps.length, sum(ps, 'ai'), sum(ps, 'confirmed'),
-    ps.map(p => p.ai + '>' + p.confirmed).join('|'), Number(e.clockOffsetMin) || 0, e.aiMode === 'tiled' || e.aiMode === 'single' ? e.aiMode : (ps.length ? 'single' : '')].join(','); })].join('\n') + '\n';
+    ps.map(p => p.ai + '>' + p.confirmed).join('|'), Number(e.clockOffsetMin) || 0, e.aiMode === 'tiled' || e.aiMode === 'single' ? e.aiMode : (ps.length ? 'single' : ''), ps.reduce((n, p) => n + (p.outside || 0), 0)].join(','); })].join('\n') + '\n';
 }
 // Real counts per bay in time order, from the log: the data the estimate is checked against.
 function logSeries() {
@@ -297,7 +306,7 @@ function renderLog() {
   const acc = ParkingModel.aiAccuracy(fieldLog.flatMap(e => ParkingModel.cleanExtra(e).photos));
   const series = logSeries(), bt = ParkingModel.backtest(series), v = ParkingModel.variability(series);
   $('logSummary').textContent = fieldLog.length + ' completed survey' + (fieldLog.length === 1 ? '' : 's') + ' logged on this device.' +
-    (acc ? ` Model vs. person on ${acc.photos} photo${acc.photos === 1 ? '' : 's'}: exact on ${acc.exact}, average error ${acc.meanAbsError.toFixed(1)} vehicles (${acc.missed} missed, ${acc.extra} extra).` : '') +
+    (acc ? ` Model vs. person on ${acc.photos} photo${acc.photos === 1 ? '' : 's'}: exact on ${acc.exact}, average error ${acc.meanAbsError.toFixed(1)} vehicles (${acc.missed} missed, ${acc.extra} extra)${acc.outside ? '; ' + acc.outside + ' found correctly but outside the bay and left out' : ''}.` : '') +
     (bt ? ` Estimate check: the later real count fell inside the range in ${bt.inside} of ${bt.cases} cases; the middle estimate was off by ${bt.meanAbsError.toFixed(1)} spaces on average.` : '') +
     (v !== null ? ` Measured variability: ${v.toFixed(2)} (the page assumes ${ParkingModel.SIGMA}).` : '');
 }

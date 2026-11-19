@@ -55,7 +55,7 @@ nav{display:flex;gap:6px;border-bottom:1px solid #cdd7ca;margin:30px 0 22px;over
 <button class="secondary" onclick="document.getElementById('photo').click()">Photograph a section</button>
 <input id="photo" type="file" accept="image/*" capture="environment" class="hidden" onchange="scanPhoto(this)">
 <div id="scanStatus" class="small" role="status" aria-live="polite"></div>
-<canvas id="scanCanvas" class="hidden" aria-label="Your photo with a numbered box on each vehicle the model found"></canvas>
+<canvas id="scanCanvas" class="hidden" onclick="tapBox(event)" style="cursor:pointer" aria-label="Your photo with a numbered box on each vehicle the model found. Tap a box to leave that vehicle out"></canvas>
 <div id="scanPanel"></div></div><label for="count">Open regular stalls</label>
 <div class="number-controls"><button class="secondary" aria-label="Subtract one space" onclick="adjust(-1)">−</button><input id="count" type="number" inputmode="numeric" min="0" max="999" step="1" value="0"><button class="secondary" aria-label="Add one space" onclick="adjust(1)">+</button></div>
 <label><input type="checkbox" id="coverage" style="width:auto;margin-right:8px"> I walked this whole bay once.</label>

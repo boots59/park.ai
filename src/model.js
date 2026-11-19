@@ -81,7 +81,7 @@ const ParkingModel = (() => {
   function cleanExtra(extra) {
     const ok = n => Number.isInteger(n) && n >= 0 && n <= MAX_COUNT;
     const photos = Array.isArray(extra?.photos)
-      ? extra.photos.filter(p => p && ok(p.ai) && ok(p.confirmed)).slice(0, 50).map(p => ({ ai: p.ai, confirmed: p.confirmed }))
+      ? extra.photos.filter(p => p && ok(p.ai) && ok(p.confirmed)).slice(0, 50).map(p => ({ ai: p.ai, confirmed: p.confirmed, ...(ok(p.outside) && p.outside ? { outside: Math.min(p.outside, p.ai) } : {}) }))
       : [];
     return { method: photos.length ? 'ai-assisted' : 'manual', photos };
   }
@@ -91,12 +91,15 @@ const ParkingModel = (() => {
     const vehicles = photos.reduce((n, p) => n + p.confirmed, 0);
     return { vehicles, open: Math.max(0, stalls - vehicles) };
   }
-  // Model accuracy over a set of photos: how far the raw AI number was from
-  // the number a person confirmed.
+  // Model accuracy over a set of photos: how far the AI number was from the
+  // number a person confirmed. Vehicles the person left out because they were
+  // OUTSIDE the bay (a car park beyond the deck, a car in the aisle) are real
+  // vehicles the model found correctly, so they are reported separately as
+  // `outside` and not counted as model errors.
   function aiAccuracy(photos) {
     if (!photos.length) return null;
-    const err = photos.map(p => p.ai - p.confirmed);
-    return { photos: photos.length, exact: err.filter(e => e === 0).length,
+    const err = photos.map(p => p.ai - (p.outside || 0) - p.confirmed);
+    return { photos: photos.length, outside: photos.reduce((n, p) => n + (p.outside || 0), 0), exact: err.filter(e => e === 0).length,
       meanAbsError: err.reduce((n, e) => n + Math.abs(e), 0) / err.length,
       missed: err.filter(e => e < 0).reduce((n, e) => n - e, 0), extra: err.filter(e => e > 0).reduce((n, e) => n + e, 0) };
   }

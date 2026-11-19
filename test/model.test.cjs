@@ -209,7 +209,10 @@ test('suggested open = stalls - confirmed vehicles, floor at zero', () => {
 test('AI accuracy summary counts misses and extras', () => {
   assert.equal(m.aiAccuracy([]), null);
   assert.deepEqual(m.aiAccuracy([{ ai: 8, confirmed: 10 }, { ai: 5, confirmed: 5 }, { ai: 7, confirmed: 6 }]),
-    { photos: 3, exact: 1, meanAbsError: 1, missed: 2, extra: 1 });
+    { photos: 3, outside: 0, exact: 1, meanAbsError: 1, missed: 2, extra: 1 });
+  // 11 found, 3 of them outside the bay, person confirms 8 in the bay: the model was right, the framing was wide
+  assert.deepEqual(m.aiAccuracy([{ ai: 11, confirmed: 8, outside: 3 }]), { photos: 1, outside: 3, exact: 1, meanAbsError: 0, missed: 0, extra: 0 });
+  assert.deepEqual(m.cleanExtra({ photos: [{ ai: 11, confirmed: 8, outside: 3 }, { ai: 4, confirmed: 4, outside: 'x' }] }).photos, [{ ai: 11, confirmed: 8, outside: 3 }, { ai: 4, confirmed: 4 }]);
 });
 
 console.log(`\n${pass} model tests passed.`);

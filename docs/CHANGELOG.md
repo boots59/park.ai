@@ -62,3 +62,8 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - 3D view: schematic North and South strips per level (position approximate).
 - Count category renamed "Regular student stalls". Raw count saved in `data/field/`.
 - Field kit: stall tally by bay and type, label editing, 11 poll questions, online backup and QR survey mode (both off until `Settings.syncUrl` is set).
+
+## 2026-11-19, midday (Claude)
+- Field finding (Kell): a wide photo counted vehicles outside the deck. Fix: tap a box on the photo to leave that vehicle out. Left-out vehicles are logged separately and not counted as model errors.
+- Field finding (Kell): one photo of a whole bay finds about 11 vehicles at most. An enlarged-quarters mode exists (`Settings.detectTiles: 2`) but is off until the baseline batch is done.
+- Stall diagram per bay; student "I'm leaving" report; one-tap reporting with a remembered bay and `?bay=` links.

@@ -52,25 +52,46 @@
       for (const d of CarDetect.vehicles(out[session.outputNames[0]].data, SIZE, box.scale)) found.push({ ...d, x: d.x + r.x, y: d.y + r.y });
     }
     const dets = CarDetect.merge(found), ms = Math.round(performance.now() - t0);
-    if (canvas) draw(canvas, img, W, H, dets);
+    if (canvas) show(canvas, img, W, H, dets);
     if (img.close) img.close();
     return { count: dets.length, ms };
   }
 
-  function draw(canvas, img, W, H, dets) {
+  // The latest photo is kept (in memory only) so its boxes can be tapped.
+  let last = null; // { base: canvas with the photo, dets: boxes in preview pixels, out: Set of left-out box numbers }
+  function show(canvas, img, W, H, dets) {
     const k = Math.min(1, 1280 / W); // cap the preview size
-    canvas.width = Math.round(W * k); canvas.height = Math.round(H * k);
-    const c = canvas.getContext('2d');
-    c.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const base = document.createElement('canvas'); base.width = Math.round(W * k); base.height = Math.round(H * k);
+    base.getContext('2d').drawImage(img, 0, 0, base.width, base.height);
+    last = { base, dets: dets.map(d => ({ x: d.x * k, y: d.y * k, w: d.w * k, h: d.h * k })), out: new Set() };
+    paint(canvas);
+  }
+  function paint(canvas) {
+    canvas.width = last.base.width; canvas.height = last.base.height;
+    const c = canvas.getContext('2d'); c.drawImage(last.base, 0, 0);
     const px = Math.max(14, Math.round(canvas.width / 45));
-    c.lineWidth = Math.max(2, px / 6); c.font = `bold ${px}px sans-serif`; c.textBaseline = 'top';
-    dets.forEach((d, i) => {
-      c.strokeStyle = '#00e0ff'; c.strokeRect(d.x * k, d.y * k, d.w * k, d.h * k);
-      const label = String(i + 1), tw = c.measureText(label).width + 6;
-      c.fillStyle = '#003a44'; c.fillRect(d.x * k, d.y * k, tw, px + 4);
-      c.fillStyle = '#ffffff'; c.fillText(label, d.x * k + 3, d.y * k + 2);
+    c.font = `bold ${px}px sans-serif`; c.textBaseline = 'top';
+    last.dets.forEach((d, i) => {
+      const out = last.out.has(i), label = out ? '✕' : String(i + 1), tw = c.measureText(label).width + 6;
+      c.lineWidth = Math.max(2, px / 6); c.setLineDash(out ? [px / 2, px / 3] : []);
+      c.strokeStyle = out ? '#ff6b57' : '#00e0ff'; c.strokeRect(d.x, d.y, d.w, d.h); c.setLineDash([]);
+      c.fillStyle = out ? '#7a1f14' : '#003a44'; c.fillRect(d.x, d.y, tw, px + 4);
+      c.fillStyle = '#ffffff'; c.fillText(label, d.x + 3, d.y + 2);
     });
   }
+  // A tap on the preview: leave out (or put back) the box under the finger.
+  // Returns how many boxes are now left out, or null if the tap hit no box.
+  function toggle(canvas, clientX, clientY) {
+    if (!last) return null;
+    const r = canvas.getBoundingClientRect(), x = (clientX - r.left) * canvas.width / r.width, y = (clientY - r.top) * canvas.height / r.height;
+    const pad = Math.max(6, canvas.width / 80); // small boxes are hard to hit
+    const hits = last.dets.map((d, i) => ({ i, area: d.w * d.h, d })).filter(h => x >= h.d.x - pad && x <= h.d.x + h.d.w + pad && y >= h.d.y - pad && y <= h.d.y + h.d.h + pad);
+    if (!hits.length) return null;
+    const i = hits.sort((a, b) => a.area - b.area)[0].i; // the smallest box under the tap
+    last.out.has(i) ? last.out.delete(i) : last.out.add(i);
+    paint(canvas); return last.out.size;
+  }
+  function forget() { last = null; }
 
-  window.CarCounter = { count };
+  window.CarCounter = { count, toggle, forget };
 })();

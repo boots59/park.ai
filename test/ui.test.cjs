@@ -166,10 +166,23 @@ const photo = () => ({ files: [{}], value: 'x' });
     b.run('startSurvey()'); b.els.count.value = '7'; b.els.coverage.checked = true; b.run('finishSurvey()');
     const rows = b.run('fieldLogCsv()').trim().split('\n');
     assert.equal(rows.length, 3);
-    assert.match(rows[1], /^L3_West,A,\d{4}-.*Z,\d{4}-.*Z,\d+,50,ai-assisted,2,24,22,12>12\|12>10,0,(single|tiled)$/);
-    assert.match(rows[2], /,7,manual,0,0,0,,0,$/);
+    assert.match(rows[1], /^L3_West,A,\d{4}-.*Z,\d{4}-.*Z,\d+,50,ai-assisted,2,24,22,12>12\|12>10,0,(single|tiled),0$/);
+    assert.match(rows[2], /,7,manual,0,0,0,,0,,0$/);
     assert.match(b.els.logSummary.textContent, /2 completed surveys.*2 photos: exact on 1, average error 1\.0 vehicles \(0 missed, 2 extra\)/);
     assert.equal(JSON.parse(b.storage['west-deck-fieldlog-v1']).length, 2);
+  });
+  await atest('vehicles outside the bay can be tapped out, and are not blamed on the model', async () => {
+    let out = 0; const b = boot();
+    b.ctx.window.CarCounter = { count: async () => ({ count: 11, ms: 5 }), toggle: () => ++out, forget() {} }; // each tap leaves one more box out
+    b.run('clearDemo(); startSurvey()'); await b.run('scanPhoto')(photo());
+    b.run('tapBox({ clientX: 1, clientY: 1 }); tapBox({ clientX: 2, clientY: 2 }); tapBox({ clientX: 3, clientY: 3 })');      // three police cars outside the deck
+    assert.match(b.els.scanPanel.innerHTML, /found <b>11<\/b> vehicles.*<b>3 left out<\/b>/);
+    assert.match(b.els.scanPanel.innerHTML, /74 counted stalls − 8 vehicles = <b>66 open<\/b>/);
+    b.run('adjustPhoto(1)');                                                                                                    // and one the model missed
+    b.els.count.value = '65'; b.els.coverage.checked = true; b.run('finishSurvey()');
+    assert.deepEqual(b.saved().L3_West.photos, [{ ai: 11, confirmed: 9, outside: 3 }]);
+    assert.match(b.els.logSummary.textContent, /average error 1\.0 vehicles \(1 missed, 0 extra\); 3 found correctly but outside the bay/);
+    assert.match(b.run('fieldLogCsv()'), /11>9,0,(single|tiled),3\n$/);
   });
   await atest('AI failure leaves manual counting working', async () => {
     const b = boot(); b.ctx.window.CarCounter = { count: async () => { throw Error('AI count needs the hosted version'); } };
