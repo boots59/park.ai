@@ -11,6 +11,7 @@
 | [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) (YOLOX-s weights, release 0.1.1rc0) | Apache-2.0 | Vehicle detection |
 | [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) 1.20.1 | MIT | Running the model in the browser |
 | [three.js](https://github.com/mrdoob/three.js) 0.170.0 | MIT | 3D view |
+| [Barlow](https://github.com/jpt/barlow) typeface, via Fontsource | SIL Open Font License 1.1 | Headings, numbers and text; embedded in the page |
 | [esbuild](https://github.com/evanw/esbuild) 0.24.0 | MIT | Bundling (build time only) |
 | [Playwright](https://github.com/microsoft/playwright) | Apache-2.0 | Browser check (development only) |
 

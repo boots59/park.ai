@@ -10,6 +10,8 @@
     "check:browser": "node test/browser.check.cjs"
   },
   "devDependencies": {
+    "@fontsource/barlow": "^5.3.0",
+    "@fontsource/barlow-condensed": "^5.3.0",
     "esbuild": "^0.24.0",
     "onnxruntime-web": "^1.20.1",
     "three": "^0.170.0"

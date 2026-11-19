@@ -25,7 +25,12 @@ if (!no3d) {
   viewer = out.outputFiles[0].text + `\nconst GLB_B64="${glb}";`;
 }
 
-const tpl = rd('src/index.template.html');
+// Styles live in src/styles.css. The typeface (Barlow, SIL Open Font License) is embedded so the page needs no network.
+const font = (pkg, file, family, weight) => `@font-face{font-family:'${family}';font-weight:${weight};font-style:normal;font-display:swap;src:url(data:font/woff2;base64,${fs.readFileSync(path.join(root, 'node_modules/@fontsource', pkg, 'files', file)).toString('base64')}) format('woff2')}`;
+const fonts = [font('barlow', 'barlow-latin-400-normal.woff2', 'Barlow', 400), font('barlow', 'barlow-latin-600-normal.woff2', 'Barlow', 600),
+  font('barlow-condensed', 'barlow-condensed-latin-600-normal.woff2', 'Barlow Condensed', 600), font('barlow-condensed', 'barlow-condensed-latin-700-normal.woff2', 'Barlow Condensed', 700)].join('\n');
+const styles = rd('src/styles.css').replace('/*FONTS*/', () => fonts);
+const tpl = rd('src/index.template.html').replace('/*STYLES*/', () => styles);
 const parts = { '/*VIEWER*/': viewer, '/*DECK*/': 'const DECK=' + JSON.stringify(DECK) + ';',
   '/*SETTINGS*/': rd('src/settings.js'), '/*MODEL*/': rd('src/model.js'), '/*SYNC*/': rd('src/sync.js'), '/*DETECT*/': rd('src/detect.js'), '/*AI*/': rd('src/ai.js'), '/*APP*/': rd('src/app.js') };
 let html = tpl;

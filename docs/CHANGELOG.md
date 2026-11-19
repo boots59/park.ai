@@ -83,3 +83,9 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Sharing between phones is live behind `?live`, against a real Firebase database. The field kit backs up online and `field.html?survey` collects anonymous answers. Survey QR code and sign in `submission/`.
 - Staff survey accepts a patrol truck's vehicle count for a bay and converts it to open stalls (`ParkingModel.openFromVehicles`), stating how far off it could be where a bay has non-regular stalls.
 - Evidence: conversation with KSU's associate director of parking operations (Nov 19).
+
+## 2026-11-19, evening (Claude): visual redesign
+- Styles moved to `src/styles.css`. One idea: parking signage. Black, gold and white, square corners, the Barlow typeface (embedded, open licence), one spacing scale.
+- Removed: the marketing headline and intro line, the small uppercase labels above headings, pill-shaped tags, the coloured stripe on the notice, long dashes used as placeholders.
+- The verdict is the first thing on the page, as a black sign board. The first-visit card sits below it. The note about the 3D model is folded away.
+- Nothing about how the app behaves changed; all tests pass unchanged apart from the placeholder character.

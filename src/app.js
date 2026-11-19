@@ -110,11 +110,11 @@ function bayRow(z, t) {
     detail = (r ? `last count ${minsAgo(r, t)} min ago` : 'no survey') + (typ ? ` · typically ${range(typ)} at this hour (${typ.samples} past counts)` : ''); }
   return `<li><button class="bay${z === selectedBay ? ' selected' : ''}" onclick="selectBay('${z}')" aria-pressed="${z === selectedBay}">` +
     `<span class="bay-name">${DECK.zones[z].label}</span>` +
-    `<b class="bay-count">${e ? range(e) : '—'}</b>` +
+    `<b class="bay-count">${e ? range(e) : '?'}</b>` +
     `<span class="status ${STATUS_CLASS[src]}">${STATUS_TEXT[src]} · ${detail}</span>${stallStrip(z, e)}</button></li>`;
 }
 function summaryText(sum) {
-  return sum.state === 'unknown' ? ['—', 'availability not known']
+  return sum.state === 'unknown' ? ['?', 'availability not known']
     : sum.state === 'partial' ? ['≥' + sum.low, `in ${sum.knownBays} of ${sum.bays} bays · the rest unknown`]
     : sum.exact ? [String(sum.low), 'counted open · every bay counted in the last 5 minutes']
     : [range(sum), 'estimated open · ' + (sum.students ? 'includes student reports' : 'some counts are ageing')];
@@ -122,7 +122,7 @@ function summaryText(sum) {
 // A level with no regular stalls (all faculty/staff, accessible or reserved) is shown, but never as open to students.
 function closedLevelCard(n) {
   const all = ALL_IDS.filter(z => DECK.zones[z].level === n).map(z => DECK.zones[z]), sum = k => all.reduce((x, z) => x + (z[k] || 0), 0);
-  return `<article class="card"><h3>Level ${n}</h3><div class="count">—</div><div class="unit">no regular student stalls on this level</div>` +
+  return `<article class="card"><h3>Level ${n}</h3><div class="count">0</div><div class="unit">no regular student stalls on this level</div>` +
     `<p class="small">Counted on foot: ${sum('facultyStaff')} faculty/staff, ${sum('accessible')} accessible, ${sum('otherReserved')} other reserved. Any time limits on those stalls were not recorded.</p></article>`;
 }
 function levelCard(n, t) {
