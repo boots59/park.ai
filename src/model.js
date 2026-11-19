@@ -1,16 +1,13 @@
 // ParkingModel: pure survey logic. No DOM, no storage, no clock of its own.
 // Every function takes `now` as an argument so tests can control time.
 const ParkingModel = (() => {
-  // ILLUSTRATIVE numbers. The field study must replace them with measured ones.
+  // All tunable numbers live in src/settings.js (explained there).
+  const S = typeof Settings !== 'undefined' ? Settings : require('./settings.js');
   const MIN = 60e3;
-  const FRESH = 5 * MIN;        // younger than this: show the count as counted
-  const HORIZON = 30 * MIN;     // older than this: stop estimating and say "unknown"
-  const MAX_SURVEY = 20 * MIN;  // a survey left open longer is rejected
-  const MAX_COUNT = 999;
-  const SIGMA = 0.8;            // how unpredictable a bay is, in spaces per square-root-minute
-  const Z = 1.64;               // ranges are sized to hold the true count about 9 times in 10
-  const TREND_MIN = 3 * MIN, TREND_MAX = 30 * MIN; // two counts this far apart give a usable trend
-  const ROOM_AT = 10, FULL_AT = 5;                 // deck verdict thresholds, in open spaces
+  const FRESH = S.freshMinutes * MIN, HORIZON = S.horizonMinutes * MIN, MAX_SURVEY = S.maxSurveyMinutes * MIN;
+  const MAX_COUNT = S.maxCount, SIGMA = S.variability, Z = S.rangeZ;
+  const TREND_MIN = S.trendMinGapMinutes * MIN, TREND_MAX = S.trendMaxGapMinutes * MIN;
+  const ROOM_AT = S.roomAt, FULL_AT = S.fullAt;
 
   // Age is measured from the survey START. A walk takes minutes, and spaces
   // counted at the start may already have changed, so start is the honest
@@ -63,7 +60,7 @@ const ParkingModel = (() => {
       throw Error('Enter a whole number from 0 to ' + MAX_COUNT + '.');
     if (!survey || now < survey.start) throw Error('Start a survey first.');
     if (now - survey.start > MAX_SURVEY)
-      throw Error('This survey was open over 20 minutes. Cancel and start a new one so the count is not older than it looks.');
+      throw Error('This survey was open over ' + S.maxSurveyMinutes + ' minutes. Cancel and start a new one so the count is not older than it looks.');
     const old = records[survey.zone];
     if ((old?.version || 0) !== survey.version)
       throw Error('A newer survey of this bay was saved. Start a fresh survey rather than overwrite it.');

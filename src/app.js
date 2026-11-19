@@ -1,13 +1,18 @@
-// App: DOM + storage around the pure ParkingModel. `DECK` is injected by
-// build.cjs from assets/west_deck.json (the friend's 3D model data).
-const BAY_LABEL = { West: 'West bay', Centre: 'Centre ramp bay', East: 'East bay' };
-const BAY_NOTE = { West: 'one-way northbound', Centre: 'ramp, rises south to north', East: 'one-way southbound' };
-const CATEGORY = 'Example general permit (illustrative)';
+// App: DOM + storage around the pure ParkingModel.
+// `DECK` is injected by scripts/build.cjs from data/deck.json (bays and stall numbers).
+// `Settings` comes from src/settings.js.
+const CATEGORY = Settings.category;
 const KEY = 'west-deck-prototype-v2';
 const ZONE_IDS = Object.keys(DECK.zones);
 const LEVELS = [...new Set(ZONE_IDS.map(z => DECK.zones[z].level))].sort((a, b) => b - a); // top first
 const zonesOf = n => ZONE_IDS.filter(z => DECK.zones[z].level === n);
-const bayName = z => 'Level ' + DECK.zones[z].level + ' · ' + BAY_LABEL[DECK.zones[z].zone];
+const bayName = z => 'Level ' + DECK.zones[z].level + ' · ' + DECK.zones[z].label;
+// Stall numbers are either a 3D-model estimate or counted on foot; always say which.
+const counted = z => DECK.zones[z].source === 'counted';
+const stallWord = z => counted(z) ? 'counted' : 'modelled';
+const stallNote = z => counted(z)
+  ? 'Stalls: ' + DECK.zones[z].stalls + ' (counted on foot' + (DECK.zones[z].countedOn ? ', ' + DECK.zones[z].countedOn : '') + ')'
+  : 'Modelled stalls: ' + DECK.zones[z].stalls + ' (3D model estimate, not a KSU figure)';
 
 let records = {}, offset = 0, survey = null, viewer = null, selectedBay = null;
 const now = () => Date.now() + offset;
@@ -54,7 +59,7 @@ function bayRow(z, t) {
   const detail = s === 'recent' ? minsAgo(r, t) + ' min ago' : s === 'estimate' ? `counted ${r.count}, ${minsAgo(r, t)} min ago`
     : r ? `last count ${minsAgo(r, t)} min ago` : 'no survey';
   return `<li><button class="bay${z === selectedBay ? ' selected' : ''}" onclick="selectBay('${z}')" aria-pressed="${z === selectedBay}">` +
-    `<span class="bay-name">${BAY_LABEL[DECK.zones[z].zone]}</span>` +
+    `<span class="bay-name">${DECK.zones[z].label}</span>` +
     `<b class="bay-count">${e ? range(e) : '—'}</b>` +
     `<span class="status ${s}">${STATUS_TEXT[s]} · ${detail}</span></button></li>`;
 }
@@ -94,10 +99,10 @@ function renderSelection() {
   const el = $('selection'); if (!el) return;
   if (!selectedBay) { el.textContent = 'Tap a bay on the model or in a level card.'; return; }
   const t = now(), r = records[selectedBay], e = ParkingModel.estimate(r, t);
-  el.textContent = bayName(selectedBay) + ' (' + BAY_NOTE[DECK.zones[selectedBay].zone] + '): ' +
+  el.textContent = bayName(selectedBay) + (DECK.zones[selectedBay].note ? ' (' + DECK.zones[selectedBay].note + ')' : '') + ': ' +
     (!e ? 'unknown' : e.counted ? r.count + ' counted open, ' + minsAgo(r, t) + ' min ago'
       : `estimated ${range(e)} open (${r.count} counted ${minsAgo(r, t)} min ago${trendText(e.rate)})`) +
-    '. Modelled stalls: ' + DECK.zones[selectedBay].stalls + ' (from the 3D model, not KSU).';
+    '. ' + stallNote(selectedBay) + '.';
 }
 
 // ---- Staff survey ----
@@ -111,7 +116,7 @@ function startSurvey() {
   $('count').value = 0; $('coverage').checked = false; renderScan();
   $('surveyFields').classList.remove('hidden');
   $('start').disabled = true; $('bay').disabled = true; $('observer').disabled = true;
-  $('modelled').textContent = 'Modelled stalls in this bay: ' + DECK.zones[zone].stalls + ' (3D model estimate, not a KSU figure).';
+  $('modelled').textContent = stallNote(zone) + '.';
   feedback('Survey of ' + bayName(zone) + ' in progress. Nothing is published until you complete it.');
 }
 function cancelSurvey(message = 'Survey closed. No unfinished count was saved.') {
@@ -132,7 +137,7 @@ function finishSurvey() {
     records = ParkingModel.complete(records, survey, count, now(), CATEGORY, { photos: survey.photos });
     save(); logSurvey(zone, records[zone], started);
     const over = count > DECK.zones[zone].stalls
-      ? ' Note: that is above the modelled stall count (' + DECK.zones[zone].stalls + '), so the model may be wrong. Worth recording.' : '';
+      ? ' Note: that is above the ' + stallWord(zone) + ' stall count (' + DECK.zones[zone].stalls + '). One of the two numbers is wrong; worth recording.' : '';
     cancelSurvey(bayName(zone) + ' saved. The previous count was replaced, not added.' + over);
     render();
   } catch (e) { feedback(e.message, true); }
@@ -173,7 +178,7 @@ function renderScan() {
     `<output class="confirmed" aria-label="Confirmed vehicles in this photo">${last.confirmed}</output>` +
     `<button class="secondary" aria-label="One more vehicle" onclick="adjustPhoto(1)">+</button></div>` +
     `<p class="small">Bay so far: <b>${s.vehicles}</b> vehicles in ${photos.length} photo${photos.length > 1 ? 's' : ''}. Don't photograph the same cars twice.</p>` +
-    `<p class="small">Suggestion: ${stalls} modelled stalls − ${s.vehicles} vehicles = <b>${s.open} open</b>. The stall number is a model estimate, and vehicles in restricted spaces are included, so check before you save.</p>` +
+    `<p class="small">Suggestion: ${stalls} ${stallWord(survey.zone)} stalls − ${s.vehicles} vehicles = <b>${s.open} open</b>. ${counted(survey.zone) ? 'Vehicles' : 'The stall number is a model estimate, and vehicles'} in restricted spaces are included, so check before you save.</p>` +
     `<div class="row"><button class="secondary" onclick="useSuggestion()">Use ${s.open} as the count</button><button class="secondary" onclick="removePhoto()">Remove last photo</button></div>`;
 }
 

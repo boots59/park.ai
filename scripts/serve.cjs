@@ -6,7 +6,7 @@ const dist = path.join(__dirname, '../dist'), port = Number(process.env.PORT) ||
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm' };
 http.createServer((req, res) => {
   let f = path.join(dist, path.normalize(decodeURIComponent(req.url.split('?')[0])));
-  if (req.url === '/') f = path.join(dist, 'West-Deck-Prototype.html');
+  if (req.url === '/') f = path.join(dist, 'index.html');
   if (!f.startsWith(dist) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end('not found'); }
   res.writeHead(200, { 'content-type': TYPES[path.extname(f)] || 'application/octet-stream' });
   fs.createReadStream(f).pipe(res);

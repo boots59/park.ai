@@ -1,18 +1,20 @@
-// Build: assembles one self-contained HTML file (no network needed to open it).
-//   node build.cjs            -> dist/West-Deck-Prototype.html
-//   node build.cjs --no-3d    -> same page without the three.js viewer (small)
-// Steps: bundle src/viewer.js + three.js with esbuild, embed the plain GLB as
-// base64, inline the deck config, model and app, and write dist/.
+// Build: assembles the page into dist/.
+//   npm run build                       -> dist/index.html (+ dist/ai/ for the detection model)
+//   node scripts/build.cjs --no-3d      -> dist/lite.html, without the three.js viewer (small)
+// Steps: bundle src/viewer.js + three.js with esbuild, embed the 3D model as
+// base64, inline data/deck.json and the scripts in src/, copy the AI files.
 const fs = require('node:fs'), path = require('node:path');
-const root = __dirname, rd = p => fs.readFileSync(path.join(root, p), 'utf8');
+const root = path.join(__dirname, '..'), rd = p => fs.readFileSync(path.join(root, p), 'utf8');
 const glbPath = path.join(root, 'assets/west_deck_plain.glb');
 // The 3D deck model is a collaborator's file and is only in the repo with their
 // permission. Without it the page builds and works, minus the 3D view.
 const no3d = process.argv.includes('--no-3d') || !fs.existsSync(glbPath);
 const lite = process.argv.includes('--no-3d');
 
-const deck = JSON.parse(rd('assets/west_deck.json'));
-const DECK = { name: deck.name, zones: deck.zones }; // levels/zones/stalls only
+const deck = JSON.parse(rd('data/deck.json'));
+const DECK = { name: deck.name, zones: deck.zones };
+for (const [id, z] of Object.entries(DECK.zones))
+  if (!Number.isInteger(z.level) || !z.label || !Number.isInteger(z.stalls) || z.stalls < 0) throw Error('data/deck.json: bay ' + id + ' needs a whole-number level and stalls, and a label');
 
 let viewer = '';
 if (!no3d) {
@@ -25,7 +27,7 @@ if (!no3d) {
 
 const tpl = rd('src/index.template.html');
 const parts = { '/*VIEWER*/': viewer, '/*DECK*/': 'const DECK=' + JSON.stringify(DECK) + ';',
-  '/*MODEL*/': rd('src/model.js'), '/*DETECT*/': rd('src/detect.js'), '/*AI*/': rd('src/ai.js'), '/*APP*/': rd('src/app.js') };
+  '/*SETTINGS*/': rd('src/settings.js'), '/*MODEL*/': rd('src/model.js'), '/*DETECT*/': rd('src/detect.js'), '/*AI*/': rd('src/ai.js'), '/*APP*/': rd('src/app.js') };
 let html = tpl;
 for (const [marker, code] of Object.entries(parts)) {
   if (!html.includes(marker)) throw Error('Template is missing ' + marker);
@@ -33,7 +35,7 @@ for (const [marker, code] of Object.entries(parts)) {
   html = html.replace(marker, () => code); // function form: "$&" etc. in code stay literal
 }
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
-const file = path.join(root, 'dist', lite ? 'West-Deck-Prototype-lite.html' : 'West-Deck-Prototype.html');
+const file = path.join(root, 'dist', lite ? 'lite.html' : 'index.html');
 fs.writeFileSync(file, html);
 console.log('built', path.relative(root, file), (html.length / 1024).toFixed(0) + ' KB' + (no3d && !lite ? ' (no 3D view: assets/west_deck_plain.glb is not present)' : ''));
 

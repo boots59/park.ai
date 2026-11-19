@@ -4,7 +4,7 @@
 //  2. Serves dist/ over local http and runs the AI count on a photo, if a fixture
 //     exists at test/fixtures/street.jpg (not in git: use a photo you may share).
 const { chromium } = require('playwright'), path = require('node:path'), fs = require('node:fs'), http = require('node:http'), assert = require('node:assert/strict');
-const dist = path.join(__dirname, '../dist'), file = 'file://' + path.join(dist, 'West-Deck-Prototype.html');
+const dist = path.join(__dirname, '../dist'), file = 'file://' + path.join(dist, 'index.html');
 const out = process.argv[2] || path.join(__dirname, '../screenshots'); fs.mkdirSync(out, { recursive: true });
 const fixture = path.join(__dirname, 'fixtures/street.jpg');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm', '.onnx': 'application/octet-stream' };
@@ -53,7 +53,7 @@ function serve() {
   if (!fs.existsSync(path.join(dist, 'ai/yolox_s.onnx'))) console.log('SKIPPED AI check: no model in dist/ai (npm run fetch-model && npm run build)');
   else if (!fs.existsSync(fixture)) console.log('SKIPPED AI check: no photo at test/fixtures/street.jpg');
   else {
-    const server = await serve(), url = `http://127.0.0.1:${server.address().port}/West-Deck-Prototype.html`;
+    const server = await serve(), url = `http://127.0.0.1:${server.address().port}/index.html`;
     const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 2 });
     const p = await ctx.newPage(), errors = [];
     p.on('pageerror', e => errors.push(e.message));

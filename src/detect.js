@@ -2,6 +2,7 @@
 // Pure functions only: no DOM, no model runtime. src/ai.js feeds these with
 // pixels and model output in the browser; test/detect.test.cjs checks them.
 const CarDetect = (() => {
+  const S = typeof Settings !== 'undefined' ? Settings : require('./settings.js');
   // COCO class ids the model knows. Pickups and SUVs are often labelled
   // "truck", so both count as a parked vehicle. Motorcycles are left out
   // because motorcycle spaces are not part of the survey count.
@@ -31,7 +32,7 @@ const CarDetect = (() => {
   // The model outputs one row per grid cell: [cx, cy, w, h, objectness, 80
   // class scores], with the box still relative to its cell. Turn rows into
   // boxes in ORIGINAL image pixels, keeping only confident vehicles.
-  function decode(data, size, scale, { minScore = 0.3 } = {}) {
+  function decode(data, size, scale, { minScore = S.detectMinScore } = {}) {
     const cols = 85, dets = [];
     let row = 0;
     for (const stride of STRIDES) {
@@ -61,7 +62,7 @@ const CarDetect = (() => {
   // Non-maximum suppression: the model proposes several boxes per vehicle.
   // Keep the most confident and drop others that overlap it. Done across
   // classes, so one pickup seen as both "car" and "truck" counts once.
-  function nms(dets, maxIou = 0.45) {
+  function nms(dets, maxIou = S.detectMaxOverlap) {
     const kept = [];
     for (const d of [...dets].sort((a, b) => b.score - a.score))
       if (kept.every(k => iou(k, d) <= maxIou)) kept.push(d);
