@@ -89,8 +89,8 @@ test('an ageing count becomes a range, then unknown', () => {
   const b = boot(); b.run('clearDemo(); startSurvey()');
   b.els.count.value = '14'; b.els.coverage.checked = true; b.run('finishSurvey(); advance(9)');
   assert.match(b.els.cards.innerHTML, /bay-count">10–18<\/b><span class="status estimate">Estimate · counted 14, 9 min ago/);
-  b.run('advance(21)');
-  assert.match(b.els.cards.innerHTML, /bay-count">—<\/b><span class="status unknown">Unknown · last count 30 min ago/);
+  b.run('advance(51)');
+  assert.match(b.els.cards.innerHTML, /bay-count">—<\/b><span class="status unknown">Unknown · last count 60 min ago/);
   assert.match(b.els.verdict.innerHTML, /Not enough counts to say/);
 });
 test('a recount gives the next estimate a trend', () => {

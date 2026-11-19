@@ -10,8 +10,8 @@ test('age is measured from survey start', () => {
   const r = { start: t, end: t + 4 * MIN };
   assert.equal(m.status(r, t + 4 * MIN), 'recent');
   assert.equal(m.status(r, t + 5 * MIN), 'estimate'); // 5 min after START, though only 1 after end
-  assert.equal(m.status(r, t + 29 * MIN), 'estimate');
-  assert.equal(m.status(r, t + 30 * MIN), 'unknown');
+  assert.equal(m.status(r, t + 59 * MIN), 'estimate');
+  assert.equal(m.status(r, t + 60 * MIN), 'unknown');
 });
 test('future-dated record is unknown', () => assert.equal(m.status({ start: t + MIN, end: t + MIN }, t), 'unknown'));
 
@@ -54,7 +54,7 @@ test('a fresh count is shown as counted; an ageing one becomes a range that wide
   const e9 = m.estimate(rec(14, 9), t), e25 = m.estimate(rec(14, 25), t);
   assert.deepEqual(e9, { low: 10, high: 18, mid: 14, rate: 0, counted: false }); // 0.8 * sqrt(9) * 1.64 = 3.9
   assert.ok(e25.high - e25.low > e9.high - e9.low);
-  assert.equal(m.estimate(rec(14, 30), t), null);
+  assert.equal(m.estimate(rec(14, 60), t), null);
   assert.equal(m.estimate(undefined, t), null);
 });
 test('a trend from the last two counts moves the estimate and widens it', () => {
@@ -65,7 +65,7 @@ test('a trend from the last two counts moves the estimate and widens it', () => 
   assert.equal(e.low, 0);                                   // never below zero
   assert.ok(e.high - e.mid > flat.high - flat.mid);         // a two-point trend is itself uncertain
   assert.equal(m.trend(rec(14, 10, { count: 15, start: t - 11 * MIN })), null); // 1 min apart: noise, not a trend
-  assert.equal(m.trend(rec(14, 10, { count: 15, start: t - 50 * MIN })), null); // 40 min apart: too old
+  assert.equal(m.trend(rec(14, 10, { count: 15, start: t - 80 * MIN })), null); // 70 min apart: too old
 });
 test('complete() keeps the replaced count only as the trend reference', () => {
   let r = m.complete({}, { zone: 'L1_West', start: t, version: 0 }, 20, t, CAT);
@@ -79,7 +79,7 @@ test('level summary: exact, range, partial, unknown', () => {
   assert.deepEqual(m.levelSummary(all, zones, t), { state: 'complete', low: 8, high: 8, exact: true, students: false, knownBays: 3, bays: 3 });
   const ageing = { ...all, L1_East: rec(5, 9) };
   assert.deepEqual(m.levelSummary(ageing, zones, t), { state: 'complete', low: 4, high: 12, exact: false, students: false, knownBays: 3, bays: 3 });
-  const gone = { ...all, L1_East: rec(5, 31) };
+  const gone = { ...all, L1_East: rec(5, 61) };
   assert.deepEqual(m.levelSummary(gone, zones, t), { state: 'partial', low: 3, high: 3, exact: true, students: false, knownBays: 2, bays: 3 });
   assert.deepEqual(m.levelSummary({}, zones, t), { state: 'unknown', knownBays: 0, bays: 3 });
 });
@@ -97,7 +97,7 @@ test('bay state is judged on the low end of the estimate', () => {
   assert.equal(st(rec(14, 9)), 'room');   // range 10-18
   assert.equal(st(rec(6, 9)), 'few');     // range 2-10: might be nearly gone
   assert.equal(st(rec(0, 9)), 'few');     // range 0-4: a space may have opened
-  assert.equal(st(undefined), 'unknown'); assert.equal(st(rec(9, 31)), 'unknown');
+  assert.equal(st(undefined), 'unknown'); assert.equal(st(rec(9, 61)), 'unknown');
 });
 test('stall diagram split: taken, possibly taken, open', () => {
   assert.equal(m.stallSplit(74, null), null);
@@ -109,7 +109,7 @@ test('stall diagram split: taken, possibly taken, open', () => {
 test('recommendation ranks bays by spaces, then freshness, and never suggests a full or unknown bay', () => {
   const recs = { L1_West: rec(6, 2), L1_Centre: rec(0, 1), L1_East: rec(6, 1) };
   assert.deepEqual(m.recommend(recs, zones, t).map(b => b.zone), ['L1_East', 'L1_West']);
-  assert.deepEqual(m.recommend({ L1_West: rec(0), L1_Centre: rec(3, 31) }, zones, t), []);
+  assert.deepEqual(m.recommend({ L1_West: rec(0), L1_Centre: rec(3, 61) }, zones, t), []);
   assert.equal(m.recommend(recs, zones, t, 1).length, 1);
 });
 const rep = (zone, band, minsAgo) => ({ zone, band, t: t - minsAgo * MIN });

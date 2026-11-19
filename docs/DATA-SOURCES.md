@@ -8,7 +8,7 @@ with how far it can be trusted, and an honest "unknown" when none applies.
 | Source | Trust | Needs | Works with nobody on site? |
 |---|---|---|---|
 | Staff count (optionally AI-assisted) | Highest | A monitor on a round | No |
-| Estimate between counts: a range that widens with age and follows the last trend | Medium, and it says so | Two recent counts for a trend | For up to 30 minutes after a count |
+| Estimate between counts: a range that widens with age and follows the last trend | Medium, and it says so | Two recent counts for a trend | For up to 60 minutes after a count |
 | Student report: "plenty / a few / full" from someone who just parked | Low | Students who use the app | Yes, whenever students are parking |
 | Student report on leaving: "my space is opening" | Low, and short-lived (4 minutes) | Students who use the app | Yes, whenever students are leaving |
 | Typical at this hour: the range of past counts at this time of day | Context only, never a count | A few days of history | Yes |

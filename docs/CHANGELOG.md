@@ -72,3 +72,4 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Staff "Count next" hint (`ParkingModel.recheckNext`): unknown bays first, then the widest range.
 - Camera AI test: tap an empty spot on the photo to add a vehicle the model missed; tap a box to leave one out.
 - Enlarged-quarters photo mode switched on (`detectTiles: 2`).
+- Expiry raised from 30 to 60 minutes (Kell: monitors are unlikely to pass every 30 minutes). A count is shown as counted for 5 minutes, as a widening range up to 60, then unknown. Trends may now use two counts up to 60 minutes apart. Basis: on Nov 19, 11:15-12:00, bays changed by 0.9 stalls on average over 19-33 minutes; nothing has been measured beyond 33 minutes or earlier in the morning.

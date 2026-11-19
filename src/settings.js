@@ -4,7 +4,7 @@
 const Settings = {
   // --- Survey and display ---
   freshMinutes: 5,        // a count younger than this is shown exactly as counted
-  horizonMinutes: 30,     // a count older than this is "unknown"; in between it is an estimate
+  horizonMinutes: 60,     // a count older than this is "unknown"; in between it is an estimate
   maxSurveyMinutes: 20,   // a survey left open longer than this is rejected
   maxCount: 999,          // largest count a person can enter
 
@@ -12,7 +12,7 @@ const Settings = {
   variability: 0.8,       // how unpredictable a bay is, in spaces per square-root-minute
   rangeZ: 1.64,           // range width in spreads: 1.64 aims to hold the truth about 9 times in 10
   trendMinGapMinutes: 3,  // two counts closer together than this are noise, not a trend
-  trendMaxGapMinutes: 30, // two counts further apart than this say nothing about now
+  trendMaxGapMinutes: 60, // two counts further apart than this say nothing about now
 
   // --- Deck verdict, in open spaces ---
   roomAt: 10,             // "Room likely" when at least this many spaces at the low end
