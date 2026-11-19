@@ -17,13 +17,13 @@ function boot(storage = {}, { syncUrl = '', fetch } = {}) {
 }
 let pass = 0; const test = (name, fn) => { fn(); pass++; console.log('ok -', name); };
 
-test('seed shows a counted level, an estimated level, a partial level and a deck verdict', () => {
+test('seed shows a counted level, an estimated level, a level with no student stalls and a deck verdict', () => {
   const { els } = boot();
-  assert.match(els.cards.innerHTML, />17<\/div><div class="unit">counted open/);        // Level 3: 6+0+11, all just counted
-  assert.match(els.cards.innerHTML, />6–14<\/div><div class="unit">estimated open/);    // Level 2: 4 + 2 counted, plus the ageing centre bay's 0–8
+  assert.match(els.cards.innerHTML, />25<\/div><div class="unit">counted open/);        // Level 3: 6+0+11+3+5, all just counted
+  assert.match(els.cards.innerHTML, />9–31<\/div><div class="unit">estimated open/);    // Level 2: 4+2+1 counted, plus two ageing bays (0–8 and 2–16)
   assert.match(els.cards.innerHTML, /bay-count">0–8<\/b><span class="status estimate">Estimate · counted 7, 8 min ago/); // it was filling: 12 then 7, so the middle is 3
-  assert.match(els.cards.innerHTML, />≥2<\/div><div class="unit">in 1 of 3 bays/);      // Level 1: one old count, two unknown
-  assert.match(els.verdict.innerHTML, /Room likely.*<b>≥25<\/b> open · in 7 of 9 bays/);
+  assert.match(els.cards.innerHTML, /Level 1<\/h3>.*no regular student stalls on this level.*174 faculty\/staff, 3 accessible, 4 other reserved/); // counted on foot
+  assert.match(els.verdict.innerHTML, /Room likely.*<b>34–56<\/b> open · estimated open/);
 });
 test('recommends where to try first, and says so plainly when nothing is known to be open', () => {
   const b = boot();
@@ -44,7 +44,7 @@ test('survey saves, then a second survey replaces it', () => {
   assert.equal(b.saved().L3_West.count, 12);
   b.run('startSurvey()'); b.els.count.value = '2'; b.els.coverage.checked = true; b.run('finishSurvey()');
   assert.equal(b.saved().L3_West.count, 2);
-  assert.equal(b.saved().L3_West.category, 'Example general permit (illustrative)');
+  assert.equal(b.saved().L3_West.category, 'Regular student stalls');
 });
 test('double tap on Complete saves once', () => {
   const b = boot(); b.run('clearDemo(); startSurvey()');
@@ -58,11 +58,11 @@ test('empty count is rejected, zero is accepted', () => {
   b.els.count.value = '0'; b.run('finishSurvey()');
   assert.equal(b.saved().L3_West.count, 0);
 });
-test('count above modelled stalls saves with a warning', () => {
+test('count above the bay\'s stall count saves with a warning', () => {
   const b = boot(); b.run('clearDemo(); startSurvey()');
   b.els.count.value = '120'; b.els.coverage.checked = true; b.run('finishSurvey()');
   assert.equal(b.saved().L3_West.count, 120);
-  assert.match(b.els.feedback.textContent, /above the modelled stall count \(79\)/);
+  assert.match(b.els.feedback.textContent, /above the counted stall count \(74\)/);
 });
 test('survey left open over 20 minutes is rejected', () => {
   const b = boot(); b.run('clearDemo(); startSurvey(); advance(21)');
@@ -89,19 +89,19 @@ test('cancel publishes nothing and re-enables start', () => {
   assert.equal(b.els.start.disabled, false); assert.deepEqual(b.saved(), {});
 });
 test('corrupt storage is ignored, not rendered', () => {
-  const storage = { 'west-deck-prototype-v2': JSON.stringify({ offset: 0, records: { L1_West: { count: '<img src=x onerror=alert(1)>', start: 1, end: 1, version: 1, category: 'x' } } }) };
+  const storage = { 'west-deck-prototype-v2': JSON.stringify({ offset: 0, records: { L2_West: { count: '<img src=x onerror=alert(1)>', start: 1, end: 1, version: 1, category: 'x' } } }) };
   const b = boot(storage); assert.doesNotMatch(b.els.cards.innerHTML, /<img/);
-  const b2 = boot({ 'west-deck-prototype-v2': '{not json' }); assert.match(b2.els.cards.innerHTML, />17<\/div>/); // falls back to sample
+  const b2 = boot({ 'west-deck-prototype-v2': '{not json' }); assert.match(b2.els.cards.innerHTML, />25<\/div>/); // falls back to sample
 });
 test('selecting a bay explains it in words', () => {
   const b = boot(); b.run("selectBay('L3_East')");
-  assert.match(b.els.selection.textContent, /Level 3 · East bay.*11 counted open, 1 min ago.*Modelled stalls: 73/);
+  assert.match(b.els.selection.textContent, /Level 3 · East bay.*11 counted open, 1 min ago.*Stalls: 63 \(counted on foot, 2026-11-19\)/);
   b.run("selectBay('L3_East')"); assert.match(b.els.selection.textContent, /Tap a bay/);
 });
 test('a student report fills an unknown bay as a band and feeds the recommendation', () => {
-  const b = boot(); b.run('clearDemo()'); b.els.reportBay.value = 'L1_East'; b.run("reportBay('few')");
+  const b = boot(); b.run('clearDemo()'); b.els.reportBay.value = 'L2_North'; b.run("reportBay('few')");
   assert.match(b.els.cards.innerHTML, /bay-count">1–4<\/b><span class="status students">Student report · "a few left", 0 min ago/);
-  assert.match(b.els.verdict.innerHTML, /Try first:.*Level 1 · East bay · <b>1–4<\/b> open \(student report\)/);
+  assert.match(b.els.verdict.innerHTML, /Try first:.*Level 2 · North bay · <b>1–4<\/b> open \(student report\)/);
   assert.match(b.els.reportMsg.textContent, /now shows "a few left" as a student report/);
   b.run("reportBay('full')");                                   // same device, same bay, straight away
   assert.match(b.els.reportMsg.textContent, /already reported this bay/);
@@ -115,7 +115,7 @@ test('a fresh staff count is not overridden by a student report', () => {
   assert.match(b.els.reportMsg.textContent, /stronger evidence, so the display keeps it/);
 });
 test('corrupt stored reports are ignored', () => {
-  const b = boot({ 'west-deck-reports-v1': JSON.stringify([{ zone: 'L1_West', band: '<img src=x onerror=1>', t: Date.now() }, 'junk']) });
+  const b = boot({ 'west-deck-reports-v1': JSON.stringify([{ zone: 'L2_West', band: '<img src=x onerror=1>', t: Date.now() }, 'junk']) });
   assert.doesNotMatch(b.els.cards.innerHTML, /<img|students/);
 });
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
@@ -128,12 +128,12 @@ const photo = () => ({ files: [{}], value: 'x' });
     await b.run('scanPhoto')(photo());
     assert.match(b.els.scanPanel.innerHTML, /found <b>30<\/b> vehicles/);
     b.run('adjustPhoto(1)');                                  // the person saw one the model missed
-    assert.match(b.els.scanPanel.innerHTML, /79 modelled stalls − 31 vehicles = <b>48 open<\/b>/);
+    assert.match(b.els.scanPanel.innerHTML, /74 counted stalls − 31 vehicles = <b>43 open<\/b>/);
     assert.equal(b.els.count.value, 0);                       // nothing is filled in until the person chooses
-    b.run('useSuggestion()'); assert.equal(b.els.count.value, 48);
+    b.run('useSuggestion()'); assert.equal(b.els.count.value, 43);
     b.els.coverage.checked = true; b.run('finishSurvey()');
     const rec = b.saved().L3_West;
-    assert.equal(rec.count, 48); assert.equal(rec.method, 'ai-assisted');
+    assert.equal(rec.count, 43); assert.equal(rec.method, 'ai-assisted');
     assert.deepEqual(rec.photos, [{ ai: 30, confirmed: 31 }]);
   });
   await atest('field log records model vs person and exports CSV', async () => {
@@ -173,7 +173,7 @@ const photo = () => ({ files: [{}], value: 'x' });
     assert.match(monitor.els.cards.innerHTML, /availability not known/);       // shared mode starts empty, no sample data
     assert.match(monitor.els.notice.innerHTML, /typed in by testers/);
     monitor.run('startSurvey()'); monitor.els.count.value = '9'; monitor.els.coverage.checked = true; monitor.run('finishSurvey()');
-    parked.els.reportBay.value = 'L1_East'; parked.run("reportBay('few')");
+    parked.els.reportBay.value = 'L2_North'; parked.run("reportBay('few')");
     await monitor.run('syncNow()'); await parked.run('syncNow()'); await student.run('syncNow()');
     assert.match(student.els.cards.innerHTML, /bay-count">9<\/b><span class="status recent">Counted/);
     assert.match(student.els.cards.innerHTML, /bay-count">1–4<\/b><span class="status students">Student report/);
@@ -192,7 +192,7 @@ const photo = () => ({ files: [{}], value: 'x' });
     assert.match(b.els.cards.innerHTML, /bay-count">0<\/b><span class="status students">/);
   });
   await atest('junk in the shared database is not shown', async () => {
-    const db = fakeDatabase(); db.data.v1 = { counts: { L1_West: { count: '<img src=x>', start: 1, end: 1, version: 1, category: 'x' }, L9_Fake: { count: 3 } }, reports: { a: { zone: 'L1_West', band: 'everything is free', t: Date.now() } }, history: { a: 'x' } };
+    const db = fakeDatabase(); db.data.v1 = { counts: { L2_West: { count: '<img src=x>', start: 1, end: 1, version: 1, category: 'x' }, L9_Fake: { count: 3 }, L1_West: { count: 5, start: Date.now(), end: Date.now(), version: 1, category: 'x' } }, reports: { a: { zone: 'L2_West', band: 'everything is free', t: Date.now() } }, history: { a: 'x' } };
     const a = boot({}, { syncUrl: 'https://example.test', fetch: db.fetch }); await a.run('syncNow()');
     assert.doesNotMatch(a.els.cards.innerHTML, /<img|students|recent/);
   });

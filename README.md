@@ -53,7 +53,8 @@ After any change run `npm test`. If a test fails because you changed a number on
 ## How it is organised
 
 ```
-data/deck.json            bays and stall numbers (the one file to edit after a field count)
+data/deck.json            bays and stall numbers, counted on foot (the one file to edit after a recount)
+data/field/               raw field data: the stall count
 src/settings.js           every tunable number and label
 src/model.js              survey rules, estimates, summaries, accuracy checks (pure logic)
 src/sync.js               optional sharing between phones (off unless a database address is set)

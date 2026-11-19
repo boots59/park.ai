@@ -21,6 +21,8 @@ Update this whenever a fact changes. "Verified" means someone read the primary s
 - Accuracy inside West Deck (dim light, cars hiding each other, cars seen end-on). The field log measures it: model number beside the confirmed number, per photo.
 - Speed on a real phone. Only a desktop CPU was tested.
 - "Open = stalls − vehicles" needs KSU's real stall count per bay and permit type. Today it uses the 3D model's estimate and counts vehicles in restricted spaces too.
+| West Deck has 3 levels and 662 stalls: 428 regular, 212 faculty/staff, 18 accessible, 4 other. Level 1 has no regular stalls | Kell's count on foot, `data/field/2026-11-19-stall-count.csv` | 2026-11-19 (one counter, not double-checked; stall types as read from signs that morning) |
+| The 3D model's estimates were close on totals (651 stalls, 3 levels) but it has no North or South bays | Compared with the count above | 2026-11-19 |
 
 ## From the 3D model's own README (not independently checked)
 - Outline 118.6 × 55.4 m, top deck 319.15 m, 3.1 m floor-to-floor: USGS 3DEP lidar flown April 2019.

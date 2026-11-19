@@ -55,3 +55,10 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - **Optional sharing between phones** (`src/sync.js`, `Settings.syncUrl`), with an offline outbox. Off by default. Tested against a stand-in database only.
 - New docs: `docs/DATA-SOURCES.md`, `docs/SHARED-DATA.md`.
 - Tests: 30 model, 7 detection, 23 UI.
+
+## 2026-11-19, 11 AM (Claude): the deck data is now the counted one
+- `data/deck.json` rebuilt from Kell's count: five bays per level (West, Centre ramp, East, North, South), 662 stalls, with regular, accessible, faculty/staff and other-reserved numbers per bay. `stalls` is the regular number.
+- Level 1 has no regular stalls: it gets a card that says so and is never surveyed, recommended or coloured.
+- 3D view: schematic North and South strips per level (position approximate).
+- Count category renamed "Regular student stalls". Raw count saved in `data/field/`.
+- Field kit: stall tally by bay and type, label editing, 11 poll questions, online backup and QR survey mode (both off until `Settings.syncUrl` is set).

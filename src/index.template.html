@@ -19,7 +19,7 @@ nav{display:flex;gap:6px;border-bottom:1px solid #cdd7ca;margin:30px 0 22px;over
 </style></head><body><header><div class="brand">WEST<span> / deck</span></div><span class="badge">Concept prototype · simulated</span></header><main>
 <div class="eyebrow">Kennesaw campus · student-built concept</div><h1>Less circling.<br>More certainty.</h1>
 <p class="intro">Know before you drive in. Open spaces counted by people on the ground, and an honest estimate with a range once a count starts to age.</p>
-<div class="notice" id="notice"><b>Demo only. Do not use for parking decisions.</b> All counts are illustrative, not KSU data. The 3D model's level count and stall counts are estimates, not verified. No KSU affiliation, live feed, or reserved space guarantee.</div>
+<div class="notice" id="notice"><b>Demo only. Do not use for parking decisions.</b> The open-space counts shown are sample data, not live and not KSU data. Stall numbers were counted on foot by one student on Nov 19, 2026. No KSU affiliation, live feed, or reserved space guarantee.</div>
 <nav aria-label="View" role="tablist"><button id="studentTab" role="tab" class="active" aria-selected="true" onclick="setView('student')">Students</button><button id="staffTab" role="tab" aria-selected="false" onclick="setView('staff')">Staff survey</button><button id="aboutTab" role="tab" aria-selected="false" onclick="setView('about')">Pilot boundaries</button></nav>
 
 <section id="student"><div class="row" style="justify-content:space-between"><h2>West Deck right now</h2><span class="small">Counts and estimates · not a live sensor feed</span></div>
@@ -35,15 +35,15 @@ nav{display:flex;gap:6px;border-bottom:1px solid #cdd7ca;margin:30px 0 22px;over
 <div class="legend"><span><i style="background:#2f8f4e"></i>Room (5 or more)</span><span><i style="background:#d9a21b"></i>A few</span><span><i style="background:#b8402f"></i>Full</span><span><i style="background:#9aa69a"></i>Unknown</span></div>
 <div class="row" style="justify-content:space-between"><p id="viewerNote" class="small">3D view loading…</p><button id="spread" class="secondary" aria-pressed="true" onclick="toggleSpread()">Slide levels apart</button></div>
 <p id="selection" class="small" role="status" aria-live="polite"></p>
-<p class="small"><b>What the model is:</b> outline, top deck, ramp and floor spacing measured from USGS 3DEP lidar (flown April 2019); stall spacing from a USDA NAIP aerial photo (October 2025). <b>What is guessed:</b> 3 levels (from OpenStreetMap; KSU has not confirmed), lower levels copy the top deck's layout, and stall counts are the model's, not KSU's. The model shows whole bays. It does not show which individual spaces are open.</p></div>
+<p class="small"><b>What the model is:</b> outline, top deck, ramp and floor spacing measured from USGS 3DEP lidar (flown April 2019); stall spacing from a USDA NAIP aerial photo (October 2025). <b>What was checked on foot (Nov 19):</b> 3 levels and 662 stalls, against the model's estimate of 651. <b>What is schematic:</b> the North and South strips mark bays the model does not have; their position is approximate. Level 1 is grey because it has no regular student stalls. The model shows whole bays. It does not show which individual spaces are open.</p></div>
 <div class="panel"><div class="eyebrow">Know what you’re seeing</div><h2>A range, never a guess dressed as a count.</h2>
 <p class="small"><b>Counted:</b> a person counted this bay less than 5 minutes ago. You see their number.<br><b>Estimate:</b> the count is 5–30 minutes old. You see a range that widens as the count ages, and shifts if the bay's last two counts showed it filling or emptying.<br><b>Student report:</b> someone who just parked tapped “plenty”, “a few” or “full”. It fills in when there is no fresh staff count, shows as a band (for example 1–4), and expires after 10 minutes. A staff count under 5 minutes old always wins.<br><b>Unknown:</b> no count or report. Nothing is guessed. If there are enough past counts, the bay notes what is typical at this hour.<br><b>Level and deck totals:</b> add up the bays that are known, and say how many bays that covers.<br><b>Try first:</b> the bays with the most open spaces at the low end of their range. The 3D view colours each bay the same way and updates as soon as a count is saved.</p>
 <p class="small">The range is sized to hold the real number about 9 times in 10, <i>if</i> its settings match this deck. They are placeholders until checked against real repeat counts; the staff field log runs that check. Age counts from when a survey <i>started</i>, because a walk takes minutes.</p>
-<p class="small"><b>What is counted:</b> open spaces a holder of the <i>example general permit</i> could use. Not counted: accessible (ADA), visitor, reserved, EV-only, motorcycle, blocked or coned spaces. An empty space is not always one you may use.</p></div></div></section>
+<p class="small"><b>What is counted:</b> open <i>regular</i> stalls: the ones not marked for faculty/staff or otherwise reserved, as the signs read on Nov 19. Not counted: faculty/staff, accessible (ADA), visitor, reserved, EV-only, motorcycle, blocked or coned spaces. An empty space is not always one you may use.</p></div></div></section>
 
 <section id="staff" class="hidden"><div class="layout"><div class="panel"><div class="eyebrow">One bounded observation</div><h2>Walk. Count. Complete.</h2>
-<p class="small">Pick one bay. Start at zero, walk the whole bay once, and count only spaces that the example general permit may use. Don't mix partial walks or count a space twice.</p>
-<label for="bay">Bay to survey (illustrative layout)</label><select id="bay"></select>
+<p class="small">Pick one bay. Start at zero, walk the whole bay once, and count only regular stalls (not faculty/staff, accessible or reserved). Don't mix partial walks or count a space twice.</p>
+<label for="bay">Bay to survey</label><select id="bay"></select>
 <label for="observer">Observer (a letter, not a name)</label><select id="observer"><option value="A">Observer A</option><option value="B">Observer B</option></select>
 <button class="primary" id="start" onclick="startSurvey()">Start bay survey</button>
 <div id="surveyFields" class="hidden"><p id="modelled" class="small"></p>
@@ -53,13 +53,13 @@ nav{display:flex;gap:6px;border-bottom:1px solid #cdd7ca;margin:30px 0 22px;over
 <input id="photo" type="file" accept="image/*" capture="environment" class="hidden" onchange="scanPhoto(this)">
 <div id="scanStatus" class="small" role="status" aria-live="polite"></div>
 <canvas id="scanCanvas" class="hidden" aria-label="Your photo with a numbered box on each vehicle the model found"></canvas>
-<div id="scanPanel"></div></div><label for="count">Open spaces, example general permit</label>
+<div id="scanPanel"></div></div><label for="count">Open regular stalls</label>
 <div class="number-controls"><button class="secondary" aria-label="Subtract one space" onclick="adjust(-1)">−</button><input id="count" type="number" inputmode="numeric" min="0" max="999" step="1" value="0"><button class="secondary" aria-label="Add one space" onclick="adjust(1)">+</button></div>
 <label><input type="checkbox" id="coverage" style="width:auto;margin-right:8px"> I walked this whole bay once.</label>
 <button class="primary" onclick="finishSurvey()">Complete &amp; replace observation</button> <button class="secondary" onclick="cancelSurvey()">Cancel</button></div>
 <div id="feedback" class="feedback" role="status" aria-live="polite"></div></div>
 <div class="panel"><h2>Counting rules</h2><ol class="small">
-<li>Count only empty spaces the example general permit may use. Skip accessible, visitor, reserved, EV-only, motorcycle and blocked spaces.</li>
+<li>Count only empty regular stalls. Skip faculty/staff, accessible, visitor, reserved, EV-only, motorcycle and blocked spaces.</li>
 <li>A completed survey replaces the bay's old count. It never adds to it.</li>
 <li>A survey open more than 20 minutes is rejected. Start again.</li>
 <li>Partial or cancelled surveys never reach students.</li>

@@ -3,8 +3,9 @@
 // `Settings` comes from src/settings.js.
 const CATEGORY = Settings.category;
 const KEY = 'west-deck-prototype-v2';
-const ZONE_IDS = Object.keys(DECK.zones);
-const LEVELS = [...new Set(ZONE_IDS.map(z => DECK.zones[z].level))].sort((a, b) => b - a); // top first
+const ALL_IDS = Object.keys(DECK.zones);
+const ZONE_IDS = ALL_IDS.filter(z => DECK.zones[z].stalls > 0); // bays with regular stalls: the only ones surveyed and shown as open
+const LEVELS = [...new Set(ALL_IDS.map(z => DECK.zones[z].level))].sort((a, b) => b - a); // top first
 const zonesOf = n => ZONE_IDS.filter(z => DECK.zones[z].level === n);
 const bayName = z => 'Level ' + DECK.zones[z].level + ' · ' + DECK.zones[z].label;
 // Stall numbers are either a 3D-model estimate or counted on foot; always say which.
@@ -32,9 +33,8 @@ function seed() {
   const t = now(), ago = m => t - m * 60e3;
   const rec = (count, minsAgo, prev) => ({ count, start: ago(minsAgo), end: ago(minsAgo - 1), version: prev ? 2 : 1,
     category: CATEGORY, method: 'manual', photos: [], ...(prev ? { prev: { count: prev[0], start: ago(prev[1]) } } : {}) });
-  records = { L3_West: rec(6, 2), L3_Centre: rec(0, 3), L3_East: rec(11, 1),
-              L2_West: rec(4, 2), L2_Centre: rec(7, 8, [12, 18]), L2_East: rec(2, 4),
-              L1_West: rec(9, 21) };
+  records = { L3_West: rec(6, 2), L3_Centre: rec(0, 3), L3_East: rec(11, 1), L3_North: rec(3, 2), L3_South: rec(5, 1),
+              L2_West: rec(4, 2), L2_Centre: rec(7, 8, [12, 18]), L2_East: rec(2, 4), L2_North: rec(1, 3), L2_South: rec(9, 21) };
 }
 function load() {
   try {
@@ -86,9 +86,16 @@ function summaryText(sum) {
     : sum.exact ? [String(sum.low), 'counted open · every bay counted in the last 5 minutes']
     : [range(sum), 'estimated open · ' + (sum.students ? 'includes student reports' : 'some counts are ageing')];
 }
+// A level with no regular stalls (all faculty/staff, accessible or reserved) is shown, but never as open to students.
+function closedLevelCard(n) {
+  const all = ALL_IDS.filter(z => DECK.zones[z].level === n).map(z => DECK.zones[z]), sum = k => all.reduce((x, z) => x + (z[k] || 0), 0);
+  return `<article class="card"><h3>Level ${n}</h3><div class="count">—</div><div class="unit">no regular student stalls on this level</div>` +
+    `<p class="small">Counted on foot: ${sum('facultyStaff')} faculty/staff, ${sum('accessible')} accessible, ${sum('otherReserved')} other reserved. Any time limits on those stalls were not recorded.</p></article>`;
+}
 function levelCard(n, t) {
+  if (!zonesOf(n).length) return closedLevelCard(n);
   const [count, unit] = summaryText(ParkingModel.levelSummary(records, zonesOf(n), t, reports));
-  return `<article class="card"><h3>Level ${n} <span class="small">/ ${n === LEVELS[0] ? 'top deck, ' : ''}example</span></h3>` +
+  return `<article class="card"><h3>Level ${n}${n === LEVELS[0] ? ' <span class="small">/ top deck</span>' : ''}</h3>` +
     `<div class="count">${count}</div><div class="unit">${unit}</div>` +
     `<ul class="bays">${zonesOf(n).map(z => bayRow(z, t)).join('')}</ul></article>`;
 }
@@ -110,11 +117,15 @@ function render() {
   renderVerdict(t);
   $('cards').innerHTML = LEVELS.map(n => levelCard(n, t)).join('');
   $('clock').textContent = 'Simulated clock: ' + new Date(t).toLocaleTimeString() + ' · +' +
-    Math.round(offset / 60e3) + ' min · illustrative values; real capacity unknown.';
+    Math.round(offset / 60e3) + ' min · sample counts; stall numbers counted on foot Nov 19.';
   if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z); return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
   renderSelection();
 }
 function selectBay(z) {
+  if (!ZONE_IDS.includes(z)) { // tapped a bay on the model that has no regular stalls
+    selectedBay = null; if (viewer) viewer.select(null); render();
+    $('selection').textContent = 'That bay has no regular student stalls (faculty/staff, accessible or reserved), so it is not counted.'; return;
+  }
   selectedBay = selectedBay === z ? null : z;
   if (selectedBay) { setView('student'); $('reportBay').value = selectedBay; } // a pick shows on the model and pre-fills the report form
   if (viewer) viewer.select(selectedBay);
@@ -325,7 +336,7 @@ async function mountViewer() {
     $('viewerNote').textContent = '3D view is not included in this build. The level cards show the same data.'; return;
   }
   try {
-    viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay });
+    viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay, bayIds: ALL_IDS });
     viewer.setSpread($('spread').getAttribute('aria-pressed') === 'true', true); // apart by default, no animation on load
     $('viewerNote').textContent = 'Drag to rotate. Tap a bay to see its observation.';
     render();

@@ -20,7 +20,7 @@ function base64ToArrayBuffer(b64) {
   return bytes.buffer;
 }
 
-async function mount(container, glbBase64, { onPick } = {}) {
+async function mount(container, glbBase64, { onPick, bayIds = [] } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -46,6 +46,23 @@ async function mount(container, glbBase64, { onPick } = {}) {
     }
   });
   const levels = [1, 2, 3].map(n => gltf.scene.getObjectByName('Level_' + n)).filter(Boolean);
+
+  // The 3D model has three bays per level. The deck also has a short North and
+  // South bay on each level, so add a plain strip at each end for any
+  // "L<n>_North" / "L<n>_South" in the deck data. These strips are SCHEMATIC:
+  // they mark that the bay exists, not its measured position. (-z is north.)
+  gltf.scene.updateMatrixWorld(true);
+  for (const id of bayIds) {
+    const m = /^L(\d)_(North|South)$/.exec(id); if (!m || bays[id]) continue;
+    const level = gltf.scene.getObjectByName('Level_' + m[1]), around = new THREE.Box3();
+    for (const side of ['West', 'Centre', 'East']) if (bays[`L${m[1]}_${side}`]) around.expandByObject(bays[`L${m[1]}_${side}`]);
+    if (!level || around.isEmpty()) continue;
+    const depth = 7, strip = new THREE.Mesh(new THREE.PlaneGeometry(around.max.x - around.min.x, depth), new THREE.MeshStandardMaterial({ color: COLORS.unknown, side: THREE.DoubleSide }));
+    strip.name = id; strip.rotation.x = -Math.PI / 2;
+    strip.position.set((around.min.x + around.max.x) / 2, m[2] === 'North' ? around.max.y : around.min.y, m[2] === 'North' ? around.min.z - depth / 2 - 1 : around.max.z + depth / 2 + 1);
+    gltf.scene.add(strip); level.attach(strip); // attach keeps its place and makes it slide with its level
+    bays[id] = strip;
+  }
   const base = levels.map(l => l.position.clone());
   let apart = 0, anim = 0; // apart: 0 = stacked, 1 = fully slid apart
 

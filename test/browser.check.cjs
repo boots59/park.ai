@@ -38,9 +38,9 @@ function serve() {
     assert.doesNotMatch(await p.textContent('#selection'), /Tap a bay/, 'tapping the model centre selected no bay');
     await p.screenshot({ path: `${out}/student-${w}.png`, fullPage: true });
 
-    await p.click('#staffTab'); await p.selectOption('#bay', 'L1_East'); await p.click('#start');
+    await p.click('#staffTab'); await p.selectOption('#bay', 'L2_North'); await p.click('#start');
     await p.click('[aria-label="Add one space"]'); await p.check('#coverage'); await p.click('text=Complete & replace');
-    assert.match(await p.textContent('#feedback'), /Level 1 · East bay saved/);
+    assert.match(await p.textContent('#feedback'), /Level 2 · North bay saved/);
     assert.match(await p.textContent('#logSummary'), /1 completed survey logged/);
     const staffOverflow = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     assert.ok(staffOverflow <= 0, `staff view scrolls sideways by ${staffOverflow}px at ${w}px`);

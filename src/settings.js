@@ -35,7 +35,7 @@ const Settings = {
   syncUrl: '',
 
   // --- What is being counted ---
-  category: 'Example general permit (illustrative)',
+  category: 'Regular student stalls',
 
   // --- AI vehicle count ---
   detectMinScore: 0.3,    // ignore detections the model is less sure of than this (0 to 1)

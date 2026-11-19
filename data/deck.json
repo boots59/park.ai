@@ -1,88 +1,172 @@
 {
   "name": "West Deck, KSU Kennesaw campus",
-  "about": "Bay layout and stall numbers. EDIT THIS FILE when you have real counts: set 'stalls', and change 'source' from 'model' to 'counted' with the date in 'countedOn'. Add or remove bays freely; a bay id that matches a mesh name in the 3D model (L<level>_<West|Centre|East>) is also tinted in the 3D view.",
-  "sources": "Stall numbers with source 'model' come from a collaborator's 3D model (USGS 3DEP lidar, USDA NAIP imagery, OpenStreetMap level count). They are estimates, not KSU figures.",
+  "about": "Bays and stall numbers. 'stalls' is the number of REGULAR stalls in the bay: the ones the app counts open spaces for. The other three numbers are stalls the app never counts as open to students. A bay with 0 regular stalls is listed but not surveyed.",
+  "sources": "Counted on foot from the painted lines by Kell Enow on 2026-11-19 with the field kit's tap counter (data/field/2026-11-19-stall-count.csv). One counter, not double-checked. Stall types are as read from signs and markings that morning; any time limits on faculty/staff stalls were not recorded.",
   "zones": {
-    "L1_West": {
-      "level": 1,
-      "label": "West bay",
-      "note": "one-way northbound",
-      "stalls": 79,
-      "restricted": null,
-      "source": "model",
-      "countedOn": null
-    },
-    "L1_Centre": {
-      "level": 1,
-      "label": "Centre ramp bay",
-      "note": "ramp, rises south to north",
-      "stalls": 39,
-      "restricted": null,
-      "source": "model",
-      "countedOn": null
-    },
-    "L1_East": {
-      "level": 1,
-      "label": "East bay",
-      "note": "one-way southbound",
-      "stalls": 69,
-      "restricted": null,
-      "source": "model",
-      "countedOn": null
-    },
-    "L2_West": {
-      "level": 2,
-      "label": "West bay",
-      "note": "one-way northbound",
-      "stalls": 79,
-      "restricted": null,
-      "source": "model",
-      "countedOn": null
-    },
-    "L2_Centre": {
-      "level": 2,
-      "label": "Centre ramp bay",
-      "note": "ramp, rises south to north",
-      "stalls": 80,
-      "restricted": null,
-      "source": "model",
-      "countedOn": null
-    },
-    "L2_East": {
-      "level": 2,
-      "label": "East bay",
-      "note": "one-way southbound",
-      "stalls": 73,
-      "restricted": null,
-      "source": "model",
-      "countedOn": null
-    },
     "L3_West": {
       "level": 3,
       "label": "West bay",
-      "note": "one-way northbound",
-      "stalls": 79,
-      "restricted": null,
-      "source": "model",
-      "countedOn": null
+      "note": "two rows",
+      "stalls": 74,
+      "accessible": 0,
+      "facultyStaff": 0,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
     },
     "L3_Centre": {
       "level": 3,
       "label": "Centre ramp bay",
-      "note": "ramp, rises south to north",
-      "stalls": 80,
-      "restricted": null,
-      "source": "model",
-      "countedOn": null
+      "note": "the ramp between levels",
+      "stalls": 66,
+      "accessible": 0,
+      "facultyStaff": 0,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
     },
     "L3_East": {
       "level": 3,
       "label": "East bay",
-      "note": "one-way southbound",
-      "stalls": 73,
-      "restricted": null,
-      "source": "model",
-      "countedOn": null
+      "note": "two rows",
+      "stalls": 63,
+      "accessible": 7,
+      "facultyStaff": 0,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L3_North": {
+      "level": 3,
+      "label": "North bay",
+      "note": "short row across the north end",
+      "stalls": 12,
+      "accessible": 3,
+      "facultyStaff": 0,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L3_South": {
+      "level": 3,
+      "label": "South bay",
+      "note": "short row across the south end",
+      "stalls": 16,
+      "accessible": 0,
+      "facultyStaff": 0,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L2_West": {
+      "level": 2,
+      "label": "West bay",
+      "note": "two rows",
+      "stalls": 74,
+      "accessible": 0,
+      "facultyStaff": 0,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L2_Centre": {
+      "level": 2,
+      "label": "Centre ramp bay",
+      "note": "the ramp between levels",
+      "stalls": 28,
+      "accessible": 0,
+      "facultyStaff": 38,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L2_East": {
+      "level": 2,
+      "label": "East bay",
+      "note": "two rows",
+      "stalls": 69,
+      "accessible": 3,
+      "facultyStaff": 0,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L2_North": {
+      "level": 2,
+      "label": "North bay",
+      "note": "short row across the north end",
+      "stalls": 12,
+      "accessible": 2,
+      "facultyStaff": 0,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L2_South": {
+      "level": 2,
+      "label": "South bay",
+      "note": "short row across the south end",
+      "stalls": 14,
+      "accessible": 0,
+      "facultyStaff": 0,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L1_West": {
+      "level": 1,
+      "label": "West bay",
+      "note": "two rows",
+      "stalls": 0,
+      "accessible": 0,
+      "facultyStaff": 67,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L1_Centre": {
+      "level": 1,
+      "label": "Centre ramp bay",
+      "note": "the ramp between levels",
+      "stalls": 0,
+      "accessible": 0,
+      "facultyStaff": 19,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L1_East": {
+      "level": 1,
+      "label": "East bay",
+      "note": "two rows",
+      "stalls": 0,
+      "accessible": 3,
+      "facultyStaff": 65,
+      "otherReserved": 3,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L1_North": {
+      "level": 1,
+      "label": "North bay",
+      "note": "short row across the north end",
+      "stalls": 0,
+      "accessible": 0,
+      "facultyStaff": 13,
+      "otherReserved": 1,
+      "source": "counted",
+      "countedOn": "2026-11-19"
+    },
+    "L1_South": {
+      "level": 1,
+      "label": "South bay",
+      "note": "short row across the south end",
+      "stalls": 0,
+      "accessible": 0,
+      "facultyStaff": 10,
+      "otherReserved": 0,
+      "source": "counted",
+      "countedOn": "2026-11-19"
     }
   }
 }
