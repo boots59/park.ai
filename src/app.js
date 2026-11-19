@@ -15,6 +15,10 @@ const stallNote = z => counted(z)
   : 'Modelled stalls: ' + DECK.zones[z].stalls + ' (3D model estimate, not a KSU figure)';
 
 let records = {}, offset = 0, survey = null, viewer = null, selectedBay = null;
+let reports = [];          // student reports: [{ zone, band, t }]
+const REPORT_KEY = 'west-deck-reports-v1', REPORTED_KEY = 'west-deck-reported-v1';
+const BAND_TEXT = { plenty: 'plenty of spaces', few: 'a few left', full: 'full' };
+const est = (z, t) => ParkingModel.bayEstimate(records[z], reports, z, t);
 const now = () => Date.now() + offset;
 const $ = id => document.getElementById(id);
 
@@ -35,10 +39,13 @@ function seed() {
 function load() {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY));
-    if (saved && typeof saved.offset === 'number') { records = ParkingModel.sanitize(saved.records, ZONE_IDS); offset = saved.offset; return; }
+    if (saved && typeof saved.offset === 'number') { records = ParkingModel.sanitize(saved.records, ZONE_IDS); offset = Sync.on ? 0 : saved.offset; return; }
   } catch (e) {}
+  if (Sync.on) { records = {}; return; } // shared mode starts empty: no sample data mixed with real entries
   seed();
 }
+function loadReports() { try { reports = ParkingModel.cleanReports(JSON.parse(localStorage.getItem(REPORT_KEY)), ZONE_IDS, now()); } catch (e) { reports = []; } }
+function saveReports() { try { localStorage.setItem(REPORT_KEY, JSON.stringify(reports)); } catch (e) {} }
 function feedback(text, error = false) { const el = $('feedback'); el.textContent = text; el.classList.toggle('error', error); }
 
 function setView(id) {
@@ -49,43 +56,53 @@ function setView(id) {
   }
 }
 
-const STATUS_TEXT = { recent: 'Counted', estimate: 'Estimate', unknown: 'Unknown' };
+const STATUS_TEXT = { counted: 'Counted', estimate: 'Estimate', students: 'Student report', unknown: 'Unknown' };
+const STATUS_CLASS = { counted: 'recent', estimate: 'estimate', students: 'students', unknown: 'unknown' };
+const ago = (ts, t) => Math.max(0, Math.floor((t - ts) / 60e3)) + ' min ago';
 const minsAgo = (r, t) => Math.max(0, Math.floor((t - r.start) / 60e3));
-const range = e => e.low === e.high ? String(e.low) : e.low + '–' + e.high;
+const range = e => e.low === e.high ? String(e.low) : Number.isFinite(e.high) ? e.low + '–' + e.high : e.low + '+';
 const trendText = rate => Math.abs(rate) < 0.05 ? '' : (rate > 0 ? ', filling about ' : ', emptying about ') + Math.abs(rate).toFixed(1) + ' a minute';
 
+// Past staff counts, for "typical at this hour" (this device's log; plus shared history when sync is on).
+let sharedHistory = [];
+const historyList = () => [...sharedHistory, ...fieldLog.map(e => ({ zone: e.zone, t: Date.parse(e.start), count: e.open }))];
+
 function bayRow(z, t) {
-  const r = records[z], s = ParkingModel.status(r, t), e = ParkingModel.estimate(r, t);
-  const detail = s === 'recent' ? minsAgo(r, t) + ' min ago' : s === 'estimate' ? `counted ${r.count}, ${minsAgo(r, t)} min ago`
-    : r ? `last count ${minsAgo(r, t)} min ago` : 'no survey';
+  const r = records[z], e = est(z, t), src = e ? e.source : 'unknown';
+  let detail;
+  if (src === 'counted') detail = minsAgo(r, t) + ' min ago';
+  else if (src === 'estimate') detail = `counted ${r.count}, ${minsAgo(r, t)} min ago`;
+  else if (src === 'students') detail = `"${BAND_TEXT[e.band]}", ${ago(e.reportedAt, t)}` + (e.students > 1 ? ` · ${e.students} reports agree` : '');
+  else { const typ = ParkingModel.typical(historyList(), z, t);
+    detail = (r ? `last count ${minsAgo(r, t)} min ago` : 'no survey') + (typ ? ` · typically ${range(typ)} at this hour (${typ.samples} past counts)` : ''); }
   return `<li><button class="bay${z === selectedBay ? ' selected' : ''}" onclick="selectBay('${z}')" aria-pressed="${z === selectedBay}">` +
     `<span class="bay-name">${DECK.zones[z].label}</span>` +
     `<b class="bay-count">${e ? range(e) : '—'}</b>` +
-    `<span class="status ${s}">${STATUS_TEXT[s]} · ${detail}</span></button></li>`;
+    `<span class="status ${STATUS_CLASS[src]}">${STATUS_TEXT[src]} · ${detail}</span></button></li>`;
 }
 function summaryText(sum) {
   return sum.state === 'unknown' ? ['—', 'availability not known']
     : sum.state === 'partial' ? ['≥' + sum.low, `in ${sum.knownBays} of ${sum.bays} bays · the rest unknown`]
     : sum.exact ? [String(sum.low), 'counted open · every bay counted in the last 5 minutes']
-    : [range(sum), 'estimated open · some counts are ageing'];
+    : [range(sum), 'estimated open · ' + (sum.students ? 'includes student reports' : 'some counts are ageing')];
 }
 function levelCard(n, t) {
-  const [count, unit] = summaryText(ParkingModel.levelSummary(records, zonesOf(n), t));
+  const [count, unit] = summaryText(ParkingModel.levelSummary(records, zonesOf(n), t, reports));
   return `<article class="card"><h3>Level ${n} <span class="small">/ ${n === LEVELS[0] ? 'top deck, ' : ''}example</span></h3>` +
     `<div class="count">${count}</div><div class="unit">${unit}</div>` +
     `<ul class="bays">${zonesOf(n).map(z => bayRow(z, t)).join('')}</ul></article>`;
 }
 const VERDICT = { room: 'Room likely', tight: 'Tight', full: 'Likely full', unknown: 'Not enough counts to say' };
 function renderVerdict(t) {
-  const d = ParkingModel.deckSummary(records, ZONE_IDS, t), [count, unit] = summaryText(d);
+  const d = ParkingModel.deckSummary(records, ZONE_IDS, t, reports), [count, unit] = summaryText(d);
   $('verdict').innerHTML = `<span class="verdict-word ${d.verdict}">${VERDICT[d.verdict]}</span>` +
     `<span class="verdict-detail">${d.state === 'unknown' ? 'No bay has a usable count.' : `<b>${count}</b> open · ${unit}`}</span>` + bestBet(t);
 }
 // "Where should I try first?" Whole bays only: nothing here knows which individual spaces are open.
 function bestBet(t) {
-  const picks = ParkingModel.recommend(records, ZONE_IDS, t);
+  const picks = ParkingModel.recommend(records, ZONE_IDS, t, 3, reports);
   if (!picks.length) return '<span class="best">No bay has a known open space right now. KSU\'s advice when a deck is full is a Shuttle Lot and the Big Owl Bus.</span>';
-  const item = ({ zone, est }) => `<button class="pick" onclick="selectBay('${zone}')">${bayName(zone)} · <b>${range(est)}</b> open${est.counted ? '' : ' (estimate)'}</button>`;
+  const item = ({ zone, est }) => `<button class="pick" onclick="selectBay('${zone}')">${bayName(zone)} · <b>${range(est)}</b> open${{ counted: '', estimate: ' (estimate)', students: ' (student report)' }[est.source]}</button>`;
   return `<span class="best"><b>Try first:</b> ${item(picks[0])}${picks.length > 1 ? ' <span class="then">then</span> ' + picks.slice(1).map(item).join(' ') : ''}</span>`;
 }
 function render() {
@@ -94,28 +111,45 @@ function render() {
   $('cards').innerHTML = LEVELS.map(n => levelCard(n, t)).join('');
   $('clock').textContent = 'Simulated clock: ' + new Date(t).toLocaleTimeString() + ' · +' +
     Math.round(offset / 60e3) + ' min · illustrative values; real capacity unknown.';
-  if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t); return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
+  if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z); return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
   renderSelection();
 }
 function selectBay(z) {
   selectedBay = selectedBay === z ? null : z;
-  if (selectedBay) setView('student'); // a pick from the verdict shows on the model
+  if (selectedBay) { setView('student'); $('reportBay').value = selectedBay; } // a pick shows on the model and pre-fills the report form
   if (viewer) viewer.select(selectedBay);
   render();
 }
 function renderSelection() {
   const el = $('selection'); if (!el) return;
   if (!selectedBay) { el.textContent = 'Tap a bay on the model or in a level card.'; return; }
-  const t = now(), r = records[selectedBay], e = ParkingModel.estimate(r, t);
+  const t = now(), r = records[selectedBay], e = est(selectedBay, t);
   el.textContent = bayName(selectedBay) + (DECK.zones[selectedBay].note ? ' (' + DECK.zones[selectedBay].note + ')' : '') + ': ' +
     (!e ? 'unknown' : e.counted ? r.count + ' counted open, ' + minsAgo(r, t) + ' min ago'
+      : e.source === 'students' ? `${range(e)} open according to a student who parked here ${ago(e.reportedAt, t)} ("${BAND_TEXT[e.band]}"${e.students > 1 ? ', ' + e.students + ' reports agree' : ''}); not a staff count`
       : `estimated ${range(e)} open (${r.count} counted ${minsAgo(r, t)} min ago${trendText(e.rate)})`) +
     '. ' + stallNote(selectedBay) + '.';
 }
 
+// ---- Student report: "I just parked here" (anonymous, low trust, expires) ----
+function reportBay(band) {
+  const zone = $('reportBay').value, t = now(), msg = $('reportMsg');
+  let last = {}; try { last = JSON.parse(localStorage.getItem(REPORTED_KEY)) || {}; } catch (e) {}
+  if (t - (last[zone] || 0) < Settings.studentRepeatMinutes * 60e3 && t >= (last[zone] || 0)) {
+    msg.textContent = 'You already reported this bay a few minutes ago. One report per bay is enough.'; return; }
+  const report = { zone, band, t };
+  reports = ParkingModel.cleanReports([...reports, report], ZONE_IDS, t); saveReports();
+  last[zone] = t; try { localStorage.setItem(REPORTED_KEY, JSON.stringify(last)); } catch (e) {}
+  if (typeof shareReport === 'function') shareReport(report);
+  render();
+  msg.textContent = 'Thank you. ' + (est(zone, t)?.source === 'students'
+    ? bayName(zone) + ' now shows "' + BAND_TEXT[band] + '" as a student report for the next 10 minutes.'
+    : 'A staff count of ' + bayName(zone) + ' from the last 5 minutes is stronger evidence, so the display keeps it for now.');
+}
+
 // ---- Staff survey ----
 function fillBayOptions() {
-  $('bay').innerHTML = LEVELS.map(n => `<optgroup label="Level ${n}">` +
+  $('reportBay').innerHTML = $('bay').innerHTML = LEVELS.map(n => `<optgroup label="Level ${n}">` +
     zonesOf(n).map(z => `<option value="${z}">${bayName(z)}</option>`).join('') + '</optgroup>').join('');
 }
 function startSurvey() {
@@ -143,7 +177,7 @@ function finishSurvey() {
     if (raw === '') throw Error('Enter a count, including 0 when no spaces are open.');
     const count = Number(raw), zone = survey.zone, started = survey.realStart;
     records = ParkingModel.complete(records, survey, count, now(), CATEGORY, { photos: survey.photos });
-    save(); logSurvey(zone, records[zone], started);
+    save(); logSurvey(zone, records[zone], started); shareCount(zone, records[zone]);
     const over = count > DECK.zones[zone].stalls
       ? ' Note: that is above the ' + stallWord(zone) + ' stall count (' + DECK.zones[zone].stalls + '). One of the two numbers is wrong; worth recording.' : '';
     cancelSurvey(bayName(zone) + ' saved. The previous count was replaced, not added.' + over);
@@ -234,10 +268,54 @@ function clearLog() {
   fieldLog = []; try { localStorage.setItem(LOG_KEY, '[]'); } catch (e) {} renderLog();
 }
 
+// ---- Sharing between phones (only when Settings.syncUrl is set; see src/sync.js) ----
+// Anything to send waits in an outbox, so a count made with no signal is sent later.
+const OUTBOX_KEY = 'west-deck-outbox-v1';
+let outbox = [];
+try { const o = JSON.parse(localStorage.getItem(OUTBOX_KEY)); if (Array.isArray(o)) outbox = o.slice(-200); } catch (e) {}
+const saveOutbox = () => { try { localStorage.setItem(OUTBOX_KEY, JSON.stringify(outbox)); } catch (e) {} };
+function shareCount(zone, record) {
+  if (!Sync.on) return;
+  outbox.push({ kind: 'count', zone, data: record }, { kind: 'history', data: { zone, t: record.start, count: record.count } });
+  saveOutbox(); syncNow();
+}
+function shareReport(report) { if (!Sync.on) return; outbox.push({ kind: 'report', data: report }); saveOutbox(); syncNow(); }
+let syncing = null;
+function syncNow() {
+  if (!Sync.on) return Promise.resolve();
+  // If a round is already running it may have passed the sending step, so go again afterwards when something is waiting.
+  if (syncing) return syncing.then(result => outbox.length && result !== 'failed' ? syncNow() : result);
+  return syncing = (async () => {
+    try {
+      while (outbox.length) { // send oldest first; stop at the first failure and keep the rest
+        const item = outbox[0];
+        await (item.kind === 'count' ? Sync.saveCount(item.zone, item.data) : item.kind === 'report' ? Sync.addReport(item.data) : Sync.addHistory(item.data));
+        outbox.shift(); saveOutbox();
+      }
+      const remote = await Sync.pull(), t = now(), theirs = ParkingModel.sanitize(remote.counts, ZONE_IDS);
+      for (const z of ZONE_IDS) if (theirs[z] && (!records[z] || theirs[z].start > records[z].start)) records[z] = theirs[z]; // newest count wins
+      const seen = new Set();
+      reports = ParkingModel.cleanReports([...remote.reports, ...reports], ZONE_IDS, t).filter(r => { const k = r.zone + r.band + r.t; return !seen.has(k) && seen.add(k); });
+      sharedHistory = remote.history.filter(h => h && DECK.zones[h.zone] && Number.isFinite(h.t) && Number.isInteger(h.count));
+      save(); saveReports(); render();
+      $('syncStatus').textContent = 'Shared between phones · updated ' + new Date().toLocaleTimeString();
+    } catch (e) {
+      $('syncStatus').textContent = 'Sharing is unavailable right now; showing what this phone has.' + (outbox.length ? ' ' + outbox.length + ' item(s) waiting to send.' : '');
+      return 'failed';
+    }
+  })().finally(() => { syncing = null; });
+}
+function startSharing() {
+  if (!Sync.on) return;
+  $('demoControls').classList.add('hidden'); // a simulated clock makes no sense with shared real entries
+  $('notice').innerHTML = '<b>Test build. Do not use for parking decisions.</b> Counts and reports here are typed in by testers and are not verified. Not a KSU system.';
+  syncNow(); setInterval(syncNow, 15000);
+}
+
 // ---- Demo controls ----
 function advance(m) { offset += m * 60e3; save(); render(); }
-function resetDemo() { cancelSurvey(); offset = 0; seed(); save(); render(); }
-function clearDemo() { cancelSurvey(); records = {}; save(); render(); }
+function resetDemo() { cancelSurvey(); offset = 0; seed(); reports = []; saveReports(); save(); render(); }
+function clearDemo() { cancelSurvey(); records = {}; reports = []; saveReports(); save(); render(); }
 
 // ---- 3D model (optional: the page works without it) ----
 async function mountViewer() {
@@ -262,12 +340,14 @@ function toggleSpread() {
   if (viewer) viewer.setSpread(on);
 }
 
-load(); fillBayOptions(); renderLog(); render();
+load(); loadReports(); fillBayOptions(); renderLog(); render();
 window.addEventListener('storage', e => {
+  if (e.key === REPORT_KEY) { loadReports(); render(); return; }
   if (e.key !== KEY) return;
   try { const d = JSON.parse(e.newValue); if (d && typeof d.offset === 'number') { records = ParkingModel.sanitize(d.records, ZONE_IDS); offset = d.offset; render(); } } catch (err) {}
 });
 setInterval(render, 10000);
+startSharing();
 mountViewer();
 // Installable app: only when served from a web address (not from a file).
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && typeof location !== 'undefined' && /^https?:$/.test(location.protocol))

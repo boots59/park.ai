@@ -5,14 +5,14 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), vm = requ
 const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
 const appJs = html.match(/<script id="app-js">([\s\S]*?)<\/script>/)[1];
 
-function boot(storage = {}) {
+function boot(storage = {}, { syncUrl = '', fetch } = {}) {
   const els = {};
   const element = id => els[id] ??= { value: id === 'bay' ? 'L3_West' : '', checked: false, disabled: false,
     textContent: '', innerHTML: '', attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k] ?? null; },
     classList: { set: new Set(), toggle(c, on) { on ?? !this.set.has(c) ? this.set.add(c) : this.set.delete(c); }, add(c) { this.set.add(c); }, remove(c) { this.set.delete(c); } } };
   const ctx = vm.createContext({ document: { getElementById: element }, localStorage: { getItem: k => storage[k] ?? null, setItem: (k, v) => { storage[k] = v; } },
-    window: { addEventListener() {} }, setInterval() {}, Date, Number, Math, JSON, Error, Object, Set, Array, Promise });
-  vm.runInContext(appJs, ctx);
+    window: { addEventListener() {} }, setInterval() {}, Date, Number, Math, JSON, Error, Object, Set, Array, Promise, String, encodeURIComponent, fetch });
+  vm.runInContext(appJs.replace("syncUrl: '',", 'syncUrl: ' + JSON.stringify(syncUrl) + ','), ctx);
   return { els, ctx, storage, run: code => vm.runInContext(code, ctx), saved: () => JSON.parse(storage['west-deck-prototype-v2']).records };
 }
 let pass = 0; const test = (name, fn) => { fn(); pass++; console.log('ok -', name); };
@@ -98,6 +98,26 @@ test('selecting a bay explains it in words', () => {
   assert.match(b.els.selection.textContent, /Level 3 · East bay.*11 counted open, 1 min ago.*Modelled stalls: 73/);
   b.run("selectBay('L3_East')"); assert.match(b.els.selection.textContent, /Tap a bay/);
 });
+test('a student report fills an unknown bay as a band and feeds the recommendation', () => {
+  const b = boot(); b.run('clearDemo()'); b.els.reportBay.value = 'L1_East'; b.run("reportBay('few')");
+  assert.match(b.els.cards.innerHTML, /bay-count">1–4<\/b><span class="status students">Student report · "a few left", 0 min ago/);
+  assert.match(b.els.verdict.innerHTML, /Try first:.*Level 1 · East bay · <b>1–4<\/b> open \(student report\)/);
+  assert.match(b.els.reportMsg.textContent, /now shows "a few left" as a student report/);
+  b.run("reportBay('full')");                                   // same device, same bay, straight away
+  assert.match(b.els.reportMsg.textContent, /already reported this bay/);
+  assert.equal(JSON.parse(b.storage['west-deck-reports-v1']).length, 1);
+  b.run('advance(11)');                                         // reports expire
+  assert.match(b.els.cards.innerHTML, /status unknown">Unknown · no survey/);
+});
+test('a fresh staff count is not overridden by a student report', () => {
+  const b = boot(); b.els.reportBay.value = 'L3_East'; b.run("reportBay('full')"); // sample data: 11 counted 1 min ago
+  assert.match(b.els.cards.innerHTML, /bay-count">11<\/b><span class="status recent">Counted/);
+  assert.match(b.els.reportMsg.textContent, /stronger evidence, so the display keeps it/);
+});
+test('corrupt stored reports are ignored', () => {
+  const b = boot({ 'west-deck-reports-v1': JSON.stringify([{ zone: 'L1_West', band: '<img src=x onerror=1>', t: Date.now() }, 'junk']) });
+  assert.doesNotMatch(b.els.cards.innerHTML, /<img|students/);
+});
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
 const photo = () => ({ files: [{}], value: 'x' });
 (async () => {
@@ -144,6 +164,37 @@ const photo = () => ({ files: [{}], value: 'x' });
     const pending = b.run('scanPhoto')(photo());
     b.run('cancelSurvey(); startSurvey()'); release(); await pending;
     assert.equal(b.els.scanPanel.innerHTML, '');
+  });
+  // ---- Sharing between phones, against a stand-in for the shared database ----
+  const { fakeDatabase } = require('./fake-database.cjs');
+  await atest('a count and a student report made on one phone appear on another', async () => {
+    const db = fakeDatabase(), opt = { syncUrl: 'https://example.test', fetch: db.fetch };
+    const monitor = boot({}, opt), student = boot({}, opt), parked = boot({}, opt);
+    assert.match(monitor.els.cards.innerHTML, /availability not known/);       // shared mode starts empty, no sample data
+    assert.match(monitor.els.notice.innerHTML, /typed in by testers/);
+    monitor.run('startSurvey()'); monitor.els.count.value = '9'; monitor.els.coverage.checked = true; monitor.run('finishSurvey()');
+    parked.els.reportBay.value = 'L1_East'; parked.run("reportBay('few')");
+    await monitor.run('syncNow()'); await parked.run('syncNow()'); await student.run('syncNow()');
+    assert.match(student.els.cards.innerHTML, /bay-count">9<\/b><span class="status recent">Counted/);
+    assert.match(student.els.cards.innerHTML, /bay-count">1–4<\/b><span class="status students">Student report/);
+    assert.match(student.els.syncStatus.textContent, /Shared between phones/);
+    assert.equal(Object.keys(db.data.v1.history).length, 1);
+  });
+  await atest('with no connection, entries wait and are sent later', async () => {
+    const db = fakeDatabase(), opt = { syncUrl: 'https://example.test', fetch: db.fetch };
+    const a = boot({}, opt); db.offline = true;
+    a.els.reportBay.value = 'L2_West'; a.run("reportBay('full')"); await a.run('syncNow()');
+    assert.match(a.els.syncStatus.textContent, /unavailable right now.*1 item\(s\) waiting/);
+    assert.match(a.els.cards.innerHTML, /status students/);                     // still shown on this phone
+    db.offline = false; await a.run('syncNow()');
+    assert.equal(Object.keys(db.data.v1.reports).length, 1);
+    const b = boot({}, opt); await b.run('syncNow()');
+    assert.match(b.els.cards.innerHTML, /bay-count">0<\/b><span class="status students">/);
+  });
+  await atest('junk in the shared database is not shown', async () => {
+    const db = fakeDatabase(); db.data.v1 = { counts: { L1_West: { count: '<img src=x>', start: 1, end: 1, version: 1, category: 'x' }, L9_Fake: { count: 3 } }, reports: { a: { zone: 'L1_West', band: 'everything is free', t: Date.now() } }, history: { a: 'x' } };
+    const a = boot({}, { syncUrl: 'https://example.test', fetch: db.fetch }); await a.run('syncNow()');
+    assert.doesNotMatch(a.els.cards.innerHTML, /<img|students|recent/);
   });
   console.log(`\n${pass} UI tests passed (fake document; not a visual test).`);
 })().catch(e => { console.error(e); process.exit(1); });

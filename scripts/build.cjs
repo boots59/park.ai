@@ -27,7 +27,7 @@ if (!no3d) {
 
 const tpl = rd('src/index.template.html');
 const parts = { '/*VIEWER*/': viewer, '/*DECK*/': 'const DECK=' + JSON.stringify(DECK) + ';',
-  '/*SETTINGS*/': rd('src/settings.js'), '/*MODEL*/': rd('src/model.js'), '/*DETECT*/': rd('src/detect.js'), '/*AI*/': rd('src/ai.js'), '/*APP*/': rd('src/app.js') };
+  '/*SETTINGS*/': rd('src/settings.js'), '/*MODEL*/': rd('src/model.js'), '/*SYNC*/': rd('src/sync.js'), '/*DETECT*/': rd('src/detect.js'), '/*AI*/': rd('src/ai.js'), '/*APP*/': rd('src/app.js') };
 let html = tpl;
 for (const [marker, code] of Object.entries(parts)) {
   if (!html.includes(marker)) throw Error('Template is missing ' + marker);

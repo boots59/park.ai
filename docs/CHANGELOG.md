@@ -48,3 +48,10 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - `public/field.html`: anonymous student poll and circling tally. `docs/FIELD-DAY.md` rewritten as a tiered timetable.
 - Pitch deck: live-demo link and QR code; plan to start at West Deck and extend to all decks on both campuses.
 - Known limit: counts live in one browser. Other phones do not see them until a shared server exists.
+
+## 2026-11-19, field day (Claude). On GitHub; NOT published to the live site until the field data is exported
+- **Student reports**: after parking, one tap (plenty / a few / full). Lower trust than a staff count, shown as a band, expires after 10 minutes, one per bay per device every 5 minutes. `ParkingModel.bayEstimate`, `cleanReports`.
+- **Typical at this hour** for unknown bays, once several days of counts exist. `ParkingModel.typical`.
+- **Optional sharing between phones** (`src/sync.js`, `Settings.syncUrl`), with an offline outbox. Off by default. Tested against a stand-in database only.
+- New docs: `docs/DATA-SOURCES.md`, `docs/SHARED-DATA.md`.
+- Tests: 30 model, 7 detection, 23 UI.

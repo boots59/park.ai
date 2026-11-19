@@ -16,6 +16,7 @@ Built for the KSU AI Club Hackathon 2026 by Kell Enow.
 | Students | A deck verdict (Room likely, Tight, Likely full, Not enough counts), a "try first" list of the best bays, level cards, and per-bay numbers |
 | Students | A 3D deck whose bays recolour (room, a few, full, unknown) the moment a count is saved |
 | Students | A count under 5 minutes old is shown as counted. From 5 to 30 minutes it becomes a range that widens with age and follows the bay's recent trend. After 30 minutes it says unknown |
+| Students | **One-tap report after parking** (plenty, a few, full): a lower-trust source that fills in between staff counts |
 | Staff | A bounded survey of one bay: start, count, confirm coverage, complete. A new count replaces the old one |
 | Staff | **AI assist:** photograph a section, a detection model on the device counts the vehicles, the person corrects the number |
 | The project | A field log that scores the AI against the person, and the estimates against later real counts |
@@ -34,7 +35,7 @@ npm run serve         # then open http://127.0.0.1:8080/
 ## Test it
 
 ```bash
-npm test               # build + 44 tests: survey logic, detection maths, page behaviour
+npm test               # build + 60 tests: survey logic, detection maths, page behaviour
 npm run check:browser  # headless Chromium at phone and desktop widths; runs the real model if test/fixtures/street.jpg exists
 ```
 
@@ -55,6 +56,7 @@ After any change run `npm test`. If a test fails because you changed a number on
 data/deck.json            bays and stall numbers (the one file to edit after a field count)
 src/settings.js           every tunable number and label
 src/model.js              survey rules, estimates, summaries, accuracy checks (pure logic)
+src/sync.js               optional sharing between phones (off unless a database address is set)
 src/detect.js             maths around the detection model (pure logic)
 src/ai.js                 runs the detection model in the browser
 src/viewer.js             3D deck view (three.js)
@@ -67,7 +69,8 @@ docs/                     evidence log, architecture, field protocols, results, 
 submission/               pitch outline, demo script, submission checklist
 ```
 
-More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Where each number comes from and how far to trust it:
+[docs/DATA-SOURCES.md](docs/DATA-SOURCES.md). Sharing between phones: [docs/SHARED-DATA.md](docs/SHARED-DATA.md).
 
 **3D view:** `assets/west_deck_plain.glb` is a 3D model of the deck made by a collaborator ([Bookee2](https://github.com/Bookee2/SkillZ))
 from public lidar and aerial imagery, included with their permission. [assets/MODEL-README.md](assets/MODEL-README.md) says what in it is

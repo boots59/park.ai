@@ -48,4 +48,4 @@ Real level count; stalls per bay and permit type; where the restricted spaces ar
 All counts, timestamps and observers in the sample data; the "example general permit" category; and every setting of the estimate: the 5-minute and 30-minute limits, the variability of 0.8, the 9-in-10 range, and the deck verdict thresholds (10 and 5 spaces). None is calibrated to West Deck yet.
 
 ## Proposed, not yet tested
-Bay-level surveys are faster and more accurate than level surveys; the estimate's range holds the real count about 9 times in 10 (the field log's estimate check tests this); students can pick a suitable level from the display.
+Students will report after parking, and often enough and honestly enough to help; the rules for combining a report with an ageing staff count; sharing between phones against a real database (tested only against a stand-in). Bay-level surveys are faster and more accurate than level surveys; the estimate's range holds the real count about 9 times in 10 (the field log's estimate check tests this); students can pick a suitable level from the display.
