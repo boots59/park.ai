@@ -1,0 +1,6 @@
+node_modules/
+screenshots/
+West-Deck-handoff.zip
+dist/ai/
+assets/models/*.onnx
+test/fixtures/
