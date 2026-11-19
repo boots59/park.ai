@@ -201,6 +201,19 @@ const ParkingModel = (() => {
       .slice(0, limit).map(({ zone, est }) => ({ zone, est }));
   }
 
+  // Which bay should a counter visit next? The one where a fresh count would
+  // teach the most: bays with no usable information first, then the widest
+  // range, then the oldest count. This points limited staff time at the gaps
+  // instead of a fixed round. Returns [{ zone, why }], most useful first.
+  function recheckNext(records, zoneIds, now, reports, limit = 3) {
+    return zoneIds.map(zone => {
+      const est = bayEstimate(records[zone], reports, zone, now);
+      const width = !est ? Infinity : Number.isFinite(est.high) ? est.high - est.low : MAX_COUNT;
+      const why = !est ? 'nothing is known about it' : est.counted ? 'it was just counted' : est.source === 'students' ? 'it rests on a student report' : 'its range is ' + est.low + ' to ' + est.high;
+      return { zone, width, age: records[zone] ? now - records[zone].start : Infinity, why };
+    }).filter(b => b.width > 0).sort((a, b) => b.width - a.width || b.age - a.age).slice(0, limit).map(({ zone, why }) => ({ zone, why }));
+  }
+
   // Check the estimate against reality. `seriesList` holds, per bay, the real
   // counts in time order: [{ t, count }, ...]. For every earlier count we
   // estimate each later moment (5 to 30 minutes on) exactly as the page would,
@@ -252,7 +265,7 @@ const ParkingModel = (() => {
     return out;
   }
 
-  return { status, trend, estimate, bayEstimate, cleanReports, typical, BANDS, complete, levelSummary, deckSummary, bayState, stallSplit, recommend, backtest, variability, sanitize,
+  return { status, trend, estimate, bayEstimate, cleanReports, typical, BANDS, complete, levelSummary, deckSummary, bayState, stallSplit, recommend, recheckNext, backtest, variability, sanitize,
     cleanExtra, suggestOpen, aiAccuracy, FRESH, HORIZON, MAX_SURVEY, MAX_COUNT, SIGMA, ROOM_AT, FULL_AT };
 })();
 if (typeof module !== 'undefined') module.exports = ParkingModel;

@@ -63,7 +63,7 @@
     const k = Math.min(1, 1280 / W); // cap the preview size
     const base = document.createElement('canvas'); base.width = Math.round(W * k); base.height = Math.round(H * k);
     base.getContext('2d').drawImage(img, 0, 0, base.width, base.height);
-    last = { base, dets: dets.map(d => ({ x: d.x * k, y: d.y * k, w: d.w * k, h: d.h * k })), out: new Set() };
+    last = { base, dets: dets.map(d => ({ x: d.x * k, y: d.y * k, w: d.w * k, h: d.h * k })), out: new Set(), added: [] };
     paint(canvas);
   }
   function paint(canvas) {
@@ -78,18 +78,24 @@
       c.fillStyle = out ? '#7a1f14' : '#003a44'; c.fillRect(d.x, d.y, tw, px + 4);
       c.fillStyle = '#ffffff'; c.fillText(label, d.x + 3, d.y + 2);
     });
+    for (const a of last.added) { // vehicles a person added by tapping where the model saw nothing
+      c.beginPath(); c.arc(a.x, a.y, px * 0.8, 0, Math.PI * 2); c.fillStyle = '#1f8f3a'; c.fill(); c.lineWidth = 2; c.strokeStyle = '#ffffff'; c.stroke();
+      c.fillStyle = '#ffffff'; c.textAlign = 'center'; c.fillText('+', a.x, a.y - px * 0.55); c.textAlign = 'start';
+    }
   }
-  // A tap on the preview: leave out (or put back) the box under the finger.
-  // Returns how many boxes are now left out, or null if the tap hit no box.
+  // A tap on the preview. On a box: leave that vehicle out (or put it back).
+  // On an added mark: remove it. Anywhere else: add a vehicle the model missed.
+  // Returns { out, added }: boxes left out, and vehicles added by hand.
   function toggle(canvas, clientX, clientY) {
     if (!last) return null;
     const r = canvas.getBoundingClientRect(), x = (clientX - r.left) * canvas.width / r.width, y = (clientY - r.top) * canvas.height / r.height;
     const pad = Math.max(6, canvas.width / 80); // small boxes are hard to hit
     const hits = last.dets.map((d, i) => ({ i, area: d.w * d.h, d })).filter(h => x >= h.d.x - pad && x <= h.d.x + h.d.w + pad && y >= h.d.y - pad && y <= h.d.y + h.d.h + pad);
-    if (!hits.length) return null;
-    const i = hits.sort((a, b) => a.area - b.area)[0].i; // the smallest box under the tap
-    last.out.has(i) ? last.out.delete(i) : last.out.add(i);
-    paint(canvas); return last.out.size;
+    const mark = last.added.findIndex(a => Math.hypot(a.x - x, a.y - y) <= Math.max(pad * 2, canvas.width / 30));
+    if (mark >= 0) last.added.splice(mark, 1);
+    else if (hits.length) { const i = hits.sort((a, b) => a.area - b.area)[0].i; last.out.has(i) ? last.out.delete(i) : last.out.add(i); } // the smallest box under the tap
+    else last.added.push({ x, y });
+    paint(canvas); return { out: last.out.size, added: last.added.length };
   }
   function forget() { last = null; }
 

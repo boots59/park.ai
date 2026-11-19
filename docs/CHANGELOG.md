@@ -68,3 +68,7 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Field finding (Kell): one photo of a whole bay finds about 11 vehicles at most. An enlarged-quarters mode exists (`Settings.detectTiles: 2`) but is off until the baseline batch is done.
 - Stall diagram per bay; student "I'm leaving" report; one-tap reporting with a remembered bay and `?bay=` links.
 - Positioning change (Kell): walking and tallying is the main staff count (big +1 button). The photo AI is tucked under "Camera AI test" and described as a trial for the deck's cameras.
+- Arrival-time prediction: "I arrive in now / 5 / 10 / 15 min" recalculates the verdict and "try first" for that moment. No new model: it is the same estimate evaluated at a later time.
+- Staff "Count next" hint (`ParkingModel.recheckNext`): unknown bays first, then the widest range.
+- Camera AI test: tap an empty spot on the photo to add a vehicle the model missed; tap a box to leave one out.
+- Enlarged-quarters photo mode switched on (`detectTiles: 2`).

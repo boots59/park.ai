@@ -16,9 +16,11 @@ Built for the KSU AI Club Hackathon 2026 by Kell Enow.
 | Students | A deck verdict (Room likely, Tight, Likely full, Not enough counts), a "try first" list of the best bays, level cards, and per-bay numbers |
 | Students | A 3D deck whose bays recolour (room, a few, full, unknown) the moment a count is saved |
 | Students | A count under 5 minutes old is shown as counted. From 5 to 30 minutes it becomes a range that widens with age and follows the bay's recent trend. After 30 minutes it says unknown |
+| Students | **"I arrive in…"**: the verdict and "try first" predicted for 5, 10 or 15 minutes from now |
 | Students | **One-tap report after parking** (plenty, a few, full): a lower-trust source that fills in between staff counts |
 | Staff | A bounded survey of one bay: start, count, confirm coverage, complete. A new count replaces the old one |
-| Staff | **AI assist:** photograph a section, a detection model on the device counts the vehicles, the person corrects the number |
+| Staff | **Count next:** the app points the counter at the bay where a fresh count would help most |
+| Staff | **Camera AI test (optional):** a detection model counts vehicles in a phone photo; the person taps to leave out or add vehicles |
 | The project | A field log that scores the AI against the person, and the estimates against later real counts |
 
 ## Run it
@@ -35,7 +37,7 @@ npm run serve         # then open http://127.0.0.1:8080/
 ## Test it
 
 ```bash
-npm test               # build + 60 tests: survey logic, detection maths, page behaviour
+npm test               # build + 73 tests: survey logic, detection maths, page behaviour
 npm run check:browser  # headless Chromium at phone and desktop widths; runs the real model if test/fixtures/street.jpg exists
 ```
 

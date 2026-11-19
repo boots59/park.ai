@@ -31,6 +31,21 @@ test('recommends where to try first, and says so plainly when nothing is known t
   b.run('clearDemo()');
   assert.match(b.els.verdict.innerHTML, /No bay has a known open space right now/);
 });
+test('advice can be predicted for a later arrival', () => {
+  const b = boot();
+  assert.match(b.els.verdict.innerHTML, /I arrive in .*aria-pressed="true" onclick="setLead\(0\)">now/);
+  assert.match(b.els.verdict.innerHTML, /newest count 1 min ago/);
+  b.run('setLead(10)');
+  assert.match(b.els.verdict.innerHTML, /predicted for 10 minutes from now/);
+  assert.match(b.els.verdict.innerHTML, /Try first:.*\(estimate\)/);                 // every count will be older than 5 minutes by then
+  assert.doesNotMatch(b.els.verdict.innerHTML, /Level 2 · Centre ramp/);              // it was filling: not recommended for later
+});
+test('staff are told which bay to count next', () => {
+  const b = boot();
+  assert.match(b.els.countNext.innerHTML, /Count next:.*Level 2 · South bay.*\(its range is 2 to 16\)/);   // the widest range in the sample data
+  b.run('clearDemo()');
+  assert.match(b.els.countNext.innerHTML, /\(nothing is known about it\)/);
+});
 test('coverage must be confirmed before saving', () => {
   const b = boot(); b.run('clearDemo(); startSurvey()');
   assert.equal(b.els.start.disabled, true);
@@ -173,7 +188,7 @@ const photo = () => ({ files: [{}], value: 'x' });
   });
   await atest('vehicles outside the bay can be tapped out, and are not blamed on the model', async () => {
     let out = 0; const b = boot();
-    b.ctx.window.CarCounter = { count: async () => ({ count: 11, ms: 5 }), toggle: () => ++out, forget() {} }; // each tap leaves one more box out
+    b.ctx.window.CarCounter = { count: async () => ({ count: 11, ms: 5 }), toggle: () => ({ out: ++out, added: 0 }), forget() {} }; // each tap leaves one more box out
     b.run('clearDemo(); startSurvey()'); await b.run('scanPhoto')(photo());
     b.run('tapBox({ clientX: 1, clientY: 1 }); tapBox({ clientX: 2, clientY: 2 }); tapBox({ clientX: 3, clientY: 3 })');      // three police cars outside the deck
     assert.match(b.els.scanPanel.innerHTML, /found <b>11<\/b> vehicles.*<b>3 left out<\/b>/);
@@ -183,6 +198,15 @@ const photo = () => ({ files: [{}], value: 'x' });
     assert.deepEqual(b.saved().L3_West.photos, [{ ai: 11, confirmed: 9, outside: 3 }]);
     assert.match(b.els.logSummary.textContent, /average error 1\.0 vehicles \(1 missed, 0 extra\); 3 found correctly but outside the bay/);
     assert.match(b.run('fieldLogCsv()'), /11>9,0,(single|tiled),3\n$/);
+  });
+  await atest('a vehicle the model missed can be added with a tap', async () => {
+    const b = boot(); b.ctx.window.CarCounter = { count: async () => ({ count: 9, ms: 5 }), toggle: () => ({ out: 0, added: 2 }), forget() {} };
+    b.run('clearDemo(); startSurvey()'); await b.run('scanPhoto')(photo());
+    b.run('tapBox({ clientX: 1, clientY: 1 })');
+    assert.match(b.els.scanPanel.innerHTML, /<b>2 added<\/b>.*74 counted stalls − 11 vehicles = <b>63 open<\/b>/s);
+    b.els.count.value = '63'; b.els.coverage.checked = true; b.run('finishSurvey()');
+    assert.deepEqual(b.saved().L3_West.photos, [{ ai: 9, confirmed: 11 }]);
+    assert.match(b.els.logSummary.textContent, /average error 2\.0 vehicles \(2 missed, 0 extra\)/);
   });
   await atest('AI failure leaves manual counting working', async () => {
     const b = boot(); b.ctx.window.CarCounter = { count: async () => { throw Error('AI count needs the hosted version'); } };

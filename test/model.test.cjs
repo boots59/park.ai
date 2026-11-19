@@ -166,6 +166,20 @@ test('typical-at-this-hour needs enough past counts from earlier days', () => {
   assert.equal(m.typical(hist.slice(0, 2), 'L1_West', t), null);                       // only two samples
   assert.equal(m.typical([{ zone: 'L1_West', t: t - 30 * MIN, count: 5 }, h(1, 0, 5), h(2, 0, 5)], 'L1_West', t), null); // today's count does not count as history
 });
+test('count-next sends the counter where a fresh count teaches most', () => {
+  const recs = { L1_West: rec(6, 1), L1_Centre: rec(6, 20) };                      // just counted; ageing (wide range); East unknown
+  assert.deepEqual(m.recheckNext(recs, zones, t).map(b => b.zone), ['L1_East', 'L1_Centre']);   // unknown first, then the widest range; a fresh count is not worth repeating
+  assert.match(m.recheckNext(recs, zones, t)[0].why, /nothing is known/);
+  assert.deepEqual(m.recheckNext({ L1_West: rec(1), L1_Centre: rec(2), L1_East: rec(3) }, zones, t), []);
+  assert.equal(m.recheckNext({}, zones, t, [rep('L1_West', 'plenty', 1)])[2].zone, 'L1_West'); // a student report is better than nothing, so it comes after the unknown bays
+});
+test('advice for a later arrival uses the estimate at that time', () => {
+  const filling = { L1_West: rec(12, 4, { count: 20, start: t - 12 * MIN }) };    // losing a space a minute; 12 open four minutes ago
+  assert.equal(m.deckSummary(filling, ['L1_West'], t).verdict, 'room');            // now: still counted as 12
+  const later = m.deckSummary(filling, ['L1_West'], t + 10 * MIN);                 // arriving in 10 minutes
+  assert.equal(later.verdict, 'tight'); assert.ok(later.low === 0 && later.high < 12);
+  assert.deepEqual(m.recommend(filling, ['L1_West'], t + 10 * MIN), []);           // no longer recommended
+});
 test('backtest scores the estimate against later real counts', () => {
   assert.equal(m.backtest([[{ t, count: 5 }]]), null);
   const steady = [0, 6, 12, 18].map(k => ({ t: t + k * MIN, count: 20 - k })); // loses one space a minute

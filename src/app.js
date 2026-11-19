@@ -113,10 +113,19 @@ function levelCard(n, t) {
     `<ul class="bays">${zonesOf(n).map(z => bayRow(z, t)).join('')}</ul></article>`;
 }
 const VERDICT = { room: 'Room likely', tight: 'Tight', full: 'Likely full', unknown: 'Not enough counts to say' };
-function renderVerdict(t) {
-  const d = ParkingModel.deckSummary(records, ZONE_IDS, t, reports), [count, unit] = summaryText(d);
+// The student picks when they will arrive. The verdict and "try first" are then worked out for THAT moment:
+// every count is older by then, so ranges are wider, and a bay that was filling is projected forward.
+let lead = 0; // minutes from now
+function setLead(minutes) { lead = minutes; render(); }
+function renderVerdict(now) {
+  const t = now + lead * 60e3, d = ParkingModel.deckSummary(records, ZONE_IDS, t, reports), [count, unit] = summaryText(d);
+  const newest = Math.min(...ZONE_IDS.map(z => records[z] ? now - records[z].start : Infinity));
+  const arrive = '<span class="arrive">I arrive in ' + [0, 5, 10, 15].map(m =>
+    `<button class="pick" aria-pressed="${lead === m}" onclick="setLead(${m})">${m ? m + ' min' : 'now'}</button>`).join(' ') + '</span>';
   $('verdict').innerHTML = `<span class="verdict-word ${d.verdict}">${VERDICT[d.verdict]}</span>` +
-    `<span class="verdict-detail">${d.state === 'unknown' ? 'No bay has a usable count.' : `<b>${count}</b> open · ${unit}`}</span>` + bestBet(t);
+    `<span class="verdict-detail">${d.state === 'unknown' ? 'No bay has a usable count.' : `<b>${count}</b> open · ${unit}`}` +
+    (lead ? ` · <b>predicted for ${lead} minutes from now</b>` : '') +
+    (Number.isFinite(newest) ? ` · newest count ${Math.max(0, Math.floor(newest / 60e3))} min ago` : '') + '</span>' + arrive + bestBet(t);
 }
 // "Where should I try first?" Whole bays only: nothing here knows which individual spaces are open.
 function bestBet(t) {
@@ -131,6 +140,7 @@ function render() {
   $('cards').innerHTML = LEVELS.map(n => levelCard(n, t)).join('');
   $('clock').textContent = 'Simulated clock: ' + new Date(t).toLocaleTimeString() + ' · +' +
     Math.round(offset / 60e3) + ' min · sample counts; stall numbers counted on foot Nov 19.';
+  renderNext();
   if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z); return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
   renderSelection();
 }
@@ -190,6 +200,15 @@ function reportBay(band) {
     : 'A staff count of ' + bayName(zone) + ' from the last 5 minutes is stronger evidence, so the display keeps it for now.');
 }
 
+// ---- Staff: where a fresh count would help most ----
+function renderNext() {
+  const picks = ParkingModel.recheckNext(records, ZONE_IDS, now(), reports, 3);
+  $('countNext').innerHTML = picks.length ? '<b>Count next:</b> ' + picks.map((p, i) =>
+    `<button class="pick" onclick="pickBay('${p.zone}')">${bayName(p.zone)}</button> <span class="small">${i ? '' : '(' + p.why + ')'}</span>`).join(' ')
+    : 'Every bay has a fresh count. Nothing needs recounting yet.';
+}
+function pickBay(z) { if (!survey) $('bay').value = z; }
+
 // ---- Staff survey ----
 function fillBayOptions() {
   $('reportBay').innerHTML = $('bay').innerHTML = LEVELS.map(n => `<optgroup label="Level ${n}">` +
@@ -238,7 +257,7 @@ async function scanPhoto(input) {
     if (!window.CarCounter) throw Error('AI count is not available in this build. Count by eye instead.');
     const result = await window.CarCounter.count(file, $('scanCanvas'));
     if (survey !== mine) return; // survey was cancelled or finished while the model ran
-    survey.photos.push({ ai: result.count, confirmed: result.count, outside: 0, adjust: 0 });
+    survey.photos.push({ ai: result.count, confirmed: result.count, outside: 0, added: 0, adjust: 0 });
     $('scanCanvas').classList.remove('hidden'); $('assist').open = true;
     status.textContent = '';
   } catch (e) { status.textContent = e.message; }
@@ -247,16 +266,16 @@ async function scanPhoto(input) {
 }
 function adjustPhoto(n) {
   const last = survey?.photos.at(-1); if (!last) return;
-  last.adjust = Math.max(-(last.ai - last.outside), last.adjust + n); settlePhoto(last); renderScan();
+  last.adjust = Math.max(-(last.ai - last.outside + last.added), last.adjust + n); settlePhoto(last); renderScan();
 }
 // Confirmed = what the model found, minus boxes left out as outside the bay, plus or minus the person's own correction.
-function settlePhoto(p) { p.confirmed = Math.min(ParkingModel.MAX_COUNT, Math.max(0, p.ai - p.outside + p.adjust)); }
+function settlePhoto(p) { p.confirmed = Math.min(ParkingModel.MAX_COUNT, Math.max(0, p.ai - p.outside + p.added + p.adjust)); }
 // Tap a numbered box on the photo to leave it out: a car outside the deck, in the aisle, or in another bay.
 function tapBox(event) {
   const last = survey?.photos.at(-1); if (!last || !window.CarCounter?.toggle) return;
-  const out = window.CarCounter.toggle($('scanCanvas'), event.clientX, event.clientY);
-  if (out === null) return;
-  last.outside = out; settlePhoto(last); renderScan();
+  const marks = window.CarCounter.toggle($('scanCanvas'), event.clientX, event.clientY);
+  if (!marks) return;
+  last.outside = marks.out; last.added = marks.added; settlePhoto(last); renderScan();
 }
 function removePhoto() { if (survey?.photos.pop()) { $('scanCanvas').classList.add('hidden'); window.CarCounter?.forget?.(); renderScan(); } }
 function useSuggestion() {
@@ -267,7 +286,7 @@ function renderScan() {
   const el = $('scanPanel'), photos = survey?.photos || [];
   if (!photos.length) { el.innerHTML = ''; return; }
   const last = photos.at(-1), stalls = DECK.zones[survey.zone].stalls, s = ParkingModel.suggestOpen(stalls, photos);
-  el.innerHTML = `<p><b>Photo ${photos.length}:</b> the model found <b>${last.ai}</b> vehicles. <b>Tap any box that is not in this bay</b> (a car outside the deck, in the aisle, or in another bay) to leave it out${last.outside ? ': <b>' + last.outside + ' left out</b>' : ''}. Then use − and + if it missed or doubled any.</p>` +
+  el.innerHTML = `<p><b>Photo ${photos.length}:</b> the model found <b>${last.ai}</b> vehicles. <b>Tap any box that is not in this bay</b> (a car outside the deck, in the aisle, or in another bay) to leave it out${last.outside ? ': <b>' + last.outside + ' left out</b>' : ''}. <b>Tap a vehicle it missed</b> to add it${last.added ? ': <b>' + last.added + ' added</b>' : ''}. The − and + buttons also work.</p>` +
     `<div class="number-controls"><button class="secondary" aria-label="One fewer vehicle" onclick="adjustPhoto(-1)">−</button>` +
     `<output class="confirmed" aria-label="Confirmed vehicles in this photo">${last.confirmed}</output>` +
     `<button class="secondary" aria-label="One more vehicle" onclick="adjustPhoto(1)">+</button></div>` +
