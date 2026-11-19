@@ -41,7 +41,7 @@ Update this whenever a fact changes. "Verified" means someone read the primary s
 ## Reported by Kell from his own observation (2026-11-18; not confirmed by KSU)
 - Parking is patrolled by parking monitors: typically students in yellow vests with a handheld scanner, on foot.
 - Cleaning staff move through the decks by vehicle.
-- West Deck has cameras: at least on Level 3, and four on Level 2, one at each corner (seen 2026-11-19). What they cover, who runs them and whether they record are unknown; the middle of the level may not be in view.
+- West Deck has cameras: at least on Level 3, and four each on Levels 1 and 2, one at each corner (seen 2026-11-19). What they cover, who runs them and whether they record are unknown; the middle of the level may not be in view.
 - Still unknown: how often a monitor covers West Deck, whether a round covers every level, and whether the scanner logs scans by time and place.
 
 ## Unknown
