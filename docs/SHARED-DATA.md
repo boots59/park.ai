@@ -55,7 +55,14 @@ save, and `field.html?survey` becomes a survey students can fill in on their own
 (Data tab, then the three-dot menu, Export JSON). In Firebase a read permission granted higher up cannot be taken away lower down, which is why the
 rules give read access to `counts`, `reports` and `history` one by one and never to `v1` as a whole.
 
-## What changes when it is on
+## Status (2026-11-19)
+A database is set up (`Settings.syncUrl`) and sharing was tested against it: a staff count and a student report made in
+one browser appeared in a second one; bad data and reads of the private lists were refused.
+
+**Sharing is only used when the page address ends in `?live`.** Without it, the page is the self-contained replay demo,
+so a first-time visitor never sees an empty deck. Live mode keeps its own data, apart from the demo's.
+
+## What changes in live mode
 - The page starts empty instead of with sample data, hides the demo clock, and labels itself a test build.
 - Staff counts, student reports and a history of counts are shared. Phones refresh every 15 seconds.
 - With no signal, entries wait on the phone and are sent when the connection returns.
@@ -64,8 +71,5 @@ rules give read access to `counts`, `reports` and `history` one by one and never
 ## Limits you must be honest about
 - **Anyone with the link can write.** There is no sign-in, so nothing stops a false count or report. The rules above only
   check the shape of the data. This is acceptable for a demo among testers, not for a pilot. A pilot needs staff sign-in.
-- **Tested against a stand-in, not the real service.** The automated tests use an in-memory copy of the three web calls the
-  page makes. Until someone runs it against a real database, treat it as unproven.
-- **The rules above have not been run in Firebase by the author.** If the console rejects them, the first thing to try is
-  removing the `.validate` lines.
+- **Tested once against the real database, in a desktop browser.** The automated tests use an in-memory stand-in. Real phones on campus Wi-Fi have not been tried.
 - Old reports and history are never deleted; clear them from the Firebase console.

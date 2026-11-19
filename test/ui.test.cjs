@@ -11,12 +11,12 @@ function boot(storage = {}, { syncUrl = '', fetch, replay = false } = {}) {
     textContent: '', innerHTML: '', attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k] ?? null; },
     classList: { set: new Set(), toggle(c, on) { on ?? !this.set.has(c) ? this.set.add(c) : this.set.delete(c); }, add(c) { this.set.add(c); }, remove(c) { this.set.delete(c); } } };
   const ctx = vm.createContext({ document: { getElementById: element }, localStorage: { getItem: k => storage[k] ?? null, setItem: (k, v) => { storage[k] = v; } },
-    window: { addEventListener() {} }, setInterval() {}, Date, Number, Math, JSON, Error, Object, Set, Array, Promise, String, encodeURIComponent, fetch });
+    window: { addEventListener() {} }, setInterval() {}, ...(syncUrl ? { location: { search: '?live', protocol: 'https:' } } : {}), Date, Number, Math, JSON, Error, Object, Set, Array, Promise, String, encodeURIComponent, fetch });
   // Logic tests pin the estimate's variability at the value they were written against; the replay test uses the shipped value.
   const source = replay ? appJs : appJs.replace(/variability: [\d.]+,/, 'variability: 0.8,');
-  vm.runInContext(source.replace("syncUrl: '',", 'syncUrl: ' + JSON.stringify(syncUrl) + ','), ctx);
+  vm.runInContext(source.replace(/syncUrl: '[^']*',/, 'syncUrl: ' + JSON.stringify(syncUrl) + ','), ctx); // tests never touch the real database
   if (!replay) vm.runInContext("startedFresh && loadDemo('sample')", ctx); // most tests use the made-up sample; a real first visit opens on the Nov 19 replay
-  return { els, ctx, storage, run: code => vm.runInContext(code, ctx), saved: () => JSON.parse(storage['west-deck-prototype-v2']).records };
+  return { els, ctx, storage, run: code => vm.runInContext(code, ctx), saved: () => JSON.parse(storage[syncUrl ? 'west-deck-live-v1' : 'west-deck-prototype-v2']).records };
 }
 let pass = 0; const test = (name, fn) => { fn(); pass++; console.log('ok -', name); };
 
@@ -250,6 +250,12 @@ const photo = () => ({ files: [{}], value: 'x' });
     assert.match(student.els.cards.innerHTML, /bay-count">1–4<\/b><span class="status students">Student report/);
     assert.match(student.els.syncStatus.textContent, /Shared between phones/);
     assert.equal(Object.keys(db.data.v1.history).length, 1);
+  });
+  await atest('with a database configured but no ?live in the address, the page stays the self-contained demo', async () => {
+    const db = fakeDatabase(), els = {};
+    const b = boot({}, { replay: true });                                             // boot() without syncUrl has no location at all
+    assert.match(b.els.notice.innerHTML, /A replay, not live/);
+    assert.equal(Object.keys(db.data).length, 0);
   });
   await atest('with no connection, entries wait and are sent later', async () => {
     const db = fakeDatabase(), opt = { syncUrl: 'https://example.test', fetch: db.fetch };

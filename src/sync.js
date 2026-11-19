@@ -8,7 +8,10 @@
 //   history/<id>   every staff count { zone, t, count }, for "typical at this hour"
 const Sync = (() => {
   const base = String(Settings.syncUrl || '').trim().replace(/\/+$/, '');
-  const on = /^https?:\/\//.test(base) && typeof fetch === 'function';
+  const available = /^https?:\/\//.test(base) && typeof fetch === 'function';
+  // Sharing is only used when the page is opened with ?live in its address. Without it the page is the
+  // self-contained demo (the replay of the Nov 19 count), so a first-time visitor never sees an empty deck.
+  const on = available && typeof location !== 'undefined' && /[?&]live\b/.test(location.search || '');
   async function call(path, method, value) {
     const res = await fetch(base + path, value === undefined ? { method } : { method, body: JSON.stringify(value) });
     if (!res.ok) throw Error('Sharing failed (' + res.status + ')');
@@ -16,7 +19,7 @@ const Sync = (() => {
   }
   const list = obj => obj && typeof obj === 'object' ? Object.values(obj) : [];
   return {
-    on,
+    on, available,
     saveCount: (zone, record) => call('/v1/counts/' + encodeURIComponent(zone) + '.json', 'PUT', record),
     addReport: report => call('/v1/reports.json', 'POST', report),
     addHistory: entry => call('/v1/history.json', 'POST', entry),

@@ -34,7 +34,7 @@ const Settings = {
   // --- Sharing between phones (leave empty for single-device mode) ---
   // A Firebase Realtime Database address, e.g. 'https://your-project-default-rtdb.firebaseio.com'.
   // See docs/SHARED-DATA.md before filling this in.
-  syncUrl: '',
+  syncUrl: 'https://park-ai-c7f27-default-rtdb.firebaseio.com',
 
   // --- What is being counted ---
   category: 'Regular student stalls',

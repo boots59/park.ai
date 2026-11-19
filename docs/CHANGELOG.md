@@ -80,3 +80,4 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Student page reordered: verdict, 3D deck, report panel, then every level and bay; the explanation is folded away. First-visit card.
 - Student poll results (30 drivers) and a staff interview form in the field kit. `docs/PRIVACY.md`.
 - Black and gold colour scheme. Counts expire after 60 minutes.
+- Sharing between phones is live behind `?live`, against a real Firebase database. The field kit backs up online and `field.html?survey` collects anonymous answers. Survey QR code and sign in `submission/`.

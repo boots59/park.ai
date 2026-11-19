@@ -2,7 +2,7 @@
 // `DECK` is injected by scripts/build.cjs from data/deck.json (bays and stall numbers).
 // `Settings` comes from src/settings.js.
 const CATEGORY = Settings.category;
-const KEY = 'west-deck-prototype-v2';
+const KEY = Sync.on ? 'west-deck-live-v1' : 'west-deck-prototype-v2'; // live (shared) mode keeps its own data, apart from the demo's
 const ALL_IDS = Object.keys(DECK.zones);
 const ZONE_IDS = ALL_IDS.filter(z => DECK.zones[z].stalls > 0); // bays with regular stalls: the only ones surveyed and shown as open
 const LEVELS = [...new Set(ALL_IDS.map(z => DECK.zones[z].level))].sort((a, b) => b - a); // top first
@@ -17,7 +17,7 @@ const stallNote = z => counted(z)
 
 let records = {}, offset = 0, survey = null, viewer = null, selectedBay = null;
 let reports = [];          // student reports: [{ zone, band, t }]
-const REPORT_KEY = 'west-deck-reports-v1', REPORTED_KEY = 'west-deck-reported-v1';
+const REPORT_KEY = Sync.on ? 'west-deck-live-reports-v1' : 'west-deck-reports-v1', REPORTED_KEY = Sync.on ? 'west-deck-live-reported-v1' : 'west-deck-reported-v1';
 const BAND_TEXT = { plenty: 'plenty of spaces', few: 'a few left', full: 'full', leaving: 'a space just opened' };
 const est = (z, t) => ParkingModel.bayEstimate(records[z], reports, z, t);
 const now = () => Date.now() + offset;
@@ -404,6 +404,11 @@ function startSharing() {
   $('notice').innerHTML = '<b>Test build. Do not use for parking decisions.</b> Counts and reports here are typed in by testers and are not verified. Not a KSU system.';
   syncNow(); setInterval(syncNow, 15000);
 }
+// A link between the two modes, shown only when a shared database is configured.
+function renderModeLink() {
+  if (!Sync.available) return;
+  $('modeLink').innerHTML = Sync.on ? 'Live shared test mode. <a href="./">Back to the replay demo</a>' : '<a href="?live">Open the live shared test</a> (counts and reports typed in by testers, shared between phones)';
+}
 
 // ---- Demo controls ----
 function advance(m) { offset += m * 60e3; save(); render(); }
@@ -448,7 +453,7 @@ window.addEventListener('storage', e => {
   try { const d = JSON.parse(e.newValue); if (d && typeof d.offset === 'number') { records = ParkingModel.sanitize(d.records, ZONE_IDS); offset = d.offset; render(); } } catch (err) {}
 });
 setInterval(render, 10000);
-startSharing();
+startSharing(); renderModeLink();
 mountViewer();
 // Installable app: only when served from a web address (not from a file).
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && typeof location !== 'undefined' && /^https?:$/.test(location.protocol))
