@@ -31,7 +31,7 @@ recompute with `node scripts/analyze-field.cjs data/field/2026-11-19-bay-counts.
 ## Does the survey work?
 | Measure | Value | Sample | Date |
 |---|---|---|---|
-| Time for one person to tally all 10 student bays | 8.4 minutes | Pass 2 | 2026-11-19 |
+| Time for one person to tally all 10 student bays | 8.4 minutes **on a skateboard**. Walking time not yet measured | Pass 2 | 2026-11-19 |
 | Median time from "start" to "complete" for one tallied bay | 24 s (range 4-162 s). Some bays were counted before pressing start, so this understates walking time | 19 counts | 2026-11-19 |
 | Two observers, same bay: average difference | | | |
 | How far a bay's count moved between the two passes (19-33 minutes apart) | Mean 0.9 stalls, largest 3, net -5 across the deck | 10 bays | 2026-11-19, 11:16-11:57 AM |
@@ -63,5 +63,6 @@ recompute with `node scripts/analyze-field.cjs data/field/2026-11-19-bay-counts.
 
 ## What we could not measure
 - Two independent observers: both passes were made by Kell (the second is labelled Observer B in the log to tell the passes apart; confirm).
+- How long a pass takes on foot: both passes were made on a skateboard.
 - How fast bays fill earlier in the morning, when the deck is still filling: both passes were after 11:15.
 - The circling tally was not run: with open stalls on every level there was little to count.
