@@ -4,13 +4,23 @@ h1{font-size:24px;letter-spacing:-.6px;margin:8px 0}h2{font-size:18px;margin:0 0
 .panel{background:#fff;border:1px solid #dce3d8;border-radius:14px;padding:16px;margin:14px 0}button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:12px 14px;background:#e5ebdf;color:#25432c;min-height:44px}
 button:focus-visible{outline:3px solid #ce8a16;outline-offset:2px}.primary{background:#214c36;color:#fff}.opts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}.opts button[aria-pressed="true"]{background:#214c36;color:#fff}
 .q{font-weight:700;margin:14px 0 4px}.say{background:#fbf5db;border-radius:8px;padding:10px 12px;font-size:14px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.big{font-size:34px;font-weight:800}
+select,input{font:inherit;padding:10px;border:1px solid #bac9b6;border-radius:8px;background:#fff}label{font-size:13px;font-weight:700}.ctr{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;margin-top:10px}.ctr .n{font-size:30px;font-weight:800;min-width:2.2em;text-align:right}.ctr button{min-width:56px;font-weight:700}.ctr.main button.add{background:#214c36;color:#fff;min-height:64px;font-size:20px}
 table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;padding:4px 6px;border-bottom:1px solid #e3e9df}nav{display:flex;gap:6px;margin-top:10px}nav button[aria-selected="true"]{background:#214c36;color:#fff}.hidden{display:none}
 </style></head><body><main>
 <p class="small"><a href="./">← back to the app</a></p><h1>Field kit</h1>
 <p class="small">For the person collecting data. Answers are stored on this phone only. No names, no contact details, no photos.</p>
-<nav role="tablist"><button id="tPoll" role="tab" aria-selected="true" onclick="show('poll')">Student poll</button><button id="tTally" role="tab" aria-selected="false" onclick="show('tally')">Circling tally</button><button id="tData" role="tab" aria-selected="false" onclick="show('data')">Results</button></nav>
+<nav role="tablist"><button id="tStalls" role="tab" aria-selected="true" onclick="show('stalls')">Stall count</button><button id="tPoll" role="tab" aria-selected="false" onclick="show('poll')">Poll</button><button id="tTally" role="tab" aria-selected="false" onclick="show('tally')">Circling</button><button id="tData" role="tab" aria-selected="false" onclick="show('data')">Results</button></nav>
 
-<section id="poll"><div class="panel"><div class="say"><b>Say:</b> “Hi, I'm a student doing a 30-second anonymous poll about parking for a hackathon project. No names. Do you have a moment?”</div>
+<section id="stalls"><div class="panel"><h2>Stall count</h2>
+<p class="small">Count painted stalls, one bay (or one row) at a time. Tap as you walk; your taps are kept if the page reloads. Save at the end of each bay.</p>
+<div class="row"><label>Level <select id="sLevel" onchange="draftChanged()"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+<label>Bay <select id="sBay" onchange="draftChanged()"><option>West</option><option>Centre ramp</option><option>East</option><option>Other</option></select></label>
+<label>Row or note <input id="sRow" placeholder="optional" oninput="draftChanged()" style="width:9em"></label></div>
+<div id="counters"></div>
+<div class="row" style="margin-top:14px"><button class="primary" onclick="saveStalls()">Save this bay</button><button onclick="undoStall()">Undo last tap</button><button onclick="resetStalls()">Reset to zero</button></div>
+<p id="stallMsg" class="small" role="status" aria-live="polite"></p><div id="stallTable"></div></div></section>
+
+<section id="poll" class="hidden"><div class="panel"><div class="say"><b>Say:</b> “Hi, I'm a student doing a 30-second anonymous poll about parking for a hackathon project. No names. Do you have a moment?”</div>
 <div id="questions"></div>
 <div class="row"><button class="primary" onclick="saveResponse()">Save this response</button><button onclick="resetForm()">Clear</button></div>
 <p id="pollMsg" class="small" role="status" aria-live="polite"></p></div></section>
@@ -37,12 +47,13 @@ const QUESTIONS = [
   { id: 'late', text: '7. This semester, has parking made you late to class?', options: ['Never', 'Once or twice', 'Several times'] },
 ];
 const KEY = 'west-deck-fieldkit-v1';
-let data = { responses: [], tallies: [] }, form = {}, tally = null, timer = 0;
+let data = { responses: [], tallies: [], stalls: [] }, form = {}, tally = null, timer = 0;
 try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.responses) && Array.isArray(d.tallies)) data = d; } catch (e) {}
+if (!Array.isArray(data.stalls)) data.stalls = [];
 const $ = id => document.getElementById(id), save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} };
 const stamp = () => new Date().toISOString();
 
-function show(id) { for (const n of ['poll', 'tally', 'data']) { $(n).classList.toggle('hidden', n !== id); $('t' + n[0].toUpperCase() + n.slice(1)).setAttribute('aria-selected', String(n === id)); } if (id === 'data') renderSummary(); }
+function show(id) { for (const n of ['stalls', 'poll', 'tally', 'data']) { $(n).classList.toggle('hidden', n !== id); $('t' + n[0].toUpperCase() + n.slice(1)).setAttribute('aria-selected', String(n === id)); } if (id === 'data') renderSummary(); }
 const visible = q => !q.onlyIf || form.drove === q.onlyIf;
 function renderForm() {
   $('questions').innerHTML = QUESTIONS.filter(visible).map(q => `<p class="q">${q.text}</p><div class="opts">` +
@@ -57,6 +68,37 @@ function saveResponse() {
   $('pollMsg').textContent = 'Saved. ' + data.responses.length + ' responses so far.';
 }
 function undoResponse() { if (data.responses.length && confirm('Delete the last poll response?')) { data.responses.pop(); save(); renderSummary(); } }
+
+// ---- Stall count: tap counters per bay, split by stall type ----
+const KINDS = [['regular', 'Regular'], ['accessible', 'Accessible'], ['faculty', 'Faculty / staff'], ['other', 'Other reserved']];
+const DRAFT_KEY = 'west-deck-stalldraft-v1';
+let draft = { level: '1', bay: 'West', row: '', taps: [] }; // taps: [kind, amount] in order, so undo works
+try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY)); if (d && Array.isArray(d.taps)) draft = d; } catch (e) {}
+const saveDraft = () => { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch (e) {} };
+const total = k => Math.max(0, draft.taps.filter(t => t[0] === k).reduce((n, t) => n + t[1], 0));
+function drawStalls() {
+  $('sLevel').value = draft.level; $('sBay').value = draft.bay; if ($('sRow').value !== draft.row) $('sRow').value = draft.row;
+  $('counters').innerHTML = KINDS.map(([k, label], i) => `<div class="ctr${i ? '' : ' main'}"><span><b>${label}</b></span><span class="n" aria-live="polite">${total(k)}</span>` +
+    `<button class="add" onclick="tapStall('${k}',1)" aria-label="${label} plus one">+1</button>` +
+    (i ? `<button onclick="tapStall('${k}',-1)" aria-label="${label} minus one">−1</button>` : `<button class="add" onclick="tapStall('${k}',5)" aria-label="${label} plus five">+5</button>`) + '</div>').join('');
+  const rows = data.stalls, sum = k => rows.reduce((n, r) => n + r[k], 0);
+  $('stallTable').innerHTML = rows.length ? '<p class="q">Saved</p><table><tr><th>Level</th><th>Bay</th><th>Row</th><th>Reg</th><th>Acc</th><th>Fac</th><th>Other</th></tr>' +
+    rows.map(r => `<tr><td>${esc(r.level)}</td><td>${esc(r.bay)}</td><td>${esc(r.row)}</td><td>${r.regular}</td><td>${r.accessible}</td><td>${r.faculty}</td><td>${r.other}</td></tr>`).join('') +
+    `<tr><th colspan="3">Total (${sum('regular') + sum('accessible') + sum('faculty') + sum('other')} stalls)</th><th>${sum('regular')}</th><th>${sum('accessible')}</th><th>${sum('faculty')}</th><th>${sum('other')}</th></tr></table>` +
+    '<p><button onclick="deleteLastStalls()">Delete last saved bay</button></p>' : '';
+}
+function draftChanged() { draft.level = $('sLevel').value; draft.bay = $('sBay').value; draft.row = $('sRow').value; saveDraft(); }
+function tapStall(kind, amount) { if (amount < 0 && total(kind) === 0) return; draft.taps.push([kind, amount]); saveDraft(); if (navigator.vibrate) navigator.vibrate(10); drawStalls(); }
+function undoStall() { draft.taps.pop(); saveDraft(); drawStalls(); }
+function resetStalls() { if (!draft.taps.length || confirm('Reset these counters to zero?')) { draft.taps = []; saveDraft(); drawStalls(); } }
+function saveStalls() {
+  const row = { time: stamp(), level: draft.level, bay: draft.bay, row: draft.row }; for (const [k] of KINDS) row[k] = total(k);
+  if (!KINDS.some(([k]) => row[k])) { $('stallMsg').textContent = 'Nothing counted yet.'; return; }
+  data.stalls.push(row); save(); draft.taps = []; draft.row = ''; saveDraft(); drawStalls();
+  $('stallMsg').textContent = `Saved Level ${row.level} ${row.bay}: ${row.regular} regular, ${row.accessible} accessible, ${row.faculty} faculty/staff, ${row.other} other. Pick the next bay.`;
+}
+function deleteLastStalls() { if (data.stalls.length && confirm('Delete the last saved bay?')) { data.stalls.pop(); save(); drawStalls(); } }
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function startTally() { tally = { start: stamp(), level: prompt('Which level are you watching? (for your notes)') || '', taps: [] }; $('tStart').disabled = true; clearInterval(timer); timer = setInterval(drawTally, 1000); drawTally(); $('tallyMsg').textContent = ''; }
 function tap(kind) { if (!tally) { $('tallyMsg').textContent = 'Press Start first.'; return; } tally.taps.push(kind); drawTally(); }
@@ -75,7 +117,6 @@ function endTally() {
 function renderSummary() {
   const r = data.responses, drove = r.filter(x => x.drove === 'Yes'), over5 = drove.filter(x => ['6-10', '11-20', 'Over 20'].includes(x.minutes)).length;
   const count = (list, id) => { const q = QUESTIONS.find(q => q.id === id); return q.options.map(o => `<tr><td>${o}</td><td>${list.filter(x => x[id] === o).length}</td></tr>`).join(''); };
-  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   $('summary').innerHTML = `<p><b>${r.length}</b> poll responses, <b>${drove.length}</b> drove and parked today.</p>` +
     (drove.length ? `<p><b>${over5} of ${drove.length}</b> took more than 5 minutes to park.</p>` : '') +
     QUESTIONS.map(q => `<p class="q">${q.text}</p><table>${count(q.onlyIf ? drove : r, q.id)}</table>`).join('') +
@@ -84,12 +125,13 @@ function renderSummary() {
 }
 function exportCsv() {
   const cell = v => '"' + String(v ?? '').replace(/"/g, '""') + '"', ids = QUESTIONS.map(q => q.id);
-  const lines = ['type,time,' + ids.join(',') + ',level,entered,left_without_parking,end_time',
+  const lines = ['type,time,' + ids.join(',') + ',level,entered,left_without_parking,end_time,bay,row,regular,accessible,faculty_staff,other_reserved',
+    ...data.stalls.map(r => ['stalls', r.time, ...ids.map(() => ''), r.level, '', '', '', r.bay, r.row, r.regular, r.accessible, r.faculty, r.other].map(cell).join(',')),
     ...data.responses.map(r => ['poll', r.time, ...ids.map(i => r[i]), '', '', '', ''].map(cell).join(',')),
     ...data.tallies.map(t => ['tally', t.start, ...ids.map(() => ''), t.level, t.entered, t.left, t.end].map(cell).join(','))];
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n') + '\n'], { type: 'text/csv' }));
   a.download = 'west-deck-field-kit-' + stamp().slice(0, 16).replace(/[:T]/g, '-') + '.csv'; a.click(); URL.revokeObjectURL(a.href);
 }
-function clearAll() { if (confirm('Delete ALL poll responses and tallies on this phone? Export first.')) { data = { responses: [], tallies: [] }; save(); renderSummary(); } }
-renderForm();
+function clearAll() { if (confirm('Delete ALL poll responses and tallies on this phone? Export first.')) { data = { responses: [], tallies: [], stalls: [] }; save(); renderSummary(); drawStalls(); } }
+renderForm(); drawStalls();
 </script></body></html>
