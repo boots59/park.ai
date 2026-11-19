@@ -3,12 +3,14 @@
 <meta name="referrer" content="no-referrer"><title>Park.AI · West Deck · student project</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#231f20"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Park.AI"><style>
 /*STYLES*/
 </style></head><body>
-<header><div class="brand"><svg class="owl" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><path fill="#ffc629" d="M5 4l5 4h12l5-4v14a11 11 0 0 1-22 0z"/><circle cx="11.5" cy="14" r="4.2" fill="#231f20"/><circle cx="20.5" cy="14" r="4.2" fill="#231f20"/><circle cx="11.5" cy="14" r="1.7" fill="#fff"/><circle cx="20.5" cy="14" r="1.7" fill="#fff"/><path fill="#231f20" d="M16 17l-2.2 3.2h4.4z"/></svg><span class="name">Park<span>.AI</span></span><span class="by">student project</span></div><button id="aboutTab" class="info" onclick="setView('about')" aria-label="About, limits and settings" aria-selected="false">i</button></header>
+<header><div class="brand"><svg class="owl" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><path fill="#ffc629" d="M5 4l5 4h12l5-4v14a11 11 0 0 1-22 0z"/><circle cx="11.5" cy="14" r="4.2" fill="#231f20"/><circle cx="20.5" cy="14" r="4.2" fill="#231f20"/><circle cx="11.5" cy="14" r="1.7" fill="#fff"/><circle cx="20.5" cy="14" r="1.7" fill="#fff"/><path fill="#231f20" d="M16 17l-2.2 3.2h4.4z"/></svg><span class="name">Park<span>.AI</span></span><span class="by"><b>KSU edition</b>student project</span></div><button id="aboutTab" class="info" onclick="setView('about')" aria-label="About, limits and settings" aria-selected="false">i</button></header>
 <div class="notice" id="notice"></div>
 <main id="screens">
 
 <section id="student" class="screen" aria-label="Now"><div class="inner">
-<h1 class="place">West Deck <span>Kennesaw campus</span></h1>
+<div id="places" class="places" role="group" aria-label="Choose a deck or lot"></div>
+<h1 class="place" id="placeName">West Deck <span>Kennesaw campus</span></h1>
+<p id="placeSpec" class="spec"></p>
 <div id="verdict" role="status" aria-live="polite"></div>
 </div></section>
 

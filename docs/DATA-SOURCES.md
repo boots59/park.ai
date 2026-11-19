@@ -42,3 +42,6 @@ Kell's idea after talking to a monitor: film the whole deck from the truck or on
 1. The truck already produces one record per parked car (the plate scan). A count of those scans is the same information without a second camera.
 2. Continuous video of every car captures every plate and anyone walking by, which this project's rules exclude.
 3. Counting from moving video means following each car across frames so it is not counted twice. That is a larger build than a hackathon allows, and nothing here has tested it.
+
+## Other decks and lots (`data/places.json`)
+Names come from KSU Parking and Transportation's Kennesaw and Marietta parking maps and the student permit page; deck clearances from the KSU Parking FAQ (read 2026-11-19). Only West Deck (Kennesaw) has counts. Every other place shows "Coming soon" and never a number. Residential lots are left out.

@@ -32,7 +32,7 @@ const fonts = [font('barlow', 'barlow-latin-400-normal.woff2', 'Barlow', 400), f
 const styles = rd('src/styles.css').replace('/*FONTS*/', () => fonts);
 const syncOrigin = String(require(path.join(root, 'src/settings.js')).syncUrl || '').replace(/\/+$/, '');
 const tpl = rd('src/index.template.html').replace('/*STYLES*/', () => styles).replace('/*SYNC_ORIGIN*/', syncOrigin);
-const parts = { '/*VIEWER*/': viewer, '/*DECK*/': 'const DECK=' + JSON.stringify(DECK) + ';',
+const parts = { '/*VIEWER*/': viewer, '/*DECK*/': 'const DECK=' + JSON.stringify(DECK) + ';const PLACES=' + JSON.stringify(require('../data/places.json').places) + ';',
   '/*SETTINGS*/': rd('src/settings.js'), '/*MODEL*/': rd('src/model.js'), '/*SYNC*/': rd('src/sync.js'), '/*DETECT*/': rd('src/detect.js'), '/*AI*/': rd('src/ai.js'), '/*APP*/': rd('src/app.js') };
 let html = tpl;
 for (const [marker, code] of Object.entries(parts)) {

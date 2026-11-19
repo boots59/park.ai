@@ -71,8 +71,19 @@ body { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; 
 header { background: var(--black); color: var(--white); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .brand { display: flex; align-items: center; gap: 8px; font-family: var(--sign); font-weight: 700; font-size: 28px; line-height: 1; }
 .brand .name span { color: var(--gold); }
-.brand .by { font-family: Barlow, Arial, sans-serif; font-size: 12px; font-weight: 400; color: #cfcfcf; align-self: flex-end; padding-bottom: 3px; }
+.brand .by { font-family: Barlow, Arial, sans-serif; font-size: 11px; font-weight: 400; color: #cfcfcf; line-height: 1.15; border-left: 2px solid var(--gold); padding-left: 8px; }
+.brand .by b { display: block; font-family: var(--sign); font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); }
 .owl { flex: none; }
+.places { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px 12px; padding: 2px 16px 6px; scrollbar-width: none; overscroll-behavior-x: contain; }
+.places::-webkit-scrollbar { display: none; }
+.places .campus { flex: none; align-self: center; font-family: var(--sign); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.places button { flex: none; min-height: 44px; margin: 0; padding: 4px 12px; background: var(--white); border: 2px solid #8f8f8c; border-radius: 4px; font-family: var(--sign); font-size: 16px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.places button small { display: block; font-family: Barlow, Arial, sans-serif; font-size: 11px; font-weight: 400; color: var(--muted); }
+.places button[aria-pressed="true"] { background: var(--black); border-color: var(--black); color: var(--gold); }
+.places button[aria-pressed="true"] small { color: var(--gold); }
+.spec { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+.soon { display: block; padding: 24px 0; }
+.soon b { display: block; font-family: var(--sign); font-size: 34px; text-transform: uppercase; }
 .place { font-size: 26px; margin: 0 0 8px; text-transform: none; }
 .place span { font-family: Barlow, Arial, sans-serif; font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 4px; }
 .badge { font-size: 12px; font-weight: 600; color: var(--black); background: var(--gold); padding: 4px 8px; border-radius: 2px; }

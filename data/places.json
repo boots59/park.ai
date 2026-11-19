@@ -1,0 +1,21 @@
+{
+  "source": "Names: KSU Parking and Transportation campus parking maps (Kennesaw and Marietta) and student permit page. Clearance: KSU Parking FAQ. Read 2026-11-19. West Deck stalls and levels: counted on foot 2026-11-19 (see deck.json). Residential lots left out.",
+  "places": [
+    { "id": "west", "name": "West Deck", "campus": "Kennesaw", "clearance": "7 ft 2 in", "live": true },
+    { "id": "central", "name": "Central Deck", "campus": "Kennesaw", "clearance": "7 ft 0 in" },
+    { "id": "east", "name": "East Deck", "campus": "Kennesaw", "clearance": "7 ft 2 in" },
+    { "id": "north", "name": "North Deck", "campus": "Kennesaw", "clearance": "6 ft 8 in" },
+    { "id": "westlot", "name": "West Lot", "campus": "Kennesaw" },
+    { "id": "gutenberg", "name": "Gutenberg Economy Lot", "campus": "Kennesaw" },
+    { "id": "townpoint", "name": "Town Point Economy Lot", "campus": "Kennesaw" },
+    { "id": "shuttle", "name": "Shuttle Lot", "campus": "Kennesaw" },
+    { "id": "m-west", "name": "West Deck", "campus": "Marietta", "clearance": "7 ft 0 in" },
+    { "id": "m-central1", "name": "Central Lot 1", "campus": "Marietta" },
+    { "id": "m-central2", "name": "Central Lot 2", "campus": "Marietta" },
+    { "id": "m-east1", "name": "East Lot 1", "campus": "Marietta" },
+    { "id": "m-east2", "name": "East Lot 2", "campus": "Marietta" },
+    { "id": "m-economy", "name": "East Economy Lot", "campus": "Marietta" },
+    { "id": "m-south", "name": "South Lot", "campus": "Marietta" },
+    { "id": "m-shuttle", "name": "Shuttle Lot", "campus": "Marietta" }
+  ]
+}

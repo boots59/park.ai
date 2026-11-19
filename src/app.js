@@ -178,7 +178,23 @@ const VERDICT = { room: 'Room likely', tight: 'Tight', full: 'Likely full', unkn
 // every count is older by then, so ranges are wider, and a bay that was filling is projected forward.
 let lead = 0; // minutes from now
 function setLead(minutes) { lead = minutes; render(); }
+// Deck switcher on the Now screen. Only West Deck has counts; every other place says "coming soon".
+// `PLACES` is injected by scripts/build.cjs from data/places.json (names and clearances from KSU's own pages).
+let place = 'west';
+const placeOf = id => PLACES.find(p => p.id === id) || PLACES[0];
+function setPlace(id) { place = placeOf(id).id; renderPlaces(); render(); }
+function renderPlaces() {
+  let campus = '';
+  $('places').innerHTML = PLACES.map(p => (p.campus !== campus ? `<span class="campus">${campus = p.campus}</span>` : '') +
+    `<button aria-pressed="${p.id === place}" onclick="setPlace('${p.id}')">${p.name}<small>${p.live ? 'live' : 'soon'}</small></button>`).join('');
+  const p = placeOf(place), all = Object.values(DECK.zones), sum = k => all.reduce((n, z) => n + (z[k] || 0), 0);
+  $('placeName').innerHTML = `${p.name} <span>${p.campus} campus</span>`;
+  $('placeSpec').textContent = p.live
+    ? `${LEVELS.length} levels · ${sum('stalls') + sum('accessible') + sum('facultyStaff') + sum('otherReserved')} stalls, ${sum('stalls')} student · clearance ${p.clearance} · counted on foot Nov 19`
+    : p.clearance ? `Clearance ${p.clearance} (KSU)` : '';
+}
 function renderVerdict(now) {
+  if (!placeOf(place).live) { $('verdict').innerHTML = `<span class="soon"><b>Coming soon</b>Not counted yet. Park.AI starts with West Deck.</span><button class="pick" aria-pressed="true" onclick="setPlace('west')">Back to West Deck</button>`; return; }
   const t = now + lead * 60e3, d = ParkingModel.deckSummary(records, ZONE_IDS, t, reports), [count, unit] = summaryText(d);
   const newest = Math.min(...ZONE_IDS.map(z => records[z] ? now - records[z].start : Infinity));
   const arrive = '<span class="arrive">I arrive in ' + [0, 5, 10, 15].map(m =>
@@ -512,7 +528,7 @@ function toggleSpread() {
   if (viewer) viewer.setSpread(on);
 }
 
-load(); loadReports(); fillBayOptions(); renderLog(); render();
+load(); loadReports(); fillBayOptions(); renderLog(); renderPlaces(); render();
 watchSwipes();
 renderParked();
 // Links: ?report opens straight at the student report panel; ?bay=L2_West also picks the bay (for a QR code posted in that bay).

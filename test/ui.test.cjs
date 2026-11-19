@@ -196,6 +196,18 @@ test('each bay has a stall diagram with a text equivalent', () => {
   assert.match(b.els.cards.innerHTML, /aria-label="74 regular stalls, none with a current count"/);
   assert.equal((b.els.cards.innerHTML.match(/<rect /g) || []).length, 428);                                                          // one box per regular stall
 });
+test('deck switcher: West Deck is live, every other place says coming soon', () => {
+  const b = boot();
+  assert.match(b.els.places.innerHTML, /West Deck<small>live/);
+  assert.match(b.els.places.innerHTML, /Central Deck<small>soon/);
+  assert.match(b.els.placeSpec.textContent, /3 levels · 662 stalls, 428 student · clearance 7 ft 2 in/);
+  b.run("setPlace('north')");
+  assert.match(b.els.verdict.innerHTML, /Coming soon/);
+  assert.doesNotMatch(b.els.verdict.innerHTML, /open/);                       // no number is ever shown for a place nobody counted
+  assert.match(b.els.placeSpec.textContent, /6 ft 8 in/);
+  b.run("setPlace('west')");
+  assert.match(b.els.verdict.innerHTML, /open/);
+});
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
 const photo = () => ({ files: [{}], value: 'x' });
 (async () => {
