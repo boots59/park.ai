@@ -21,7 +21,7 @@ by the ageing staff estimate when they agree). With neither, the bay is unknown 
 | Idea | What it gives | What it needs | Main risk |
 |---|---|---|---|
 | **Entrance and exit counters** (beams or loops at each lane) | A continuous deck total, day and night | KSU approval, hardware at every lane, a daily reset | Drift from missed cars; no per-level detail |
-| **Monitor scanner logs** | Cars per level on every round, with no extra work | KSU sharing data it may already hold | It may not log location; unconfirmed |
+| **Scan counts from the plate-reading truck** (a monitor says one drives the whole deck and scans every plate) | Occupied stalls per level on every pass, with no extra work and no new equipment. Open = counted stalls − scans. Only the COUNT is needed, never a plate | The parking office sharing a number per level per pass | Unconfirmed second-hand; pass frequency unknown; scans may not be tagged by level; a count of all vehicles cannot tell a regular stall from a faculty one |
 | **The deck's existing cameras with the same detection model**, plus staff counts for whatever the cameras cannot see | Counts every minute where a camera has a view; people fill the gaps | Public Safety approval under KSU's video standard. Kell saw four corner cameras on each of Levels 1 and 2, and at least one on Level 3 | Coverage is unknown (the middle may be out of view); a camera also sees vehicles outside its bay or outside the deck, so each camera needs a fixed outline of the stalls it is allowed to count; privacy; approval time |
 | **Forecast from class schedules** | An expected fill curve by day and hour, before anyone arrives | KSU's published enrollment-by-hour data plus a few weeks of counts | Unusual days (events, weather) |
 | **Signals from the garage's own systems** (gate or permit-scan events, if any exist) | A count of entries by permit holders | KSU | Unknown whether any exist at West Deck |
@@ -36,3 +36,9 @@ All of these depend on KSU.
 - **Built:** the phone remembers the bay it last reported, so parking is one tap and "I'm leaving" is one tap with no bay to pick. A link ending `?bay=L2_West` opens the report panel with that bay chosen, so a QR code posted in a bay makes it scan-then-one-tap. Posting codes needs KSU's permission.
 - **Not built, and why:** automatic bay detection by GPS. Satellite positioning is unreliable inside a concrete deck and cannot tell one level from another, and this project's own rule is to collect no location traces.
 - **Needs a native app (later):** a home-screen or lock-screen widget, and reminders when you arrive or leave.
+
+## Why not video from the truck or a walking monitor
+Kell's idea after talking to a monitor: film the whole deck from the truck or on foot and let the AI count. Not pursued, for three reasons.
+1. The truck already produces one record per parked car (the plate scan). A count of those scans is the same information without a second camera.
+2. Continuous video of every car captures every plate and anyone walking by, which this project's rules exclude.
+3. Counting from moving video means following each car across frames so it is not counted twice. That is a larger build than a hackathon allows, and nothing here has tested it.

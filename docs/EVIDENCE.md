@@ -42,6 +42,10 @@ Update this whenever a fact changes. "Verified" means someone read the primary s
 - Parking is patrolled by parking monitors: typically students in yellow vests with a handheld scanner, on foot.
 - Cleaning staff move through the decks by vehicle.
 - West Deck has cameras: at least on Level 3, and four each on Levels 1 and 2, one at each corner (seen 2026-11-19). What they cover, who runs them and whether they record are unknown; the middle of the level may not be in view.
+- **Told to Kell by a parking monitor at West Deck (2026-11-19; one person's account, not confirmed by the parking office):**
+  - A truck drives through the whole deck and scans every license plate. Plates without a permit are sent to a monitor, who then walks to those cars.
+  - Monitors are supposed to walk the whole deck as well; some rely on the truck's scans instead.
+  - Not asked or not known: how often the truck passes, whether each scan is stored with a level or location and a time, and whether the parking office would share scan counts.
 - Still unknown: how often a monitor covers West Deck, whether a round covers every level, and whether the scanner logs scans by time and place.
 
 ## Unknown

@@ -9,7 +9,7 @@ Fill each `[ ]` from `docs/RESULTS.md`. If a number was not measured, cut the se
 - Counting cameras cost money and need approvals. Entrance counters run about $20,000 per lane (Walter P Moore).
 
 ## 1:00-2:00 Solution
-- Parking monitors already walk the deck on foot. Their phone becomes the sensor.
+- KSU already runs the sensors: a truck scans every plate in the deck for permit checks, and monitors walk it (told to me by a monitor; not confirmed by the parking office). The app needs only a count.
 - Monitors walk a bay and tally open stalls: the reliable count, with no hardware. Between counts, a statistical model shows an honest range, not a stale number.
 - A vehicle-detection model was tested on phone photos as a stand-in for the deck's own cameras. It is the automation path, with Public Safety's approval, not today's counting method.
 - Students who just parked add one tap (plenty, a few, full), so the app does not depend on staff alone. Built; not yet tried with real students.
