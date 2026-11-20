@@ -1,20 +1,23 @@
-# Demo script (2 minutes)
+# Live demo: one story, in order (2 minutes 30 seconds)
 
-Open https://boots59.github.io/park.ai/ on a phone. It starts on a replay of the real Nov 19 count (the yellow bar says so). Say "a replay of my count, not live" out loud once.
+The story is the one from slide 1: **it is 11:50 on a Thursday and you have class at 12:15.** Everything happens in the order it would happen. Show three things only: the camera count, where to try first, the one-tap report. Do not tour the other screens.
+
+Open https://boots59.github.io/park.ai/ on your phone, mirrored to the screen if you can. The yellow bar says "A replay, not live": say once that it replays your real Thursday count.
 
 | Time | Do | Say |
 |---|---|---|
-| 0:00 | **Now** screen | "This is what a student sees before driving in. A replay of my Thursday count." |
-| 0:10 | Point at the verdict and "Try first" | "Room likely, 56 to 83 open, and the three bays to try first." |
-| 0:25 | Tap **Central Deck**, then **Back to West Deck** | "Every KSU deck and lot is listed. Only West Deck has counts, so the rest say coming soon." |
-| 0:35 | Swipe to **Deck**; drag the 3D model, tap a bay | "Each bay is coloured by how much room it has." |
-| 0:50 | Swipe to **Levels** | "The same thing as a list. Level 1 has no student stalls at all." |
-| 1:00 | **Report**: tap a bay, tap **A few** | "A student who just parked adds one tap. Anonymous, lower trust than a staff count." |
-| 1:15 | **Count**: tap a bay, **Scan with camera · AI**, point at a row of cars, **Count this view**, use the number, **Save** | "A monitor points the phone at the row. The model counts the vehicles on the phone, the monitor checks it, one button saves it. Tally by hand is the fallback." |
-| 1:35 | Back to **Now** | "The new count replaced the old one. Counts are never erased: an old one stays on screen with its age." |
-| 1:45 | Open `?live` on a second tab | "This is the shared data: my real count from this morning, labelled as a last count, hours old, not live." |
-| 1:55 | Tap **Ask** in the header, tap **Where should I park?**, then **Show me** | "Or just ask. It answers from the counts and takes you to the right screen." |
+| 0:00 | **Count** → tap a bay → **Scan with camera · AI** → point at a row of cars | "First, how the numbers get in. A parking monitor is already walking this deck. They point a phone at the row." |
+| 0:15 | The boxes appear. **Say nothing for two seconds.** Then **Count this view** | "The model counts every vehicle, on the phone. No plates, nothing recorded." |
+| 0:35 | Use the number → **Save** | "The monitor checks it and saves. That is the whole job." |
+| 0:50 | **Now** screen | "Now you, at 11:50, before you leave home. Room likely. And it names the bay to try first." |
+| 1:10 | Tap the first bay under "Try first" → the 3D deck opens on it. Rotate it once | "Level 2, west bay. Green has room, red is full. Level 1 is grey: faculty only, so skip it." |
+| 1:30 | Point at **To campus** | "And when you have parked, the exit to campus is here, on Level 3." |
+| 1:45 | **Report** → tap your bay → **A few** | "One tap as you walk away, and the next driver knows. Anonymous." |
+| 2:00 | Back to **Now** | "Every count shows its age. An old count stays on screen, labelled, and is never shown as live." |
+| 2:15 | Hold up the QR slide | "Scan this and try it yourself, right now." |
 
-The camera scan needs real cars in view: record that step in a deck or a parking lot, or point the phone at a photo of parked cars on a second screen and say that is what you are doing.
+**If you have 20 spare seconds:** tap **Ask** → "Where should I park?" → **Show me**.
 
-Fallback: if the phone has no signal, play the recorded video.
+**The camera step needs real cars in view.** Live on stage, point the phone at a photo of a parking lot on a second screen and say so. In the recorded video, film it in a lot.
+
+**Fallback:** if the phone has no signal or the camera fails, switch to the recorded video at the same point in the story.

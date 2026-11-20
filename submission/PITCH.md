@@ -2,30 +2,36 @@
 
 Read it aloud twice with a timer. Every number is from `docs/RESULTS.md`. Say "drivers I polled", never "KSU students" or a percentage of campus.
 
-## 0:00 Hook (slide 1) · 15 seconds
-"Yesterday at 11:50 in the morning, West Deck had 70 open student spaces. Fifty-seven of them were in three bays. Nothing told a single driver which three. I'm Kell, and this is Park.AI."
+## The shape (from the three videos you sent)
+A question, the evidence, the cost, one plain sentence, then **one continuous story on the phone for half the time**, then before and after, the plan, and you. Slides are short; the app carries it. Show three things, not ten: the camera count, where to try first, the one-tap report.
 
-## 0:15 Problem (slide 2) · 40 seconds
-"I polled 54 drivers at the deck. Thirty-one had already tried more than one level or lot that day. Forty-nine said parking has made them late to class this semester.
-KSU's own advice, when a deck is full, is to drive to the Shuttle Lot and take the bus. And Level 1 of West Deck has no regular student spaces at all. I counted: 181 stalls, zero for students."
+## 0:00 Question (slide 1) · 20 seconds
+"Raise your hand if parking has ever made you late to class." *(wait for the hands)*
+"It's 11:50 on a Thursday. You have class at 12:15. You pull into West Deck. Which level do you try? I'm Kell, and this is Park.AI."
 
-## 0:55 Insight (slide 3) · 30 seconds
-"The usual fixes are entrance counters, about twenty thousand dollars a lane, or new cameras, which need Public Safety approval. But parking operations told me a truck already scans every plate in West Deck six or seven times a day, and monitors walk it on weekdays. The sensors are already in the deck. Nobody is counting with them."
+## 0:20 Evidence (slide 2) · 20 seconds
+"It's not just this room. I polled 54 drivers at the deck. Forty-nine said parking has made them late this semester. Thirty-one had already tried more than one level or lot that day."
 
-## 1:25 How it works (slide 4) · 35 seconds
-"So a monitor points a phone at a row. A detection model, running on the phone, counts every vehicle it sees. The monitor checks the number and saves it. A student who just parked adds one tap. And every driver sees where to try first, with an honest range when the count gets old, and the age of the count always on screen. No plates. No faces. Nothing recorded."
+## 0:40 Cost (slide 3) · 20 seconds
+"Here is the part that surprised me. At 11:50 that Thursday the deck was not full. Seventy student spaces were open. Fifty-seven of them were in three bays, and nothing told anyone which three. And Level 1 has 181 stalls with none for students."
 
-## 2:00 Demo (slide 5, then the phone) · 1 minute 45 seconds
-Follow `DEMO-SCRIPT.md`. The one moment that must land: the camera boxes the cars and the number appears. Pause there for two seconds and say nothing.
+## 1:00 Solution (slide 4) · 15 seconds
+"Park.AI tells you which part of the deck has room before you drive in. And a phone camera does the counting. Let me show you."
 
-## 3:45 Evidence (slide 6) · 30 seconds
-"This is measured, not imagined. Six hundred sixty-two stalls counted on foot. Two full passes of the deck. Counts that were twenty to thirty minutes old still held: nine of nine recounts landed inside the range the app predicted. And nine students tried the app: seven found it easy, seven said they would check it before driving in."
+## 1:15 Demo: one story, in order (slide 5, then the phone) · 2 minutes 30 seconds
+Follow `DEMO-SCRIPT.md`. It is the 11:50 Thursday story, start to finish. The moment that must land is the camera putting a box on each car. Stop talking for two seconds when it happens.
 
-## 4:15 Plan and limits (slide 7) · 30 seconds
-"It is one deck, one morning, one counter, and I have no agreement with KSU. Parking operations met with me and offered more data after approvals. The pilot is two weeks at West Deck: one number per truck pass. After that, the same model on the deck's own cameras, with approval, and then every deck on both campuses."
+## 3:45 Before and after (slide 6) · 25 seconds
+"Before: you drive in knowing nothing, and 31 of 54 drivers end up trying more than one level. After: one glance tells you which bay to try first and how old that count is. Forty of the 54 told me they would have gone straight to that level. This is measured: 662 stalls counted on foot, two full passes of the deck, and nine students have already tried the app."
 
-## 4:45 Close (slide 8) · 15 seconds
-"Less circling. More certainty. Scan the code and try it on your phone right now. Thank you."
+## 4:10 Plan and limits (slide 7) · 30 seconds
+"I'll be straight about the limits. One deck, one morning, one counter, and no agreement with KSU. But KSU already sends a plate-scanning truck through this deck six or seven times a day. The pilot is two weeks: one number per pass. After that, the same model on the deck's own cameras, with Public Safety's approval, and then every deck on both campuses."
+
+## 4:40 Close (slide 8) · 20 seconds
+"I park in West Deck. I counted every stall, polled 54 drivers and sat down with parking operations to build this. Less circling. More certainty. Scan the code and try it now. Thank you."
+
+## In the Q&A
+Listen to the whole question. Never argue. If something is not built, say "not yet, here is what is next". Bring every answer back to a strength: real counts, the camera count, the 54 drivers.
 
 ## Rubric map (AI Club track, 100 points)
 | Criterion | Points | Where the pitch earns it |
