@@ -350,7 +350,7 @@ function bestBet(t) {
   if (!picks.length) return '<span class="best">No bay has a known open space right now. If the deck is full: Shuttle Lot and the Big Owl Bus.</span>';
   const item = ({ zone, est }, i) => `<button class="pick${i ? '' : ' top'}" onclick="startTrip('${zone}')">${bayName(zone)} · <b>${range(est)}</b> open${{ counted: '', estimate: ' (estimate)', students: ' (student report)' }[est.source]}</button>`;
   // The first thing on the screen: one question, and the best bays as the answers. Tap one, drive there, park.
-  return `<span class="best"><b class="q">Where do you want to park?</b><span class="tap">Tap a bay to go there</span>${picks.map(item).join('')}</span>`;
+  return `<span class="best"><b class="q">Where do you want to park?</b>${picks.map(item).join('')}</span>`;
 }
 function render() {
   const t = now();
