@@ -12,7 +12,7 @@ const no3d = process.argv.includes('--no-3d') || !fs.existsSync(glbPath);
 const lite = process.argv.includes('--no-3d');
 
 const deck = JSON.parse(rd('data/deck.json'));
-const DECK = { name: deck.name, zones: deck.zones };
+const DECK = { name: deck.name, zones: deck.zones, access: deck.access || [] };
 for (const [id, z] of Object.entries(DECK.zones))
   if (!Number.isInteger(z.level) || !z.label || !Number.isInteger(z.stalls) || z.stalls < 0) throw Error('data/deck.json: bay ' + id + ' needs a whole-number level and stalls, and a label');
 

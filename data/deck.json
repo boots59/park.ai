@@ -2,6 +2,11 @@
   "name": "West Deck, KSU Kennesaw campus",
   "about": "Bays and stall numbers. 'stalls' is the number of REGULAR stalls in the bay: the ones the app counts open spaces for. The other three numbers are stalls the app never counts as open to students. A bay with 0 regular stalls is listed but not surveyed.",
   "sources": "Counted on foot from the painted lines by Kell Enow on 2026-11-19 with the field kit's tap counter (data/field/2026-11-19-stall-count.csv). One counter, not double-checked. Stall types are as read from signs and markings that morning; any time limits on faculty/staff stalls were not recorded.",
+  "access": [
+    { "id": "campus", "kind": "walk", "level": 3, "at": "NE", "label": "To campus", "where": "Level 3, north-east corner: stairs and lift", "source": "Kell Enow, on site 2026-11-19; the stair and lift tower is in the 3D model" },
+    { "id": "main", "kind": "drive", "level": 1, "at": "SE", "label": "Main in/out", "where": "Level 1, south-east corner", "source": "Kell Enow's stall-count note, 2026-11-19" },
+    { "id": "side", "kind": "drive", "level": 1, "at": "W", "label": "Side in/out", "where": "Level 1, west side", "source": "Kell Enow's stall-count note, 2026-11-19; position along the west side is approximate" }
+  ],
   "zones": {
     "L3_West": {
       "level": 3,

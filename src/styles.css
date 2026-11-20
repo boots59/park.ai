@@ -149,6 +149,12 @@ details.panel[open] > summary { margin-bottom: 8px; }
 #deck3d { height: min(56dvh, 460px); border-radius: 2px; overflow: hidden; background: #efefed; touch-action: none; border: 1px solid var(--line); }
 #deck3d canvas { width: 100% !important; height: 100% !important; }
 .bay-label { position: absolute; left: 0; top: 0; pointer-events: none; background: var(--white); color: var(--ink); font-family: var(--sign); font-size: 15px; font-weight: 700; line-height: 1; padding: 3px 6px; border-radius: 2px; border: 1px solid var(--black); white-space: nowrap; }
+.access-label { position: absolute; left: 0; top: 0; pointer-events: none; font-family: var(--sign); font-size: 13px; font-weight: 700; line-height: 1; letter-spacing: .04em; text-transform: uppercase; padding: 4px 6px; border-radius: 2px; white-space: nowrap; color: var(--white); background: var(--black); }
+.access-label.walk { background: #1f5fbf; }
+.access { display: grid; gap: 4px; margin: 8px 0; font-size: 14px; }
+.access span { padding-left: 8px; border-left: 4px solid var(--black); }
+.access span.walk { border-left-color: #1f5fbf; }
+.access b { font-family: var(--sign); text-transform: uppercase; letter-spacing: .04em; margin-right: 4px; }
 .bay-label.selected { background: var(--gold); }
 .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin: 8px 0 4px; }
 .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 1px; margin-right: 4px; vertical-align: -2px; }

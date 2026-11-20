@@ -224,6 +224,12 @@ if (TRY && typeof setTimeout === 'function') {
   if (typeof document.addEventListener === 'function') document.addEventListener('visibilitychange', () => { if (!document.hidden) openReview(); });
 }
 
+// Ways in and out, as text (the 3D pins carry the same labels). From data/deck.json "access".
+function renderAccess() {
+  const el = $('access'); if (!el) return;
+  el.innerHTML = (DECK.access || []).map(a => `<span class="${a.kind}"><b>${a.label}</b> ${a.where}</span>`).join('');
+}
+
 // Deck switcher on the Now screen. Only West Deck has counts; every other place says "coming soon".
 // `PLACES` is injected by scripts/build.cjs from data/places.json (names and clearances from KSU's own pages).
 let place = 'west';
@@ -580,7 +586,7 @@ async function mountViewer() {
     $('viewerNote').textContent = '3D view is not included in this build. The level cards show the same data.'; return;
   }
   try {
-    viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay, bayIds: ALL_IDS });
+    viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay, bayIds: ALL_IDS, access: DECK.access });
     viewer.setSpread($('spread').getAttribute('aria-pressed') === 'true', true); // apart by default, no animation on load
     $('viewerNote').textContent = 'Drag to rotate. Tap a bay.';
     render();
@@ -595,7 +601,7 @@ function toggleSpread() {
   if (viewer) viewer.setSpread(on);
 }
 
-load(); loadReports(); fillBayOptions(); renderLog(); renderPlaces(); render();
+load(); loadReports(); fillBayOptions(); renderLog(); renderPlaces(); renderAccess(); render();
 watchSwipes();
 renderParked();
 // Links: ?report opens straight at the student report panel; ?bay=L2_West also picks the bay (for a QR code posted in that bay).

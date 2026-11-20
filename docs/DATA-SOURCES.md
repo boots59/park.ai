@@ -45,3 +45,6 @@ Kell's idea after talking to a monitor: film the whole deck from the truck or on
 
 ## Other decks and lots (`data/places.json`)
 Names come from KSU Parking and Transportation's Kennesaw and Marietta parking maps and the student permit page; deck clearances from the KSU Parking FAQ (read 2026-11-19). Only West Deck (Kennesaw) has counts. Every other place shows "Coming soon" and never a number. Residential lots are left out.
+
+## Ways in and out (`data/deck.json`, `access`)
+The pins on the 3D deck come from Kell's on-site notes of 2026-11-19: the walk exit to campus at the north-east corner of Level 3 (the stair and lift tower already in the model), the main vehicle entrance/exit at the south-east corner of Level 1, and a side vehicle entrance/exit on the west side of Level 1. Corners and sides are from notes, not surveyed: positions are approximate to a few metres, and the side entrance's place along the west side is not recorded.
