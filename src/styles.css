@@ -168,6 +168,10 @@ details.panel[open] > summary { margin-bottom: 8px; }
 .access-label { position: absolute; left: 0; top: 0; pointer-events: none; font-family: var(--sign); font-size: 13px; font-weight: 700; line-height: 1; letter-spacing: .04em; text-transform: uppercase; padding: 4px 6px; border-radius: 2px; white-space: nowrap; color: var(--white); background: var(--black); }
 .access-label small { display: block; font-size: 11px; font-weight: 600; color: var(--gold); margin-top: 2px; }
 .access-label.walk small { color: #fff; }
+.compass { position: absolute; right: 8px; top: 8px; width: 52px; height: 52px; border-radius: 50%; background: var(--white); border: 2px solid var(--black); pointer-events: none; }
+.compass span { position: absolute; left: 50%; top: 50%; width: 0; height: 0; margin: -20px 0 0 -7px; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 20px solid #b8402f; transform-origin: 50% 100%; }
+.compass b { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--sign); font-size: 15px; line-height: 1; padding-top: 22px; }
+.hint { margin: 6px 0 0; }
 .level-tag { position: absolute; left: 0; top: 0; pointer-events: none; font-family: var(--sign); font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; line-height: 1; padding: 4px 8px; border-radius: 2px; white-space: nowrap; background: var(--gold); color: var(--black); border: 2px solid var(--black); }
 .access-label.walk { background: #1f5fbf; }
 .access { display: grid; gap: 4px; margin: 8px 0; font-size: 14px; }

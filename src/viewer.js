@@ -166,6 +166,11 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
     const el = document.createElement('div'); el.className = 'level-tag'; el.textContent = 'Level ' + n; el.setAttribute('aria-hidden', 'true');
     container.appendChild(el); return { anchor, el };
   });
+  // Which way is north: a compass fixed in the corner whose needle turns as the model is rotated
+  // (testers asked which way the model faces). North is -z in the model.
+  const compass = document.createElement('div'); compass.className = 'compass'; compass.setAttribute('aria-hidden', 'true');
+  compass.innerHTML = '<span></span><b>N</b>'; container.appendChild(compass);
+  const pn = new THREE.Vector3();
   const p = new THREE.Vector3(), box = new THREE.Box3();
   function placeLabels() {
     const w = container.clientWidth, h = container.clientHeight;
@@ -175,6 +180,8 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
       el.style.display = show ? '' : 'none';
       if (show) el.style.transform = `translate(-50%,-50%) translate(${((p.x + 1) / 2 * w).toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
     }
+    p.copy(controls.target).project(camera); pn.copy(controls.target).add(new THREE.Vector3(0, 0, -20)).project(camera);
+    compass.firstChild.style.transform = `rotate(${Math.atan2((pn.x - p.x) * w, (pn.y - p.y) * h)}rad)`; // screen direction of north
     for (const { anchor, el } of tags) {
       anchor.getWorldPosition(p).project(camera);
       el.style.display = apart > 0.6 && p.z < 1 ? '' : 'none';

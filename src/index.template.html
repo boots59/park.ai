@@ -31,7 +31,7 @@
 <section id="report" class="screen" aria-label="Report"><div class="inner" id="reportPanel">
 <div id="parkedNote" class="parked hidden"></div>
 <h2>Where did you park?</h2>
-<div id="reportGrid" class="baygrid"></div><select id="reportBay" class="hidden" aria-hidden="true" tabindex="-1"></select>
+<div id="reportGrid" class="baygrid"></div><p class="small hint">East = the side with the stairs to campus. West = the far side. Centre = the ramp.</p><select id="reportBay" class="hidden" aria-hidden="true" tabindex="-1"></select>
 <h2 style="margin-top:16px">How full is it?</h2>
 <div class="choices" style="margin-top:8px"><button class="choice room" onclick="reportBay('plenty')"><b>Plenty</b>5 or more open</button><button class="choice few" onclick="reportBay('few')"><b>A few</b>1 to 4 open</button><button class="choice full" onclick="reportBay('full')"><b>Last one</b>none left</button></div>
 <button class="secondary wide-btn" onclick="reportBay('leaving')">I'm leaving this bay</button>

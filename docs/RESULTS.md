@@ -82,6 +82,33 @@ processor with enlarged quarters, 12 s with 3 x 3. The images are not in this re
 
 **Reading the poll:** 30 students Kell met near West Deck on one afternoon, answering from memory. It is not a sample of KSU students. "Would you" answers overstate what people actually do. Raw answers: `data/field/2026-11-19-student-poll.csv`.
 
+## Second poll: answered by QR code (evening of Nov 19)
+27 people scanned the survey code between 5:45 and 7:26 PM on 2026-11-19 while Kell was at the deck; 24 of them drove that day (12 parked in West Deck, 9 in another deck, 3 elsewhere). They answered on their own phones, unsupervised, so this group is kept separate from the 30 asked in person. One test answer by Claude (5:38 PM) is removed.
+
+| Measure | QR group | In person (above) |
+|---|---|---|
+| Tried more than one level or lot | 15 of 24 drivers | 16 of 30 |
+| Over 5 minutes to find a space | 8 of 24 drivers (2 said over 20) | 12 of 30 |
+| Made late by parking this semester | 22 of 24 drivers at least once; 9 several times | 27 of 30; 18 several |
+| Gave up on a deck this semester | 18 of 24 drivers at least once; 6 several times | 23 of 30; 11 several |
+| With level information, would have gone straight to that level | 20 of 24 drivers (3 more: a different deck or lot) | 20 of 30 (5 more) |
+| Would check a page showing which level has room | 22 of 27 most times, 3 sometimes, 2 no | 23 of 30, 3, 4 |
+| Would tap one button after parking | 22 yes, 4 maybe, 1 no (of 27) | 20, 8, 2 |
+
+Raw answers: `data/field/2026-11-19-student-poll-qr.csv`.
+
+## App reviews from testers (evening of Nov 19)
+9 people opened the app from the "Try the app" code and sent a review. This was the app as it stood between 5:45 and 7:30 PM, before the entrances, level tags, camera scan and Ask guide were added.
+
+| Question | Answers (of 9) |
+|---|---|
+| Easy to use? | 7 yes, 2 sort of |
+| Would you check it before driving in? | 7 yes, 2 maybe |
+| Do you trust the numbers? | 5 yes, 4 somewhat |
+| Most useful part | Levels 5, Now 3, 3D deck 1 |
+
+Written suggestions (4): bay names by compass direction are hard to remember, and "closest to the stairs" would be easier (2 people); the 3D map needs a clearer sense of which way it faces; add a written-response option. Changes made in reply: a compass and level tags on the 3D deck, the exit to campus and the entrances drawn on it, and a landmark hint under the bay buttons. Nine self-selected testers is a first read, not a rating. Raw: `data/field/2026-11-19-app-reviews.csv`.
+
 ## What we could not measure
 - Two independent observers: both passes were made by Kell (the second is labelled Observer B in the log to tell the passes apart; confirm).
 - How long a pass takes on foot: both passes were made on a skateboard.
