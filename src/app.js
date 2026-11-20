@@ -402,6 +402,10 @@ function renderParked() {
   el.innerHTML = current ? `You reported parking in <b>${bayName(p.zone)}</b> at ${new Date(p.t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. ` +
     `<button class="primary" style="margin-top:8px" onclick="leaveParked()">I'm leaving now: my space is opening</button>` : '';
   if (p && !$('reportBay').dataset?.chosen) { $('reportBay').value = p.zone; renderGrids(); } // start on the bay used last time
+  // The same reminder on the Now screen, and a pin on the 3D deck over the bay this phone is parked in.
+  const now2 = $('parkedNow');
+  if (now2) { now2.classList.toggle('hidden', !current); now2.innerHTML = current ? `You parked in <b>${bayName(p.zone)}</b>. <button class="primary" style="margin-top:8px" onclick="showBay('${p.zone}')">Show me on the deck</button>` : ''; }
+  if (viewer && viewer.setParked) viewer.setParked(current ? p.zone : null);
 }
 function leaveParked() { const p = parkedHere(); if (!p) return; $('reportBay').value = p.zone; reportBay('leaving'); }
 
@@ -736,6 +740,7 @@ async function mountViewer() {
       staffParts: ZONE_IDS.filter(z => DECK.zones[z].facultyEnd && DECK.zones[z].facultyStaff > 0).map(z => ({ bay: z, end: DECK.zones[z].facultyEnd, share: DECK.zones[z].facultyStaff / (DECK.zones[z].stalls + DECK.zones[z].facultyStaff) })) });
     viewer.setSpread($('spread').getAttribute('aria-pressed') === 'true', true); // apart by default, no animation on load
     $('viewerNote').textContent = 'Drag to rotate. Tap a bay.';
+    renderParked(); // put the "You parked here" pin back if this phone is checked in
     render();
   } catch (e) {
     viewer = null;

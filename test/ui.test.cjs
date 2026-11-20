@@ -245,6 +245,7 @@ test('one-tap check-in from the deck: I parked here, then how full', () => {
   b.run("reportBay('few')");                                                        // the optional second tap
   assert.equal(JSON.parse(b.storage['west-deck-reports-v1']).at(-1).band, 'few');
   assert.match(b.els.checkin.innerHTML, /I'm leaving Level 2 · West bay/);
+  assert.match(b.els.parkedNow.innerHTML, /You parked in <b>Level 2 · West bay<\/b>.*showBay\('L2_West'\)/);        // the Now screen remembers where
 });
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
 const photo = () => ({ files: [{}], value: 'x' });

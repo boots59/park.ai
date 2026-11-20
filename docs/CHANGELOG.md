@@ -109,3 +109,4 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - **One-tap check-in**: after tapping a recommended bay, "I parked here" saves the check-in on the Deck screen and offers one optional tap for how full the bay is. "I'm leaving" appears on the same bay afterwards.
 - Report screen: the two steps are numbered.
 - Camera scan is the main way to count; Ask Park.AI; deck switcher; entrances; counts are never erased. Demo videos and the final pitch deck are in `submission/`.
+- **"You parked here"**: after a check-in, a green pin marks that bay on the 3D deck (it stays through a reload and moves with its level), and the Now screen shows where you parked with a button that opens it on the deck. Stored on the phone only.

@@ -172,6 +172,13 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
   compass.innerHTML = '<div class="dial"><span></span><b class="n">N</b><b class="e">E</b><b class="s">S</b><b class="w">W</b></div>'; container.appendChild(compass);
   const title = document.createElement('div'); title.className = 'deck-title'; title.setAttribute('aria-hidden', 'true'); title.textContent = deckName; if (deckName) container.appendChild(title);
   const pn = new THREE.Vector3();
+  // "You parked here": a green pin over the bay this phone checked in to. It rides with that bay's level.
+  const parkMat = new THREE.MeshStandardMaterial({ color: '#1f8f3a', emissive: '#1f8f3a', emissiveIntensity: 0.6 });
+  const parkPin = new THREE.Group(), parkPole = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 11, 10), parkMat), parkHead = new THREE.Mesh(new THREE.SphereGeometry(2.4, 18, 14), parkMat);
+  parkPole.position.y = 5.5; parkHead.position.y = 11; parkPin.add(parkPole, parkHead); parkPin.visible = false; scene.add(parkPin);
+  const parkLabel = document.createElement('div'); parkLabel.className = 'parked-label'; parkLabel.textContent = 'You parked here'; parkLabel.setAttribute('aria-hidden', 'true'); parkLabel.style.display = 'none';
+  container.appendChild(parkLabel);
+  let parkedAt = null;
   const p = new THREE.Vector3(), box = new THREE.Box3();
   function placeLabels() {
     const w = container.clientWidth, h = container.clientHeight;
@@ -189,6 +196,9 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
       const half = el.offsetWidth / 2 + 4, x = Math.max(half, Math.min(w - half, (p.x + 1) / 2 * w));
       el.style.transform = `translate(-50%,-50%) translate(${x.toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
     }
+    if (parkedAt) { parkHead.getWorldPosition(p).project(camera); parkLabel.style.display = p.z < 1 ? '' : 'none';
+      const half = parkLabel.offsetWidth / 2 + 4, x = Math.max(half, Math.min(w - half, (p.x + 1) / 2 * w));
+      parkLabel.style.transform = `translate(-50%,-150%) translate(${x.toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`; }
     for (const { a, head, el } of pins) {
       head.getWorldPosition(p).project(camera);
       el.style.display = p.z < 1 ? '' : 'none';
@@ -235,6 +245,14 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
     bayNames: Object.keys(bays),
     setBays(map) { states = map; paint(); }, // { bayName: { state: 'room'|'few'|'full'|'unknown', label: '6-14' } }
     select(name) { selected = name; paint(); },
+    // Mark the bay this phone is parked in (or pass null to clear the mark).
+    setParked(name) {
+      if (name === parkedAt) return;
+      parkedAt = bays[name] ? name : null; parkPin.visible = !!parkedAt; parkLabel.style.display = parkedAt ? '' : 'none';
+      if (parkedAt) { scene.updateMatrixWorld(true); const c = new THREE.Box3().setFromObject(bays[parkedAt]).getCenter(new THREE.Vector3()), top = new THREE.Box3().setFromObject(bays[parkedAt]).max.y;
+        scene.attach(parkPin); parkPin.position.set(c.x, top, c.z); (bays[parkedAt].parent || scene).attach(parkPin); }
+      render();
+    },
     // Slide the levels apart (or back). Animated unless the viewer prefers reduced motion.
     setSpread(on, instant = matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const from = apart, to = on ? 1 : 0, t0 = performance.now();
