@@ -5,7 +5,7 @@
   "access": [
     { "id": "campus", "kind": "walk", "level": 3, "at": "NE", "label": "To campus", "where": "Level 3, north-east corner: stairs and lift", "source": "Kell Enow, on site 2026-11-19; the stair and lift tower is in the 3D model" },
     { "id": "main", "kind": "drive", "level": 1, "face": "S", "along": 0.9, "label": "Main in/out", "where": "Level 1, south side, far east end", "source": "Kell Enow's stall-count note and description, 2026-11-19" },
-    { "id": "side", "kind": "drive", "level": 1, "face": "W", "along": 0.5, "label": "Side in/out", "where": "Level 1, west side", "source": "Kell Enow's stall-count note, 2026-11-19; position along the west side is approximate" }
+    { "id": "side", "kind": "drive", "level": 1, "face": "W", "along": 0.33, "label": "Side in/out", "where": "Level 1, west side, north of the middle", "source": "Kell Enow's stall-count note, 2026-11-19; position along the west side is approximate (Kell: a little north of the middle)" }
   ],
   "zones": {
     "L3_West": {

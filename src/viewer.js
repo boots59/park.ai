@@ -134,9 +134,18 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [] } 
     container.appendChild(el); labels[name] = el;
   }
   for (const pin of pins) {
-    const el = document.createElement('div'); el.className = 'access-label ' + pin.a.kind; el.textContent = pin.a.label; el.setAttribute('aria-hidden', 'true'); // listed as text under the model
+    const el = document.createElement('div'); el.className = 'access-label ' + pin.a.kind; el.innerHTML = `${pin.a.label}<small>Level ${pin.a.level}</small>`; el.setAttribute('aria-hidden', 'true'); // listed as text under the model
     container.appendChild(el); pin.el = el;
   }
+  // A "Level n" tag off the north-west corner of each level, shown while the levels are slid apart
+  // (stacked, the three tags would sit on top of each other).
+  const tags = levels.map(level => {
+    const n = level.name.replace('Level_', ''), around = new THREE.Box3(), anchor = new THREE.Object3D();
+    for (const side of ['West', 'Centre', 'East']) if (bays[`L${n}_${side}`]) around.expandByObject(bays[`L${n}_${side}`]);
+    anchor.position.set(around.min.x + 14, around.max.y + 1, around.min.z - 12); gltf.scene.add(anchor); level.attach(anchor);
+    const el = document.createElement('div'); el.className = 'level-tag'; el.textContent = 'Level ' + n; el.setAttribute('aria-hidden', 'true');
+    container.appendChild(el); return { anchor, el };
+  });
   const p = new THREE.Vector3(), box = new THREE.Box3();
   function placeLabels() {
     const w = container.clientWidth, h = container.clientHeight;
@@ -146,11 +155,17 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [] } 
       el.style.display = show ? '' : 'none';
       if (show) el.style.transform = `translate(-50%,-50%) translate(${((p.x + 1) / 2 * w).toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
     }
-    for (const { head, el } of pins) {
+    for (const { anchor, el } of tags) {
+      anchor.getWorldPosition(p).project(camera);
+      el.style.display = apart > 0.6 && p.z < 1 ? '' : 'none';
+      const half = el.offsetWidth / 2 + 4, x = Math.max(half, Math.min(w - half, (p.x + 1) / 2 * w));
+      el.style.transform = `translate(-50%,-50%) translate(${x.toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
+    }
+    for (const { a, head, el } of pins) {
       head.getWorldPosition(p).project(camera);
       el.style.display = p.z < 1 ? '' : 'none';
       const half = el.offsetWidth / 2 + 4, x = Math.max(half, Math.min(w - half, (p.x + 1) / 2 * w)); // keep the flag inside the view
-      el.style.transform = `translate(-50%,-140%) translate(${x.toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
+      el.style.transform = `translate(-50%,${a.kind === 'drive' ? '70%' : '-140%'}) translate(${x.toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
     }
   }
 
