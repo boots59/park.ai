@@ -269,6 +269,20 @@ test('focusing a level shows its counts; Level 1 shows it has no student stalls'
   b.run("$('ownerPass').value = 'staff'; unlock('ownerPass','ownerPassMsg')");
   assert.equal(b.storage['park-ai-owner-ok-v1'], '1'); assert.equal(b.storage['park-ai-staff-ok-v1'], undefined);
 });
+test('guided path: pick on Now, drive, I parked here, optional fullness, back to Now', () => {
+  const b = boot();
+  assert.match(b.els.verdict.innerHTML, /onclick="startTrip\('L3_East'\)"/);       // the answers on Now start the path
+  b.run("startTrip('L3_East')");
+  assert.match(b.els.tripCard.innerHTML, /Step 2 of 3 · drive there.*Level 3 · East bay.*<b>11<\/b> open.*parkHere\('L3_East'\)">I parked here/);
+  assert.match(b.els.guideText.textContent, /Drive to Level 3 · East bay/);
+  b.run("parkHere('L3_East')");
+  assert.match(b.els.tripCard.innerHTML, /Step 3 of 3 · parked.*You parked in Level 3 · East bay.*To campus: Level 3, north-east corner.*How full is it\?/);
+  b.run("reportBay('few')");                                                        // the optional last tap ends the path on Now
+  assert.equal(b.els.tripCard.innerHTML, '');
+  assert.match(b.els.parkedNow.innerHTML, /You parked in <b>Level 3 · East bay<\/b>/);
+  b.run("startTrip('L2_West'); endTrip()");                                         // "Pick another bay" goes back without checking in
+  assert.equal(b.els.tripCard.innerHTML, '');
+});
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
 const photo = () => ({ files: [{}], value: 'x' });
 (async () => {

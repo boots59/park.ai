@@ -202,6 +202,17 @@ details.panel[open] > summary { margin-bottom: 8px; }
 #staff.locked .inner > :not(.lock) { display: none; }
 body:not(.owner-ok) .priv { display: none; }
 body.owner-ok .ownerlock { display: none; }
+.tripcard { background: var(--black); color: var(--white); border-radius: 4px; padding: 14px 16px 16px; margin: 8px 0; }
+.tripcard .tstep { margin: 0 0 4px; font-family: var(--sign); font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); }
+.tripcard h2 { margin: 0; color: var(--white); font-size: 28px; }
+.tripcard .topen { margin: 2px 0 12px; font-size: 16px; }
+.tripcard .topen b { font-family: var(--sign); font-size: 34px; color: var(--gold); margin-right: 4px; }
+.tripcard .twalk { margin: 6px 0 10px; font-size: 15px; }
+.tripcard .tq { margin: 0 0 8px; font-weight: 700; }
+.tripcard .tgo { width: 100%; min-height: 68px; margin: 0 0 8px; background: var(--gold); color: var(--black); font-family: var(--sign); font-size: 26px; font-weight: 700; }
+.tripcard .tsmall { width: 100%; margin: 0; min-height: 44px; }
+#deck.trip #deck3d { height: 300px; }
+#deck.trip #levelPick, #deck.trip #bayPick, #deck.trip #levelFocus, #deck.trip #selection, #deck.trip #checkin, #deck.trip .deckrow, #deck.trip .deckmore, #deck.trip #ageNote { display: none; }
 .baypick { display: flex; gap: 6px; margin: 0 0 8px; }
 .baypick button { flex: 1; min-height: 52px; margin: 0; padding: 4px 2px; background: var(--white); border: 2px solid #8f8f8c; border-radius: 4px; font-family: var(--sign); font-size: 13px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--ink); line-height: 1.1; }
 .baypick button b { display: block; font-size: 20px; }

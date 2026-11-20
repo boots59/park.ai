@@ -83,7 +83,8 @@ function renderGuide() {
   else if (TRY && !reviewed()) { text = 'Trying the app? Tell us what you think.'; label = 'Rate it'; act = openReview; }
   else {
     const p = parkedHere(), parked = p && !p.left && t - p.t < 16 * 3600e3 && t >= p.t;
-    if (screenNow === 'staff' && !staffOk()) text = 'Staff only. Enter the monitor password above.';
+    if (trip && screenNow === 'deck') text = parked && p.zone === trip ? 'Parked. One more tap helps the next driver.' : 'Drive to ' + bayName(trip) + '. Tap the gold button when you have parked.';
+    else if (screenNow === 'staff' && !staffOk()) text = 'Staff only. Enter the monitor password above.';
     else if (screenNow === 'staff') {
       const next = ParkingModel.recheckNext(records, ZONE_IDS, t, reports, 1)[0];
       if (survey) text = 'Scan the bay with the camera, or tally by hand. Then Save.';
@@ -196,7 +197,7 @@ function setLead(minutes) { lead = minutes; render(); }
 const ASK = [
   { id: 'park', q: 'Where should I park?', words: 'where park best spot space bay try first recommend open', answer(t) {
       const pick = ParkingModel.recommend(records, ZONE_IDS, t, 1, reports)[0], old = lastTop(t);
-      if (pick) return { text: `Try ${bayName(pick.zone)} first: ${range(pick.est)} open${{ counted: ', just counted', estimate: ' (estimate)', students: ' (student report)' }[pick.est.source]}.`, label: 'Show me', go: () => showBay(pick.zone) };
+      if (pick) return { text: `Try ${bayName(pick.zone)} first: ${range(pick.est)} open${{ counted: ', just counted', estimate: ' (estimate)', students: ' (student report)' }[pick.est.source]}.`, label: 'Take me there', go: () => startTrip(pick.zone) };
       if (old) return { text: `Nothing current. At the last count (${since(records[old].start, t)}) ${bayName(old)} had the most room: ${records[old].count} open. Not live.`, label: 'Show me', go: () => showBay(old) };
       return { text: 'No bay has a known open space. If the deck is full: Shuttle Lot and the Big Owl Bus.', label: 'Open Now', go: () => setView('student') }; } },
   { id: 'room', q: 'Is there room right now?', words: 'room full busy now crowded many how spaces available status', answer(t) {
@@ -338,18 +339,19 @@ function lastTop(t) {
 function lastBest(t) {
   const top = ZONE_IDS.filter(z => records[z] && records[z].count > 0).sort((a, b) => records[b].count - records[a].count).slice(0, 3);
   if (!top.length) return '<span class="best">No bay had an open space at the last count. If the deck is full: Shuttle Lot and the Big Owl Bus.</span>';
-  return '<span class="best"><b>Most room at the last count:</b> ' + top.map(z => `<button class="pick" onclick="selectBay('${z}')">${bayName(z)} · <b>${records[z].count}</b> open · ${since(records[z].start, t)}</button>`).join(' ') + '</span>';
+  return '<span class="best"><b>Most room at the last count:</b> ' + top.map(z => `<button class="pick" onclick="startTrip('${z}')">${bayName(z)} · <b>${records[z].count}</b> open · ${since(records[z].start, t)}</button>`).join(' ') + '</span>';
 }
 // "Where should I try first?" Whole bays only: nothing here knows which individual spaces are open.
 function bestBet(t) {
   const picks = ParkingModel.recommend(records, ZONE_IDS, t, 3, reports);
   if (!picks.length) return '<span class="best">No bay has a known open space right now. If the deck is full: Shuttle Lot and the Big Owl Bus.</span>';
-  const item = ({ zone, est }, i) => `<button class="pick${i ? '' : ' top'}" onclick="selectBay('${zone}')">${bayName(zone)} · <b>${range(est)}</b> open${{ counted: '', estimate: ' (estimate)', students: ' (student report)' }[est.source]}</button>`;
+  const item = ({ zone, est }, i) => `<button class="pick${i ? '' : ' top'}" onclick="startTrip('${zone}')">${bayName(zone)} · <b>${range(est)}</b> open${{ counted: '', estimate: ' (estimate)', students: ' (student report)' }[est.source]}</button>`;
   // The first thing on the screen: one question, and the best bays as the answers. Tap one, drive there, park.
   return `<span class="best"><b class="q">Where do you want to park?</b>${picks.map(item).join('')}</span>`;
 }
 function render() {
   const t = now();
+  renderTrip(t);
   renderVerdict(t);
   $('cards').innerHTML = LEVELS.map(n => levelCard(n, t)).join('');
   $('clock').textContent = (demo === 'nov19' ? 'Replay of Thu Nov 19, as if 11:58 AM' : demo === 'sample' ? 'Made-up sample data' : 'Counts entered on this device') +
@@ -369,6 +371,7 @@ function render() {
   renderSelection();
 }
 function selectBay(z) {
+  trip = null; // tapping around the model leaves the guided path
   if (!ZONE_IDS.includes(z)) { // tapped a bay on the model that has no regular stalls
     selectedBay = null; if (viewer) viewer.select(null); render();
     $('selection').textContent = 'That bay has no regular student stalls (faculty/staff, accessible or reserved), so it is not counted.'; return;
@@ -458,6 +461,25 @@ function unlock(inputId, msgId) {
 }
 function lockAgain() { try { localStorage.removeItem(PASS_KEY); localStorage.removeItem(OWNER_KEY); } catch (e) {} cancelSurvey(); applyLock(); renderGuide(); }
 
+// ---- The guided path: pick a bay on Now, drive there, tap "I parked here" ----
+// While it is active the Deck screen shows only the model, the bay, and the one next step. Everything else on
+// that screen (level and bay buttons, details, legend) is hidden until the path ends or the person taps the model.
+let trip = null;
+function startTrip(zone) { if (!ZONE_IDS.includes(zone)) return; trip = zone; askFull = null; showBay(zone); }
+function endTrip() { trip = null; askFull = null; selectedBay = null; focusLvl = null; if (viewer) viewer.select(null); setView('student'); render(); }
+function renderTrip(t) {
+  const el = $('tripCard'); if (!el) return;
+  if ($('deck')) $('deck').classList.toggle('trip', !!trip);
+  el.classList.toggle('hidden', !trip); if (!trip) { el.innerHTML = ''; return; }
+  const p = parkedHere(), parked = p && !p.left && p.zone === trip, e = est(trip, t), r = records[trip];
+  const walk = (DECK.access || []).find(a => a.kind === 'walk');
+  el.innerHTML = parked
+    ? `<p class="tstep">Step 3 of 3 · parked</p><h2>You parked in ${bayName(trip)}</h2>` + (walk ? `<p class="twalk">${walk.label}: ${walk.where}.</p>` : '') +
+      `<p class="tq">How full is it? One tap helps the next driver.</p><div class="choices" style="margin:0 0 8px"><button class="choice room" onclick="reportBay('plenty')"><b>Plenty</b>5 or more</button><button class="choice few" onclick="reportBay('few')"><b>A few</b>1 to 4</button><button class="choice full" onclick="reportBay('full')"><b>Full</b>none</button></div><button class="secondary tsmall" onclick="endTrip()">Skip</button>`
+    : `<p class="tstep">Step 2 of 3 · drive there</p><h2>${bayName(trip)}</h2><p class="topen"><b>${e ? range(e) : r ? r.count : '?'}</b> open${e && e.counted ? '' : e ? ' (estimate)' : r ? ' at the last count' : ''}</p>` +
+      `<button class="primary tgo" onclick="parkHere('${trip}')">I parked here</button><button class="secondary tsmall" onclick="endTrip()">Pick another bay</button>`;
+}
+
 // ---- One-tap check-in from the deck: "I parked here" ----
 // Tapping it on a bay (usually the one the app just recommended) saves where this phone parked, so "I'm leaving"
 // works later, and asks the one thing a tap cannot know: how full the bay is. That second tap is optional.
@@ -490,7 +512,9 @@ function reportBay(band) {
   if (typeof shareReport === 'function') shareReport(report);
   try { localStorage.setItem(PARKED_KEY, JSON.stringify({ zone, t, left: band === 'leaving' })); } catch (e) {}
   render(); renderParked();
+  const guided = !!trip; trip = null;
   showBay(zone); say('Thanks. ' + bayName(zone) + ' updated.'); // show the person what their tap changed
+  if (guided) { selectedBay = null; focusLvl = null; if (viewer) viewer.select(null); setView('student'); render(); } // the guided path ends back on Now, with "You parked in…" at the top
   msg.textContent = 'Thank you. ' + (est(zone, t)?.source === 'students'
     ? bayName(zone) + ' now shows "' + BAND_TEXT[band] + '" as a student report for the next ' + (band === 'leaving' ? Settings.studentLeavingMinutes : Settings.studentReportMinutes) + ' minutes.'
     : 'A staff count of ' + bayName(zone) + ' from the last 5 minutes is stronger evidence, so the display keeps it for now.');
