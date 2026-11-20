@@ -217,7 +217,7 @@ test('deck switcher: West Deck is live, every other place says coming soon', () 
 test('ways in and out are listed as text', () => {
   const b = boot();
   assert.match(b.els.access.innerHTML, /<span class="walk"><b>To campus<\/b> Level 3, north-east corner/);
-  assert.match(b.els.access.innerHTML, /<b>Main in\/out<\/b> Level 1, south-east corner/);
+  assert.match(b.els.access.innerHTML, /<b>Main in\/out<\/b> Level 1, south side, far east end/);
   assert.match(b.els.access.innerHTML, /<b>Side in\/out<\/b> Level 1, west side/);
 });
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
