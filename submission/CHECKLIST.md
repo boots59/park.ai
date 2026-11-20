@@ -8,7 +8,7 @@ Required: a PowerPoint pitch deck, plus a demo video or a note that the demo wil
 |---|---|
 | `submission/Park-AI-pitch.pptx` (9 slides) and `Park-AI-pitch.pdf` | Final. No placeholders left on any slide or in the notes |
 | `submission/DESCRIPTION.md` | Ready to paste into the form |
-| Demo video | `Park-AI-demo-FULL-SILENT.mp4` (3:07) and `Park-AI-demo-SILENT.mp4` (1:26) are built; **your voice-over is still to add** |
+| Demo video | `Park-AI-demo.mp4` (6:09, Kell's full voice-over) and `Park-AI-demo-TIGHT.mp4` (5:33, stumbles and two asides removed). Pick one |
 | Live demo | https://boots59.github.io/park.ai/ |
 | Code | https://github.com/boots59/park.ai |
 
@@ -24,7 +24,7 @@ Required: a PowerPoint pitch deck, plus a demo video or a note that the demo wil
 
 ## Still open (only Kell can do these)
 - [ ] **Submission link** from the organizer
-- [ ] **Voice-over** recorded and added to the video
+- [x] Voice-over recorded and fitted to the video
 - [ ] Camera scan tested on a real phone (only run with a simulated camera so far)
 - [ ] A photo of parked cars to replace the test image in the video's camera shot (optional)
 - [ ] GitHub "About" box: description, website and topics (settings cannot be changed from the coding session)
