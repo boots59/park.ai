@@ -533,7 +533,7 @@ function renderNext() {
     `<button class="pick" onclick="pickBay('${p.zone}')">${bayName(p.zone)}</button> <span class="small">${i ? '' : '(' + p.why + ')'}</span>`).join(' ')
     : 'Every bay has a fresh count. Nothing needs recounting yet.';
 }
-function pickBay(z) { if (!staffOk()) { setView('staff'); return; } if (!survey) { countDeck = 'west'; countLevel = DECK.zones[z].level; $('bay').value = z; renderGrids(); startSurvey(); } }
+function pickBay(z) { if (!staffOk()) { setView('staff'); return; } const was = survey && survey.zone !== z ? dropOpenCount() : ''; if (!survey) { countDeck = 'west'; countLevel = DECK.zones[z].level; $('bay').value = z; renderGrids(); startSurvey(); if (was) feedback('Counting ' + bayName(z) + '. The unfinished count of ' + was + ' was not saved.'); } }
 
 // ---- Bay pickers: one tap on a button, no drop-down. A hidden <select> still holds the value. ----
 function renderGrids() {
@@ -542,11 +542,13 @@ function renderGrids() {
     `<button class="spot" aria-pressed="${z === chosen}" onclick="chooseBay('reportBay','${z}')" aria-label="${bayName(z)}">${shortName(z)}</button>`).join('')).join('');
   renderCountSteps();
 }
+// Leave an open count without saving it, when the monitor picks somewhere else. Nothing half-counted reaches students.
+function dropOpenCount() { if (!survey) return ''; const was = bayName(survey.zone); cancelSurvey('The unfinished count of ' + was + ' was not saved.'); return was; }
 // ---- Monitors: three steps to start a count. Deck, then level, then bay. ----
 // The deck and level are remembered while the page is open, so the next bay on the same level is one tap.
 let countDeck = null, countLevel = null;
 function countPick(what, value) {
-  if (survey) return; // a count is open: finish or cancel it first
+  if (survey) dropOpenCount(); // switching deck or level lets go of an open, unsaved count: no need to find Cancel
   countBay = null;
   if (what === 'deck') { countDeck = value; countLevel = null; }
   else if (what === 'level') countLevel = value;
@@ -554,7 +556,7 @@ function countPick(what, value) {
 }
 function renderCountSteps() {
   const el = $('bayGrid'); if (!el) return;
-  const locked = !!survey, chosen = locked ? survey.zone : null, dis = locked ? ' disabled' : '';
+  const chosen = survey ? survey.zone : null, dis = ''; // the steps stay live during a count, so a monitor can switch at any time
   if (chosen) { countDeck = 'west'; countLevel = DECK.zones[chosen].level; }
   const live = PLACES.filter(p => p.live), q = (n, text) => `<div class="stepq"><span class="step">${n}</span>${text}</div>`;
   let html = q(1, 'Which deck?') + '<div class="steprow">' + live.map(p => `<button class="spot" aria-pressed="${countDeck === p.id}"${dis} onclick="countPick('deck','${p.id}')">${p.name}</button>`).join('') +
@@ -568,9 +570,11 @@ function renderCountSteps() {
   mountStaffViewer(); syncStaffModel();
 }
 function chooseBay(selectId, zone) {
+  if (selectId === 'bay' && survey && survey.zone === zone) return; // already counting this bay
+  const was = selectId === 'bay' && survey ? dropOpenCount() : '';
   $(selectId).value = zone; if (selectId === 'reportBay') $('reportBay').dataset && ($('reportBay').dataset.chosen = '1');
   renderGrids();
-  if (selectId === 'bay' && !survey) startSurvey(); // for a monitor, tapping the bay starts the count: no extra Start step
+  if (selectId === 'bay' && !survey) { startSurvey(); if (was) feedback('Counting ' + bayName(zone) + '. The unfinished count of ' + was + ' was not saved.'); } // for a monitor, tapping the bay starts the count: no extra Start step
 }
 // One button saves and confirms the whole bay was covered (the button says so).
 function saveWalked() { $('coverage').checked = true; finishSurvey(); }

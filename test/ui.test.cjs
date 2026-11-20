@@ -291,7 +291,14 @@ test('monitors start a count in three steps: deck, level, bay', () => {
   b.run("countPick('level',2)");
   assert.match(b.els.bayGrid.innerHTML, /Which bay\?.*aria-label="Level 2 · West bay">West.*Centre.*East.*North.*South/);
   b.run("chooseBay('bay','L2_North')");                                             // the third tap starts the count
-  assert.match(b.els.bayGrid.innerHTML, /aria-pressed="true" disabled onclick="chooseBay\('bay','L2_North'\)"/);
+  assert.match(b.els.bayGrid.innerHTML, /aria-pressed="true" onclick="chooseBay\('bay','L2_North'\)"/);
+  b.run("$('count').value = '7'; chooseBay('bay','L2_South')");                      // switching bay mid-count needs no Cancel
+  assert.match(b.els.bayGrid.innerHTML, /aria-pressed="true" onclick="chooseBay\('bay','L2_South'\)"/);
+  assert.match(b.els.feedback.textContent, /unfinished count of Level 2 · North bay was not saved/);
+  assert.equal(b.saved().L2_North.count, 1);                                         // the half-entered 7 never replaced the real count
+  b.run("countPick('level',3)");                                                     // switching level mid-count works too
+  assert.match(b.els.bayGrid.innerHTML, /aria-pressed="true" onclick="countPick\('level',3\)"/); assert.doesNotMatch(b.els.bayGrid.innerHTML, /aria-pressed="true" onclick="chooseBay/);
+  b.run("countPick('level',2); chooseBay('bay','L2_North')");
   b.run('cancelSurvey()');
   assert.match(b.els.bayGrid.innerHTML, /aria-pressed="true" onclick="countPick\('level',2\)"/);   // the deck and level are remembered for the next bay
 });
