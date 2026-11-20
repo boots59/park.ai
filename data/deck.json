@@ -80,7 +80,7 @@
       "note": "the ramp between levels",
       "stalls": 28,
       "accessible": 0,
-      "facultyStaff": 38,
+      "facultyEnd": "S", "facultyStaff": 38,
       "otherReserved": 0,
       "source": "counted",
       "countedOn": "2026-11-19"

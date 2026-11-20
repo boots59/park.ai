@@ -590,7 +590,9 @@ async function mountViewer() {
     $('viewerNote').textContent = '3D view is not included in this build. The level cards show the same data.'; return;
   }
   try {
-    viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay, bayIds: ALL_IDS, access: DECK.access });
+    viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay, bayIds: ALL_IDS, access: DECK.access,
+      // student bays that are part faculty/staff, and which end of the bay those stalls are at
+      staffParts: ZONE_IDS.filter(z => DECK.zones[z].facultyEnd && DECK.zones[z].facultyStaff > 0).map(z => ({ bay: z, end: DECK.zones[z].facultyEnd, share: DECK.zones[z].facultyStaff / (DECK.zones[z].stalls + DECK.zones[z].facultyStaff) })) });
     viewer.setSpread($('spread').getAttribute('aria-pressed') === 'true', true); // apart by default, no animation on load
     $('viewerNote').textContent = 'Drag to rotate. Tap a bay.';
     render();

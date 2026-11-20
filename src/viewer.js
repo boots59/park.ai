@@ -20,7 +20,7 @@ function base64ToArrayBuffer(b64) {
   return bytes.buffer;
 }
 
-async function mount(container, glbBase64, { onPick, bayIds = [], access = [] } = {}) {
+async function mount(container, glbBase64, { onPick, bayIds = [], access = [], staffParts = [] } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -112,6 +112,18 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [] } 
       gltf.scene.add(path, arrow); level.attach(path); level.attach(arrow);
     }
     pins.push({ a, head });
+  }
+  // A student bay that is part faculty/staff: grey that share of it, from the end the field notes name
+  // (S = the low, south end of a ramp bay). It is a copy of the bay clipped across at that point. Levels only
+  // slide east and up, never north-south, so a fixed cut line stays in the right place.
+  renderer.localClippingEnabled = true;
+  for (const part of staffParts) {
+    const bay = bays[part.bay]; if (!bay) continue;
+    const b = new THREE.Box3().setFromObject(bay), cut = part.end === 'S' ? b.max.z - (b.max.z - b.min.z) * part.share : b.min.z + (b.max.z - b.min.z) * part.share;
+    const plane = part.end === 'S' ? new THREE.Plane(new THREE.Vector3(0, 0, 1), -cut) : new THREE.Plane(new THREE.Vector3(0, 0, -1), cut);
+    const grey = new THREE.Mesh(bay.geometry, new THREE.MeshStandardMaterial({ color: COLORS.staff, emissive: COLORS.staff, emissiveIntensity: 0.35, clippingPlanes: [plane], side: THREE.DoubleSide }));
+    grey.position.copy(bay.position); grey.quaternion.copy(bay.quaternion); grey.scale.copy(bay.scale); grey.position.y += 0.06; grey.name = part.bay + '_staff';
+    bay.parent.add(grey);
   }
   const base = levels.map(l => l.position.clone());
   let apart = 0, anim = 0; // apart: 0 = stacked, 1 = fully slid apart

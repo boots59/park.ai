@@ -48,3 +48,6 @@ Names come from KSU Parking and Transportation's Kennesaw and Marietta parking m
 
 ## Ways in and out (`data/deck.json`, `access`)
 The pins on the 3D deck come from Kell's on-site notes of 2026-11-19: the walk exit to campus at the north-east corner of Level 3 (the stair and lift tower already in the model), the main vehicle entrance/exit on the south side of Level 1 at its far east end, and a side vehicle entrance/exit on the west side of Level 1. Corners and sides are from notes, not surveyed: positions are approximate to a few metres, and the side entrance's place along the west side is not recorded.
+
+## Faculty/staff parking on the 3D deck
+Level 1 is drawn grey with its counted faculty/staff total (174). The Level 2 centre ramp bay is part faculty/staff: its 38 faculty stalls of 66 are drawn grey from the low, south end (`facultyEnd` in `data/deck.json`), per Kell's description that the faculty stalls run about halfway up the ramp. Where exactly the faculty stalls stop was not measured.
