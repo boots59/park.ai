@@ -25,7 +25,7 @@ const cards = {
   s6: [false, hero('70', 'Open spaces. The whole time.', 'West Deck · Thursday 11:50 AM · 57 of them were in just 3 bays')],
   now: [true, cap('Park.AI', 'Know before you go.')],
   pick: [true, cap('How it knows', 'A monitor picks a bay.')],
-  camera: [true, cap('The AI · on the phone', 'Counts every car.', 'AI', 'Simulated camera on a test photo · nothing recorded')],
+  camera: [true, cap('The AI · on the phone', 'Counts every car.', 'AI', 'Camera view: my photo of West Deck, plates blurred · nothing recorded')],
   confirm: [true, cap('A person confirms', 'Check. Save.')],
   hand: [true, cap('No camera?', 'Tally by hand.')],
   fresh: [true, cap('How it updates', 'Fresh = a number.')],
