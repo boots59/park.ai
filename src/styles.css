@@ -209,6 +209,10 @@ details.panel[open] > summary { margin-bottom: 8px; }
 .stepper .spot { min-height: 60px; font-size: 18px; }
 .stepper .steprow.five .spot { font-size: 15px; padding: 2px; }
 .stepper .spot:disabled { opacity: .45; }
+.railhold { position: sticky; top: 0; height: 0; z-index: 6; pointer-events: none; margin-right: -16px; } /* out in the screen's right gutter, clear of the buttons */
+.rail { position: absolute; right: 0; top: 8px; width: 22px; touch-action: none; pointer-events: auto; cursor: pointer; }
+.rail .thumb { position: absolute; right: 4px; top: 0; width: 7px; border-radius: 4px; background: var(--black); opacity: .55; transition: opacity .15s, width .15s; }
+.rail.on .thumb, .rail:hover .thumb { opacity: .9; width: 10px; }
 .lock { background: var(--black); color: var(--white); border-radius: 4px; padding: 16px; margin: 8px 0 16px; }
 .lock h2 { color: var(--gold); margin: 0 0 6px; }
 .lock .small { color: #d6d6d6; }

@@ -887,6 +887,36 @@ function toggleSpread() {
 
 load(); loadReports(); fillBayOptions(); renderLog(); renderPlaces(); renderAccess(); applyLock(); render();
 watchSwipes();
+// ---- A scroll bar down the right side of every screen ----
+// Phones hide their own scroll bars, and a finger that lands on the 3D model does not scroll. This bar is always
+// visible when a screen is longer than the phone, shows how far down you are, and can be dragged.
+function addScrollBars() {
+  if (typeof document === 'undefined' || !document.querySelectorAll || !document.createElement) return;
+  for (const sc of document.querySelectorAll('.screen')) {
+    const holder = document.createElement('div'), track = document.createElement('div'), thumb = document.createElement('div');
+    holder.className = 'railhold'; track.className = 'rail'; thumb.className = 'thumb'; holder.setAttribute('aria-hidden', 'true');
+    track.appendChild(thumb); holder.appendChild(track); sc.insertBefore(holder, sc.firstChild);
+    const place = () => {
+      const view = sc.clientHeight, all = sc.scrollHeight, can = all - view > 8;
+      track.style.display = can ? '' : 'none'; if (!can) return;
+      const trackH = view - 16, h = Math.max(48, trackH * view / all);
+      track.style.height = trackH + 'px'; thumb.style.height = h + 'px';
+      thumb.style.transform = `translateY(${(sc.scrollTop / (all - view)) * (trackH - h)}px)`;
+    };
+    const drag = e => {
+      const r = track.getBoundingClientRect(), h = thumb.offsetHeight, k = Math.min(1, Math.max(0, (e.clientY - r.top - h / 2) / (r.height - h)));
+      sc.scrollTop = k * (sc.scrollHeight - sc.clientHeight);
+    };
+    track.addEventListener('pointerdown', e => { e.preventDefault(); track.setPointerCapture(e.pointerId); track.classList.add('on'); drag(e); });
+    track.addEventListener('pointermove', e => { if (track.classList.contains('on')) drag(e); });
+    const end = () => track.classList.remove('on');
+    track.addEventListener('pointerup', end); track.addEventListener('pointercancel', end);
+    sc.addEventListener('scroll', place, { passive: true });
+    if (typeof ResizeObserver === 'function') { const ro = new ResizeObserver(place); ro.observe(sc); for (const child of sc.children) if (child !== holder) ro.observe(child); }
+    place();
+  }
+}
+addScrollBars();
 renderParked();
 // Links: ?report opens straight at the student report panel; ?bay=L2_West also picks the bay (for a QR code posted in that bay).
 if (typeof location !== 'undefined') {
