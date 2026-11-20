@@ -33,6 +33,13 @@ With Park.AI, you know which bay to try before you leave, and you get a heads-up
 ## 4:40 Close (slide 8) · 20 seconds
 "I park in West Deck. I counted every stall, polled 54 drivers and sat down with parking operations to build this. Less circling. More certainty. Scan the code and try it now. Thank you."
 
+## From the winning live pitches
+- **Say your belief once:** "Finding a parking space shouldn't be a guessing game."
+- **Why, then how, then what.** You were given "students circle the deck". Your own reading of it is the hook: the deck was not full, the spaces were there, nobody could find them.
+- **The live demo may break.** A first-place winner lost his for 25 seconds and recovered by saying so and carrying on. If the camera or the signal fails, say "let me show you the recording" and play the video from the same point.
+- **Be ready for "show me a bad case".** A judge asked exactly that. Yours: tap **Level 2 · Centre ramp** (0 open, red), or open the `?live` link and show an old count labelled "not live".
+- **End on real people:** 54 drivers polled, 9 students who tried it, and a meeting with parking operations.
+
 ## In the Q&A
 Listen to the whole question. Never argue. If something is not built, say "not yet, here is what is next". Bring every answer back to a strength: real counts, the camera count, the 54 drivers.
 
