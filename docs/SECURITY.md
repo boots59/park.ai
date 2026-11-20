@@ -23,3 +23,6 @@ A plain statement for a prototype with no accounts, no payments and no personal 
 | Inline scripts | The content security policy has to allow inline code, which weakens it | Move scripts to separate files |
 
 For the hackathon the live mode is a demonstration among testers. It should not be relied on.
+
+## Staff password (added 2026-11-20)
+The Count screen, the project tools on the About screen and the field kit ask for a password once per phone. **This is a speed bump, not access control.** The site is static, so the check runs in the browser: anyone who reads the source can get past it, and the shared database still accepts a correctly shaped count from anyone, as described above. It stops students and demo visitors from wandering into the tally screen. It does not stop someone determined. Real protection needs sign-in handled by a server (for example Firebase Authentication with rules that only let signed-in monitors write counts); that is the first thing to build before any pilot. The student survey link (`field.html?survey`) is deliberately not locked.

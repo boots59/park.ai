@@ -20,7 +20,7 @@ const VW = 412, VH = 892;
   const beat = async (id, min, fn) => { const s = now(); await fn(); const used = now() - s; if (used < min) await wait((min - used) * 1000); marks.push({ id, start: s, end: now() }); };
   await wait(500);
   await beat('now', 6, async () => { await wait(2500); await p.evaluate(() => document.querySelector('#student').scrollTo({ top: 260, behavior: 'smooth' })); await wait(2200); await p.evaluate(() => document.querySelector('#student').scrollTo({ top: 0, behavior: 'smooth' })); });
-  await beat('pick', 4.5, async () => { await tap('#staffTab'); await wait(1300); await tap('#bayGrid [aria-label="Level 3 · West bay"]'); await wait(900); });
+  await beat('pick', 4.5, async () => { await tap('#staffTab'); await wait(600); if (await p.isVisible('#staffPass')) { await p.fill('#staffPass', 'monitor'); await tap('#staffLock button'); } await wait(700); await tap('#bayGrid [aria-label="Level 3 · West bay"]'); await wait(900); });
   await beat('camera', 8, async () => { await tap('#camBtn'); await p.waitForFunction(() => /AI sees \d/.test(document.getElementById('camLive').textContent), null, { timeout: 60000 }); await p.locator('#camBox').scrollIntoViewIfNeeded(); await wait(4500); });
   await beat('confirm', 8, async () => { await tap('#shutter'); await p.waitForFunction(() => /the model found/.test(document.getElementById('scanPanel').textContent), null, { timeout: 90000 }); await wait(1800); await tap('#scanPanel button:has-text("as the count")'); await wait(900); await tap('#saveBtn'); await wait(1500); });
   await p.evaluate(() => loadDemo('nov19')); // the driver's view shows the real Nov 19 count, not the number from the test photo

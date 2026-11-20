@@ -6,7 +6,8 @@ button:focus-visible{outline:3px solid #ce8a16;outline-offset:2px}.primary{backg
 .q{font-weight:700;margin:14px 0 4px}.say{background:#fff6d6;border-radius:8px;padding:10px 12px;font-size:14px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.big{font-size:34px;font-weight:800}
 select,input{font:inherit;padding:10px;border:1px solid #bdbdbb;border-radius:8px;background:#fff}label{font-size:13px;font-weight:700}.ctr{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;margin-top:10px}.ctr .n{font-size:30px;font-weight:800;min-width:2.2em;text-align:right}.ctr button{min-width:56px;font-weight:700}.ctr.main button.add{background:#231f20;color:#fff;min-height:64px;font-size:20px}
 table{border-collapse:collapse;font-size:13px;width:100%}td,th{text-align:left;padding:4px 6px;border-bottom:1px solid #e6e6e4}nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}nav button[aria-selected="true"]{background:#231f20;color:#fff}.hidden{display:none}
-</style></head><body><main>
+#kitLock{position:fixed;inset:0;z-index:50;background:#231f20;color:#fff;display:flex;flex-direction:column;justify-content:center;padding:24px}#kitLock.hidden{display:none}#kitLock h1{color:#ffc629;margin:0 0 8px}#kitLock form{display:flex;gap:8px;margin-top:14px}#kitLock input{flex:1;min-width:0;min-height:48px;padding:8px 10px;font:inherit;border:0;border-radius:6px}#kitLock button{min-height:48px;background:#ffc629;color:#231f20;font-weight:700;border:0;border-radius:6px;padding:0 16px}
+</style></head><body><div id="kitLock" class="hidden"><h1>Field kit</h1><p>Project tools: stall counts, surveys and QR codes. Enter the password.</p><form onsubmit="kitUnlock(); return false"><input id="kitPass" type="password" autocomplete="off" autocapitalize="off" placeholder="Password" aria-label="Password"><button type="submit">Unlock</button></form><p id="kitPassMsg" role="status" aria-live="polite"></p><p><a href="./" style="color:#ffc629">← back to the app</a></p></div><main>
 <div id="kitHead"><p class="small"><a href="./">← back to the app</a></p><h1>Field kit</h1>
 <p class="small">For the person collecting data. No names, no contact details, no photos. <span id="where">Everything is stored on this phone only.</span></p></div>
 <div id="surveyHead" class="hidden"><h1>Parking at KSU: 45-second survey</h1><p class="small">A student hackathon project, not a KSU survey. Anonymous: no name, no email, nothing that identifies you. Tap an answer for each question.</p></div>
@@ -237,6 +238,13 @@ function exportCsv() {
   a.download = 'west-deck-field-kit-' + stamp().slice(0, 16).replace(/[:T]/g, '-') + '.csv'; a.click(); URL.revokeObjectURL(a.href);
 }
 function clearAll() { if (confirm('Delete ALL poll responses and tallies on this phone? Export first.')) { data = { responses: [], tallies: [], stalls: [], staff: [] }; save(); renderSummary(); drawStalls(); } }
+// The field kit is a project tool. Students who scan the survey code (?survey) never see this lock.
+// A speed bump, not security: the check runs on the phone. Shared with the app's staff password.
+const PASS_KEY = 'park-ai-staff-ok-v1', PASS_CHECK = 1983775257;
+const passSum = s => { let x = 2166136261; for (const c of String(s).trim().toLowerCase()) { x ^= c.charCodeAt(0); x = Math.imul(x, 16777619) >>> 0; } return x; };
+function kitOk() { try { return localStorage.getItem(PASS_KEY) === '1'; } catch (e) { return false; } }
+function kitUnlock() { if (passSum($('kitPass').value) !== PASS_CHECK) { $('kitPassMsg').textContent = 'That is not the password.'; return; } try { localStorage.setItem(PASS_KEY, '1'); } catch (e) {} $('kitLock').classList.add('hidden'); }
+if (!SURVEY && !kitOk()) $('kitLock').classList.remove('hidden');
 renderForm(); drawStalls(); renderStaff();
 if (SURVEY) { // QR mode: only the survey
   for (const id of ['kitHead', 'tabs', 'say']) $(id).classList.add('hidden');

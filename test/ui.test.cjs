@@ -174,7 +174,11 @@ test('the guide always offers the most useful next step', () => {
   assert.equal(b.els.guideBtn.textContent, 'Report');
   b.run("setView('deck')"); assert.match(b.els.guideText.textContent, /Best bet: Level 3 · East bay · 11 open/);   // from the same prediction as the Now screen
   assert.equal(b.els.guideBtn.textContent, 'I parked here');
-  b.run("setView('staff')"); assert.match(b.els.guideText.textContent, /Count next: Level 2 · South bay/);
+  b.run("setView('staff')"); assert.match(b.els.guideText.textContent, /Staff only\. Enter the monitor password/);   // locked until the password is entered
+  b.run("$('staffPass').value = 'wrong'; unlock('staffPass','staffPassMsg')"); assert.match(b.els.staffPassMsg.textContent, /not the password/);
+  b.run("$('staffPass').value = 'Monitor '; unlock('staffPass','staffPassMsg')");                         // case and spaces do not matter
+  assert.equal(b.storage['park-ai-staff-ok-v1'], '1');
+  assert.match(b.els.guideText.textContent, /Count next: Level 2 · South bay/);
   b.run("setView('student'); clearDemo()"); assert.match(b.els.guideText.textContent, /No known open space/);
   b.els.reportBay.value = 'L2_East'; b.run("reportBay('few')");
   assert.match(b.els.guideText.textContent, /Thanks\. Level 2 · East bay updated/);             // a short thank-you first

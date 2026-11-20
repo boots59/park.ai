@@ -44,6 +44,7 @@
 </div></section>
 
 <section id="staff" class="screen" aria-label="Count"><div class="inner">
+<div id="staffLock" class="lock"><h2>Staff only</h2><p class="small">Counts are entered by parking monitors. Enter the monitor password once on this phone.</p><form class="lockform" onsubmit="unlock('staffPass','staffPassMsg'); return false"><input id="staffPass" type="password" autocomplete="off" autocapitalize="off" placeholder="Password" aria-label="Monitor password"><button class="primary" type="submit">Unlock</button></form><p id="staffPassMsg" class="small" role="status" aria-live="polite"></p></div>
 <p id="countNext" class="small next"></p>
 <div id="bayGrid" class="baygrid"></div><select id="bay" class="hidden" aria-hidden="true" tabindex="-1"></select>
 <button class="hidden" id="start" onclick="startSurvey()" tabindex="-1" aria-hidden="true">Start count</button>
@@ -71,11 +72,13 @@
 <section id="about" class="screen" aria-label="About"><div class="inner">
 <h2>About</h2>
 <p id="noticeLong" class="small">A student prototype for the KSU AI Club Hackathon 2026. Not a KSU system. Do not use it for parking decisions. No license plates, faces, names or location are collected.</p>
-<div class="row" style="margin:12px 0"><a class="primary linkbtn" href="field.html#share">Survey QR code</a><a class="secondary linkbtn" href="field.html#poll">Ask a student</a><a class="secondary linkbtn" href="field.html">Field kit</a></div>
-<p id="syncStatus" class="small" role="status" aria-live="polite"></p>
-<details class="fold" open><summary>Demo data</summary>
+<div class="row priv" style="margin:12px 0"><a class="primary linkbtn" href="field.html#share">Survey QR code</a><a class="secondary linkbtn" href="field.html#poll">Ask a student</a><a class="secondary linkbtn" href="field.html">Field kit</a></div>
+<p id="syncStatus" class="small priv" role="status" aria-live="polite"></p>
+<details class="fold priv" open><summary>Demo data</summary>
 <div class="controls" id="demoControls"><div class="row"><button class="secondary" onclick="loadDemo('nov19')">Replay Nov 19 count</button><button class="secondary" onclick="loadDemo('sample')">Made-up sample</button><button class="secondary" onclick="clearDemo()">Clear</button><button class="secondary" onclick="advance(6)">+6 min</button><button class="secondary" onclick="advance(15)">+15 min</button></div></div>
 <p id="clock" class="small"></p><p class="small" id="modeLink"></p></details>
+<div id="ownerLock" class="lock ownerlock"><p class="small"><b>Staff and project tools</b> (field kit, survey codes, demo controls) are locked.</p><form class="lockform" onsubmit="unlock('ownerPass','ownerPassMsg'); return false"><input id="ownerPass" type="password" autocomplete="off" autocapitalize="off" placeholder="Password" aria-label="Password for staff and project tools"><button class="secondary" type="submit">Unlock</button></form><p id="ownerPassMsg" class="small" role="status" aria-live="polite"></p></div>
+<p class="priv"><button class="secondary" onclick="lockAgain()">Lock staff tools on this phone</button></p>
 <details class="fold"><summary>How to read the numbers</summary>
 <p class="small"><b>Counted:</b> a person counted this bay less than 5 minutes ago. You see their number.<br><b>Estimate:</b> the count is 5–60 minutes old. You see a range that widens as the count ages, and shifts if the bay's last two counts showed it filling or emptying.<br><b>Student report:</b> someone who just parked tapped “plenty”, “a few” or “full”. It fills in when there is no fresh staff count, shows as a band (for example 1–4), and expires after 10 minutes. A staff count under 5 minutes old always wins.<br><b>Unknown:</b> no count or report. Nothing is guessed. If there are enough past counts, the bay notes what is typical at this hour.<br><b>Level and deck totals:</b> add up the bays that are known, and say how many bays that covers.<br><b>I arrive in…:</b> pick a time and the verdict and “try first” are predicted for that moment. Counts will be older by then, so ranges widen, and a bay that was filling is projected forward.<br><b>Try first:</b> the bays with the most open spaces at the low end of their range. The 3D view colours each bay the same way and updates as soon as a count is saved.</p>
 <p class="small">The range is sized to hold the real number about 9 times in 10, <i>if</i> its settings match this deck. They are placeholders until checked against real repeat counts; the staff field log runs that check. Age counts from when a survey <i>started</i>, because a walk takes minutes.</p>
@@ -105,7 +108,7 @@
 <li>Partial or cancelled surveys never reach students.</li>
 <li>Zero means you found no usable open spaces. A count is never erased: after 60 minutes it stays on screen as "Last count" with its age, until a new count replaces it. It is not a live number.</li>
 <li>Recounting a bay 3–60 minutes after its last count gives students a trend, not just a number.</li></ol></details>
-<details class="fold"><summary>Field tools</summary>
+<details class="fold priv"><summary>Field tools</summary>
 <label for="observer">Observer</label><select id="observer"><option value="A">Observer A</option><option value="B">Observer B</option></select>
 <p id="logSummary" class="small"></p>
 <div class="row"><button class="secondary" onclick="exportLog()">Export field log (CSV)</button><button class="secondary" onclick="clearLog()">Clear field log</button><a class="secondary" href="field.html" style="text-decoration:none;display:inline-flex;align-items:center">Field kit</a></div></details>

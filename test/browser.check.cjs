@@ -38,7 +38,7 @@ function serve() {
     assert.doesNotMatch(await p.textContent('#selection'), /Tap a bay/, 'tapping the model centre selected no bay');
     await p.screenshot({ path: `${out}/student-${w}.png`, fullPage: true });
 
-    await p.click('#staffTab'); await p.click('#bayGrid [aria-label="Level 2 · North bay"]'); // tapping the bay starts the count
+    await p.click('#staffTab'); if (await p.isVisible('#staffPass')) { await p.fill('#staffPass', 'monitor'); await p.click('#staffLock button'); } await p.click('#bayGrid [aria-label="Level 2 · North bay"]'); // tapping the bay starts the count
     await p.click('#tallyButton'); await p.click('#saveBtn');
     assert.match(await p.textContent('#feedback'), /Level 2 · North bay saved/);
     assert.match(await p.textContent('#logSummary'), /1 completed survey logged/);
@@ -57,7 +57,7 @@ function serve() {
     const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 2 });
     const p = await ctx.newPage(), errors = [];
     p.on('pageerror', e => errors.push(e.message));
-    await p.goto(url); await p.click('#staffTab'); await p.click('#bayGrid [aria-label="Level 3 · West bay"]');
+    await p.goto(url); await p.click('#staffTab'); if (await p.isVisible('#staffPass')) { await p.fill('#staffPass', 'monitor'); await p.click('#staffLock button'); } await p.click('#bayGrid [aria-label="Level 3 · West bay"]');
     const t0 = Date.now();
     await p.click('#assist summary'); // the camera AI test is tucked under the tally
     await p.setInputFiles('#photo', fixture);

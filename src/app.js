@@ -83,7 +83,8 @@ function renderGuide() {
   else if (TRY && !reviewed()) { text = 'Trying the app? Tell us what you think.'; label = 'Rate it'; act = openReview; }
   else {
     const p = parkedHere(), parked = p && !p.left && t - p.t < 16 * 3600e3 && t >= p.t;
-    if (screenNow === 'staff') {
+    if (screenNow === 'staff' && !staffOk()) text = 'Staff only. Enter the monitor password above.';
+    else if (screenNow === 'staff') {
       const next = ParkingModel.recheckNext(records, ZONE_IDS, t, reports, 1)[0];
       if (survey) text = 'Scan the bay with the camera, or tally by hand. Then Save.';
       else if (next) { text = 'Count next: ' + bayName(next.zone); label = 'Start'; act = () => pickBay(next.zone); }
@@ -426,6 +427,25 @@ function renderLevelFocus() {
     return `${shortName(z)} <b>${e ? range(e) : r ? r.count : '?'}</b>`; }).join(' · ');
 }
 
+// ---- Staff password ----
+// A speed bump, not security: this is a static page, so the check runs on the phone and a determined person can
+// get past it. It keeps students and demo visitors out of the count screen and the project tools by accident or
+// curiosity. Real protection needs sign-in on a server (see docs/SECURITY.md). Remembered on this phone.
+const PASS_KEY = 'park-ai-staff-ok-v1', PASS_CHECK = 1983775257; // a checksum of the password, not the password
+const passSum = s => { let x = 2166136261; for (const c of String(s).trim().toLowerCase()) { x ^= c.charCodeAt(0); x = Math.imul(x, 16777619) >>> 0; } return x; };
+function staffOk() { try { return localStorage.getItem(PASS_KEY) === '1'; } catch (e) { return false; } }
+function applyLock() {
+  const ok = staffOk();
+  if ($('staff')) $('staff').classList.toggle('locked', !ok);
+  if (typeof document !== 'undefined' && document.body && document.body.classList) document.body.classList.toggle('staff-ok', ok);
+}
+function unlock(inputId, msgId) {
+  if (passSum($(inputId).value) !== PASS_CHECK) { $(msgId).textContent = 'That is not the password.'; return; }
+  try { localStorage.setItem(PASS_KEY, '1'); } catch (e) {}
+  $(inputId).value = ''; $(msgId).textContent = ''; applyLock(); renderGuide();
+}
+function lockAgain() { try { localStorage.removeItem(PASS_KEY); } catch (e) {} cancelSurvey(); applyLock(); renderGuide(); }
+
 // ---- One-tap check-in from the deck: "I parked here" ----
 // Tapping it on a bay (usually the one the app just recommended) saves where this phone parked, so "I'm leaving"
 // works later, and asks the one thing a tap cannot know: how full the bay is. That second tap is optional.
@@ -471,7 +491,7 @@ function renderNext() {
     `<button class="pick" onclick="pickBay('${p.zone}')">${bayName(p.zone)}</button> <span class="small">${i ? '' : '(' + p.why + ')'}</span>`).join(' ')
     : 'Every bay has a fresh count. Nothing needs recounting yet.';
 }
-function pickBay(z) { if (!survey) { $('bay').value = z; renderGrids(); startSurvey(); } }
+function pickBay(z) { if (!staffOk()) { setView('staff'); return; } if (!survey) { $('bay').value = z; renderGrids(); startSurvey(); } }
 
 // ---- Bay pickers: one tap on a button, no drop-down. A hidden <select> still holds the value. ----
 function renderGrids() {
@@ -774,7 +794,7 @@ function toggleSpread() {
   if (viewer) viewer.setSpread(on);
 }
 
-load(); loadReports(); fillBayOptions(); renderLog(); renderPlaces(); renderAccess(); render();
+load(); loadReports(); fillBayOptions(); renderLog(); renderPlaces(); renderAccess(); applyLock(); render();
 watchSwipes();
 renderParked();
 // Links: ?report opens straight at the student report panel; ?bay=L2_West also picks the bay (for a QR code posted in that bay).
