@@ -328,7 +328,9 @@ function renderVerdict(now) {
     `<span class="verdict-detail">${d.state === 'unknown' ? 'No counts yet' : `<b>${count}</b> open · ${unit}`}` +
     (lead ? ` · <b>predicted for ${lead} minutes from now</b>` : '') +
     (Number.isFinite(newest) ? ` · newest count ${since(now - newest, now)}` : '') + '</span>' + arrive;
-  $('verdict').innerHTML = bestBet(t) + $('verdict').innerHTML; // the question and its answers come first
+  // Order on screen: how much parking there is (the one thing everyone wants), the verdict, then the question and its answers.
+  const hero = d.state === 'unknown' ? '' : `<span class="hero ${d.verdict}"><b>${count}</b>${d.verdict === 'full' ? 'open spaces. Try the Shuttle Lot.' : lead ? 'open spaces, predicted in ' + lead + ' min' : 'open spaces right now'}</span>`;
+  $('verdict').innerHTML = hero + $('verdict').innerHTML.replace(arrive, bestBet(t) + arrive);
 }
 // The bay with the most room at the last count, used only when nothing current is known.
 function lastTop(t) {
