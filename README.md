@@ -1,5 +1,7 @@
 # Park.AI
 
+<p align="center"><a href="https://boots59.github.io/park.ai/"><img src="docs/img/park-ai-screens.png" alt="Three phone screens of Park.AI: the verdict with where to try first, the 3D parking deck coloured by open spaces, and the level list" width="760"></a></p>
+
 **Know before you drive in.** A student prototype for West Deck on KSU's Kennesaw campus: people on the ground count open
 spaces one bay at a time, an on-device AI model helps them count, and students see the count, or an honest estimate with
 a range once the count starts to age.
