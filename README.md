@@ -80,7 +80,7 @@ submission/               pitch outline, demo script, submission checklist
 More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Where each number comes from and how far to trust it:
 [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md). Sharing between phones: [docs/SHARED-DATA.md](docs/SHARED-DATA.md).
 
-**3D view:** `assets/west_deck_plain.glb` is a 3D model of the deck made by a collaborator ([Bookee2](https://github.com/Bookee2/SkillZ))
+**3D view:** `assets/west_deck_plain.glb` is a 3D model of the deck made by Kris Brown ([Bookee2](https://github.com/Bookee2/SkillZ))
 from public lidar and aerial imagery, included with their permission. [assets/MODEL-README.md](assets/MODEL-README.md) says what in it is
 measured and what is guessed. If the file is removed, the page still builds and runs with the level cards only.
 

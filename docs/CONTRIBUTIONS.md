@@ -10,7 +10,7 @@ Fill in the blanks yourself. A reviewer (or a Claude Corps application) will tru
 - Asked whether the design was the best one, then gave Claude latitude to change or scrap design choices (2026-11-18). Went to West Deck that night to collect ground truth.
 - _Add: what you tested, what you changed your mind about, who you talked to at KSU, the field counts you ran._
 
-## Friend (name to confirm before crediting publicly)
+## Kris Brown (Bookee2 on GitHub)
 - The 3D West Deck model: lidar and aerial-photo measurements, Blender model, GLB exports, model README (`assets/`, included with their permission, given 2026-11-19).
 
 ## Codex

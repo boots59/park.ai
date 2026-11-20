@@ -1,7 +1,8 @@
 {
   "name": "park-ai",
   "private": true,
-  "description": "WEST / deck: a student prototype for parking counts and estimates at West Deck, KSU Kennesaw. Simulated data.",
+  "license": "MIT",
+  "description": "Park.AI: know where the open spaces are before you drive into West Deck. A phone camera counts the cars, on the device. KSU AI Club Hackathon 2026 student prototype.",
   "scripts": {
     "fetch-model": "node scripts/fetch-model.cjs",
     "build": "node scripts/build.cjs",

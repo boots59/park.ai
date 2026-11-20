@@ -2,7 +2,8 @@
 
 ## People
 - **Kell Enow**: concept, product decisions, field measurements.
-- **[Bookee2](https://github.com/Bookee2/SkillZ)**: the 3D model of West Deck (`assets/west_deck_plain.glb`), included with permission. _Kell: confirm how they want to be named._
+- **Kris Brown** ([Bookee2](https://github.com/Bookee2/SkillZ) on GitHub): the base 3D model of West Deck (`assets/west_deck_plain.glb`), used with permission. It is not covered by this repository's MIT licence.
+- **Kell Enow** checked the model against the deck on foot and extended the viewer around it: the north and south bays, the entrances and exit to campus, faculty parking, level tags and live colouring (code written with AI assistants).
 - **AI coding assistants**: Claude (Anthropic) and Codex (OpenAI) wrote code under Kell's direction. See [CONTRIBUTIONS.md](CONTRIBUTIONS.md).
 
 ## Code and models

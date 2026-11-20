@@ -91,7 +91,7 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Nothing about how the app behaves changed; all tests pass unchanged apart from the placeholder character.
 - The app is now a row of full-size screens (Now, Deck, Levels, Report, Count) with a bottom bar and sideways swipe; About is behind the "i" button. Explanations, demo controls and field tools moved to About. Wording cut throughout.
 - Content security policy and no-referrer added. `docs/SECURITY.md` lists what is and is not protected.
-- Renamed to **Park.AI** in the app, icon and pitch deck. The owl mark is an original drawing, not KSU's logo. The pitch deck file is now `submission/Park-AI-pitch-DRAFT.pptx`.
+- Renamed to **Park.AI** in the app, icon and pitch deck. The owl mark is an original drawing, not KSU's logo. The pitch deck file is now `submission/Park-AI-pitch.pptx`.
 - Bay drop-downs replaced by one-tap bay buttons (Report and Count). The phone remembers the last bay.
 - A one-line guide above the bottom bar gives the next step with one button: a nudge to report for anyone who has not, "Leaving?" for anyone who has, the best bet on the Deck screen, and "Count next" for monitors.
 - Monitors: tapping a bay starts the count, and one button saves it. After a report the app jumps to the deck to show what changed.
