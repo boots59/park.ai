@@ -2,53 +2,47 @@
 
 Read it aloud twice with a timer. Every number is from `docs/RESULTS.md`. Say "drivers I polled", never "KSU students" or a percentage of campus.
 
-## The shape (from the three videos you sent)
-A question, the evidence, the cost, one plain sentence, then **one continuous story on the phone for half the time**, then before and after, the plan, and you. Slides are short; the app carries it. Show three things, not ten: the camera count, where to try first, the one-tap report.
+## The shape
+A morning every driver knows, the numbers that prove it, one plain sentence, then **one continuous story on the phone for half the time**, then the relief, who keeps it alive, the plan, and you. The slides are numbers and a few words. You carry the story.
 
-## 0:00 Question (slide 1) · 20 seconds
+## 0:00 The morning (slide 1) · 25 seconds
 "Raise your hand if parking has ever made you late to class." *(wait for the hands)*
-"It's 11:50 on a Thursday. You have class at 12:15. You pull into West Deck. Which level do you try? I'm Kell, and this is Park.AI."
+"It's 11:50. You have class at 12:15. Level 1: nothing. Level 2: nothing. You walk in at 12:16. Late. Again."
+*[Your own line: what that walk into class feels like.]*
+"I'm Kell, and this is Park.AI."
 
-## 0:20 Evidence (slide 2) · 20 seconds
-"It's not just this room. I polled 54 drivers at the deck. Forty-nine said parking has made them late this semester. Thirty-one had already tried more than one level or lot that day."
+## 0:25 The numbers (slide 2) · 25 seconds
+"Ninety-one percent of the drivers I polled have lived that morning. Half of them, several times this semester. Three in four have given up on a deck completely.
+And it is not only students. Staff told me the same thing: late to work, then sent to a far lot they did not pay for."
 
-## 0:40 Cost (slide 3) · 20 seconds
-"Here is the part that surprised me. At 11:50 that Thursday the deck was not full. Seventy student spaces were open. Fifty-seven of them were in three bays, and nothing told anyone which three. And Level 1 has 181 stalls with none for students."
+## 0:50 The twist (slide 3) · 20 seconds
+"Here is what nobody expects. That Thursday at 11:50, the deck was not full. Seventy student spaces were open. Fifty-seven of them sat in three bays. And Level 1 has 181 stalls with zero for students. The deck was not full. The information was missing."
 
-## 1:00 Solution (slide 4) · 15 seconds
-"Park.AI tells you which part of the deck has room before you drive in. And a phone camera does the counting. Let me show you."
+## 1:10 The solution (slide 4) · 20 seconds
+"Park.AI tells you where the room is before you drive in. And the AI does the counting: a parking monitor points a phone down a row, and a vehicle-detection model on that phone counts every car. No plates. Nothing recorded. Let me show you."
 
-## 1:15 Demo: one story, in order (slide 5, then the phone) · 2 minutes 30 seconds
-Follow `DEMO-SCRIPT.md`. It is the 11:50 Thursday story, start to finish. The moment that must land is the camera putting a box on each car. Stop talking for two seconds when it happens.
+## 1:30 Demo: one story, in order (slide 5, then the phone) · 2 minutes
+Follow `DEMO-SCRIPT.md`. The moment that must land is the camera putting a box on each car. Stop talking for two seconds when it happens.
 
-## 3:45 Before and after (slide 6) · 25 seconds
-"Before Park.AI: 49 of the 54 drivers I polled have been late to class because of parking. Twenty of them took six minutes or more to park that day, and five took more than ten.
-With Park.AI, you know which bay to try before you leave, and you get a heads-up before you drive into a full deck. Forty of the 54 told me they would have gone straight to that level. For a driver who spent ten or twenty minutes searching, that could be the difference between walking in late and walking in early."
+## 3:30 The relief (slide 6) · 25 seconds
+"Now picture that same morning again. 11:50. Class at 12:15. Level 2, west bay: 22 open. You already knew.
+Seventy-eight percent of the drivers I asked said they would check first. Seventy-four percent would drive straight to that level."
 
-**Say "could", not "saves".** Nobody has parked using the app yet, and 34 of the 54 parked in five minutes or less. If asked for the measured saving: "Not measured yet. That is exactly what the two-week pilot measures."
+## 3:55 Who keeps it alive (slide 7) · 25 seconds
+"I will push for the deck's own cameras, and that needs KSU's approval. Until then, it runs on the people who use the deck every day. Students, with one tap: 72 percent said they would. Monitors, who already patrol it, with the AI camera filling the gaps. And the plate truck that already drives through six or seven times a day. The more people use it, the fresher it gets."
 
-## 4:10 Plan and limits (slide 7) · 30 seconds
-"I'll be straight about the limits. One deck, one morning, one counter, and no agreement with KSU. But KSU already sends a plate-scanning truck through this deck six or seven times a day. The pilot is two weeks: one number per pass. After that, the same model on the deck's own cameras, with Public Safety's approval, and then every deck on both campuses."
+## 4:20 Plan and limits (slide 8) · 20 seconds
+"I'll be straight about the limits. One deck, one morning, one counter, and no agreement with KSU yet. The pilot is two weeks at West Deck. Then every deck on both campuses."
 
-## 4:40 Close (slide 8) · 20 seconds
-"I park in West Deck. I counted every stall, polled 54 drivers and sat down with parking operations to build this. Less circling. More certainty. Scan the code and try it now. Thank you."
-
-## From the winning live pitches
-- **Say your belief once:** "Finding a parking space shouldn't be a guessing game."
-- **Why, then how, then what.** You were given "students circle the deck". Your own reading of it is the hook: the deck was not full, the spaces were there, nobody could find them.
-- **The live demo may break.** A first-place winner lost his for 25 seconds and recovered by saying so and carrying on. If the camera or the signal fails, say "let me show you the recording" and play the video from the same point.
-- **Be ready for "show me a bad case".** A judge asked exactly that. Yours: tap **Level 2 · Centre ramp** (0 open, red), or open the `?live` link and show an old count labelled "not live".
-- **End on real people:** 54 drivers polled, 9 students who tried it, and a meeting with parking operations.
-
-## In the Q&A
-Listen to the whole question. Never argue. If something is not built, say "not yet, here is what is next". Bring every answer back to a strength: real counts, the camera count, the 54 drivers.
+## 4:40 Close (slide 9) · 20 seconds
+"I park in West Deck. I counted every one of its 662 stalls and polled 54 drivers to build this. Whether you make it to class should not depend on a guess. Park.AI. Scan the code and try it now. Thank you."
 
 ## Rubric map (AI Club track, 100 points)
 | Criterion | Points | Where the pitch earns it |
 |---|---|---|
-| Campus impact | 25 | Slide 2 (54 drivers polled) and slide 6 (662 stalls, two passes) |
-| Use of AI | 25 | Slide 4 and the demo: the detection model counts live in the camera; the estimator and ranking run between counts |
-| Feasibility | 20 | Slide 3 (existing truck and monitors, no hardware) and slide 7 (pilot, limits) |
+| Campus impact | 25 | Slides 2 and 3 (54 drivers polled, the real count, staff) and slide 6 |
+| Use of AI | 25 | Slide 4, the demo and slide 7: the detection model counts live in the camera; the estimator and ranking run between counts; the deck cameras are next |
+| Feasibility | 20 | Slide 7 (students, monitors and the truck already there; no hardware) and slide 8 (pilot, limits) |
 | Creativity | 15 | "The sensors are already in the deck"; a range and an age instead of a stale number |
 | Pitch | 15 | One story, one demo, a hook in the first sentence, under 5 minutes |
 

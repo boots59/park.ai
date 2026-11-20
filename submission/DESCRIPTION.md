@@ -2,7 +2,7 @@
 
 **One line:** Park.AI tells KSU drivers which part of West Deck has open spaces before they drive in, and a phone camera does the counting.
 
-**The problem.** I polled 54 drivers at West Deck. 49 said parking has made them late to class this semester, and 31 had tried more than one level or lot that day. When I counted the deck at 11:50 AM on a Thursday it was not full: 70 student spaces were open, but 57 of them were in 3 of the 10 bays, and nothing tells a driver which. Level 1 has 181 stalls and none are for students.
+**The problem.** I polled 54 drivers at West Deck. 49 of them (91%) said parking has made them late to class this semester, half of them several times, and 41 (76%) have given up on a deck and parked elsewhere. Staff told me the same story. When I counted the deck at 11:50 AM on a Thursday it was not full: 70 student spaces were open, but 57 of them were in 3 of the 10 bays, and nothing tells a driver which. Level 1 has 181 stalls and none are for students.
 
 **Who it is for.** Commuter students arriving at West Deck (Kennesaw campus) between 9 AM and 1 PM, and the parking monitors who already walk that deck.
 
@@ -12,6 +12,8 @@
 3. A student who just parked adds one anonymous tap ("plenty", "a few", "full") for the next driver.
 
 Every number shows how old it is. An old count is kept and labelled, never shown as live.
+
+**Who keeps it going.** The people who already use the deck: students with one tap after parking (39 of 54 said they would), parking monitors with the AI camera, and the plate-scanning truck KSU already runs. The same AI on the deck's own cameras is the next step and needs KSU's approval.
 
 **Where the AI is.** A vehicle-detection model runs on the phone and counts cars in the camera view; nothing is recorded or uploaded. A statistical model estimates each bay between counts and ranks where to try first.
 

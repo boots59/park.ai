@@ -6,7 +6,7 @@ Required: a PowerPoint pitch deck, plus a demo video or a note that the demo wil
 ## What to submit
 | File | Status |
 |---|---|
-| `submission/Park-AI-pitch.pptx` (8 slides) and `Park-AI-pitch.pdf` | Final. No placeholders left on any slide or in the notes |
+| `submission/Park-AI-pitch.pptx` (9 slides) and `Park-AI-pitch.pdf` | Final. No placeholders left on any slide or in the notes |
 | `submission/DESCRIPTION.md` | Ready to paste into the form |
 | Demo video | `Park-AI-demo-FULL-SILENT.mp4` (3:07) and `Park-AI-demo-SILENT.mp4` (1:26) are built; **your voice-over is still to add** |
 | Live demo | https://boots59.github.io/park.ai/ |
