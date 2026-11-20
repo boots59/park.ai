@@ -6,9 +6,9 @@ Required: a PowerPoint pitch deck, plus a demo video or a note that the demo wil
 ## What to submit
 | File | Status |
 |---|---|
-| `submission/Park-AI-pitch.pptx` (9 slides) and `Park-AI-pitch.pdf` | Final. No placeholders left on any slide or in the notes |
+| `submission/Park-AI-pitch.pptx` (9 slides) and `Park-AI-pitch.pdf` | Final. Screenshots retaken on the app as of 11:20 AM Nov 20. No placeholders |
 | `submission/DESCRIPTION.md` | Ready to paste into the form |
-| Demo video | `Park-AI-demo-4MIN.mp4` (3:56, the one to submit), `Park-AI-demo-SHORT.mp4` (4:10), `Park-AI-demo-TIGHT.mp4` (5:33) and `Park-AI-demo.mp4` (6:09), all with Kell's voice-over. Pick one |
+| Demo video | `Park-AI-demo-4MIN.mp4` (3:56, the one to submit): Kell's voice-over, his own West Deck photo in the camera shot, recorded on the app as of 11:20 AM Nov 20 |
 | Live demo | https://boots59.github.io/park.ai/ |
 | Code | https://github.com/boots59/park.ai |
 
