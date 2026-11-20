@@ -22,7 +22,10 @@ A question, the evidence, the cost, one plain sentence, then **one continuous st
 Follow `DEMO-SCRIPT.md`. It is the 11:50 Thursday story, start to finish. The moment that must land is the camera putting a box on each car. Stop talking for two seconds when it happens.
 
 ## 3:45 Before and after (slide 6) · 25 seconds
-"Before: you drive in knowing nothing, and 31 of 54 drivers end up trying more than one level. After: one glance tells you which bay to try first and how old that count is. Forty of the 54 told me they would have gone straight to that level. This is measured: 662 stalls counted on foot, two full passes of the deck, and nine students have already tried the app."
+"Before Park.AI: 49 of the 54 drivers I polled have been late to class because of parking. Twenty of them took six minutes or more to park that day, and five took more than ten.
+With Park.AI, you know which bay to try before you leave, and you get a heads-up before you drive into a full deck. Forty of the 54 told me they would have gone straight to that level. For a driver who spent ten or twenty minutes searching, that could be the difference between walking in late and walking in early."
+
+**Say "could", not "saves".** Nobody has parked using the app yet, and 34 of the 54 parked in five minutes or less. If asked for the measured saving: "Not measured yet. That is exactly what the two-week pilot measures."
 
 ## 4:10 Plan and limits (slide 7) · 30 seconds
 "I'll be straight about the limits. One deck, one morning, one counter, and no agreement with KSU. But KSU already sends a plate-scanning truck through this deck six or seven times a day. The pilot is two weeks: one number per pass. After that, the same model on the deck's own cameras, with Public Safety's approval, and then every deck on both campuses."

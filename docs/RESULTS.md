@@ -97,6 +97,8 @@ processor with enlarged quarters, 12 s with 3 x 3. The images are not in this re
 
 Raw answers: `data/field/2026-11-19-student-poll-qr.csv`.
 
+**Time to find a space, both polls together (54 drivers):** 0 to 2 minutes: 13; 3 to 5: 21; 6 to 10: 15; 11 to 20: 1; over 20: 4. So 34 of 54 parked in 5 minutes or less, 20 took 6 or more, and 5 took more than 10. These are what drivers reported from memory. No time saved by the app has been measured.
+
 ## App reviews from testers (evening of Nov 19)
 9 people opened the app from the "Try the app" code and sent a review. This was the app as it stood between 5:45 and 7:30 PM, before the entrances, level tags, camera scan and Ask guide were added.
 
