@@ -10,10 +10,11 @@ Open https://boots59.github.io/park.ai/ on a phone. It starts on a replay of the
 | 0:35 | Swipe to **Deck**; drag the 3D model, tap a bay | "Each bay is coloured by how much room it has." |
 | 0:50 | Swipe to **Levels** | "The same thing as a list. Level 1 has no student stalls at all." |
 | 1:00 | **Report**: tap a bay, tap **A few** | "A student who just parked adds one tap. Anonymous, lower trust than a staff count." |
-| 1:15 | **Count**: tap a bay, tap **+1** a few times, **Save** | "A monitor on a normal round taps once per open stall. One button saves it." |
+| 1:15 | **Count**: tap a bay, **Scan with camera · AI**, point at a row of cars, **Count this view**, use the number, **Save** | "A monitor points the phone at the row. The model counts the vehicles on the phone, the monitor checks it, one button saves it. Tally by hand is the fallback." |
 | 1:35 | Back to **Now** | "The new count replaced the old one. Counts are never erased: an old one stays on screen with its age." |
 | 1:45 | Open `?live` on a second tab | "This is the shared data: my real count from this morning, labelled as a last count, hours old, not live." |
+| 1:55 | Tap **Ask** in the header, tap **Where should I park?**, then **Show me** | "Or just ask. It answers from the counts and takes you to the right screen." |
 
-Optional (needs a prepared photo): on **Count**, open "AI photo assist", take a photo, correct the number by tapping a box.
+The camera scan needs real cars in view: record that step in a deck or a parking lot, or point the phone at a photo of parked cars on a second screen and say that is what you are doing.
 
 Fallback: if the phone has no signal, play the recorded video.
