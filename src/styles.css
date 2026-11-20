@@ -217,8 +217,8 @@ body.owner-ok .ownerlock { display: none; }
 .tripcard .tsmall { width: 100%; margin: 0; min-height: 44px; }
 #deck.trip #deck3d { height: 300px; }
 #deck.trip #levelPick, #deck.trip #bayPick, #deck.trip #levelFocus, #deck.trip #selection, #deck.trip #checkin, #deck.trip .deckrow, #deck.trip .deckmore, #deck.trip #ageNote { display: none; }
-.monitorbtn { min-height: 52px; margin: 12px 0 0; font-size: 16px; }
-.monitorbtn b { font-family: var(--sign); font-size: 18px; margin-left: 4px; }
+.monitorline { margin: 4px 0 0; text-align: right; }
+.monitorbtn { min-height: 44px; margin: 0; padding: 0 4px; background: none; border: 0; font-size: 14px; color: var(--muted); text-decoration: underline; }
 .baypick { display: flex; gap: 6px; margin: 0 0 8px; }
 .baypick button { flex: 1; min-height: 52px; margin: 0; padding: 4px 2px; background: var(--white); border: 2px solid #8f8f8c; border-radius: 4px; font-family: var(--sign); font-size: 13px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--ink); line-height: 1.1; }
 .baypick button b { display: block; font-size: 20px; }
