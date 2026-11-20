@@ -96,3 +96,7 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - A one-line guide above the bottom bar gives the next step with one button: a nudge to report for anyone who has not, "Leaving?" for anyone who has, the best bet on the Deck screen, and "Count next" for monitors.
 - Monitors: tapping a bay starts the count, and one button saves it. After a report the app jumps to the deck to show what changed.
 - A parking report and a leaving report are now separate for the repeat guard, so leaving soon after parking works.
+
+## 2026-11-19, evening (Claude, at Kell's request)
+- **Counts are never erased.** Monitors do not pass through on a fixed schedule, so a count past the 60-minute estimate window now stays on screen as "Last count" with its age (minutes, hours or days) until a new tally replaces it. It is labelled "not live" and is never turned into an estimate or a verdict (`ParkingModel.lastCounts`).
+- Deck switcher on Now (`data/places.json`), tester review mode (`?try`), share-link fallback on the QR screen.

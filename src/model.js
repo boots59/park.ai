@@ -274,7 +274,16 @@ const ParkingModel = (() => {
     return out;
   }
 
-  return { status, trend, estimate, bayEstimate, cleanReports, typical, BANDS, complete, levelSummary, deckSummary, bayState, stallSplit, recommend, recheckNext, backtest, variability, sanitize,
+  // Counts are never erased. Once a count is too old to estimate from (past the horizon) it is still the
+  // last thing anyone measured, so the page shows it as "last count" with its age, never as a live number.
+  //   open: sum of the last counts   bays: how many bays have one   oldest/newest: start times
+  function lastCounts(records, zoneIds, now) {
+    const known = zoneIds.map(z => records[z]).filter(r => r && now - r.start >= 0);
+    if (!known.length) return null;
+    return { open: known.reduce((n, r) => n + r.count, 0), bays: known.length, of: zoneIds.length,
+      oldest: Math.min(...known.map(r => r.start)), newest: Math.max(...known.map(r => r.start)) };
+  }
+  return { status, trend, estimate, lastCounts, bayEstimate, cleanReports, typical, BANDS, complete, levelSummary, deckSummary, bayState, stallSplit, recommend, recheckNext, backtest, variability, sanitize,
     cleanExtra, suggestOpen, openFromVehicles, aiAccuracy, FRESH, HORIZON, MAX_SURVEY, MAX_COUNT, SIGMA, ROOM_AT, FULL_AT };
 })();
 if (typeof module !== 'undefined') module.exports = ParkingModel;

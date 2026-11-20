@@ -121,6 +121,8 @@ function watchSwipes() {
 const STATUS_TEXT = { counted: 'Counted', estimate: 'Estimate', students: 'Student report', unknown: 'Unknown' };
 const STATUS_CLASS = { counted: 'recent', estimate: 'estimate', students: 'students', unknown: 'unknown' };
 const ago = (ts, t) => Math.max(0, Math.floor((t - ts) / 60e3)) + ' min ago';
+// Age in the largest sensible unit: an old count stays on the page, so it can be days old.
+const since = (ts, t) => { const m = Math.max(0, Math.floor((t - ts) / 60e3)); return m < 90 ? m + ' min ago' : m < 48 * 60 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' days ago'; };
 const minsAgo = (r, t) => Math.max(0, Math.floor((t - r.start) / 60e3));
 const range = e => e.low === e.high ? String(e.low) : Number.isFinite(e.high) ? e.low + '–' + e.high : e.low + '+';
 const trendText = rate => Math.abs(rate) < 0.05 ? '' : (rate > 0 ? ', filling about ' : ', emptying about ') + Math.abs(rate).toFixed(1) + ' a minute';
@@ -149,14 +151,16 @@ function bayRow(z, t) {
   else if (src === 'estimate') detail = `counted ${r.count}, ${minsAgo(r, t)} min ago`;
   else if (src === 'students') detail = `"${BAND_TEXT[e.band]}", ${ago(e.reportedAt, t)}` + (e.students > 1 ? ` · ${e.students} reports agree` : '');
   else { const typ = ParkingModel.typical(historyList(), z, t);
-    detail = (r ? `last count ${minsAgo(r, t)} min ago` : 'no survey') + (typ ? ` · typically ${range(typ)} at this hour (${typ.samples} past counts)` : ''); }
+    detail = (r ? since(r.start, t) : 'no survey') + (typ ? ` · typically ${range(typ)} at this hour (${typ.samples} past counts)` : ''); }
   return `<li><button class="bay${z === selectedBay ? ' selected' : ''}" onclick="selectBay('${z}')" aria-pressed="${z === selectedBay}">` +
     `<span class="bay-name">${DECK.zones[z].label}</span>` +
-    `<b class="bay-count">${e ? range(e) : '?'}</b>` +
-    `<span class="status ${STATUS_CLASS[src]}">${STATUS_TEXT[src]} · ${detail}</span>${stallStrip(z, e)}</button></li>`;
+    `<b class="bay-count">${e ? range(e) : r ? r.count : '?'}</b>` +
+    `<span class="status ${STATUS_CLASS[src]}">${!e && r ? 'Last count' : STATUS_TEXT[src]} · ${detail}</span>${stallStrip(z, e)}</button></li>`;
 }
-function summaryText(sum) {
-  return sum.state === 'unknown' ? ['?', 'unknown']
+function summaryText(sum, ids, t) {
+  const last = sum.state === 'unknown' && ids ? ParkingModel.lastCounts(records, ids, t) : null;
+  return last ? [(last.bays < last.of ? '≥' : '') + last.open, 'last count · ' + since(last.oldest, t)]
+    : sum.state === 'unknown' ? ['?', 'unknown']
     : sum.state === 'partial' ? ['≥' + sum.low, `in ${sum.knownBays} of ${sum.bays} bays`]
     : sum.exact ? [String(sum.low), 'counted']
     : [range(sum), sum.students ? 'estimate · student reports' : 'estimate'];
@@ -169,7 +173,7 @@ function closedLevelCard(n) {
 }
 function levelCard(n, t) {
   if (!zonesOf(n).length) return closedLevelCard(n);
-  const [count, unit] = summaryText(ParkingModel.levelSummary(records, zonesOf(n), t, reports));
+  const [count, unit] = summaryText(ParkingModel.levelSummary(records, zonesOf(n), t, reports), zonesOf(n), t);
   return `<article class="card"><h3>Level ${n}${n === LEVELS[0] ? ' <span class="small">/ top deck</span>' : ''}</h3>` +
     `<div class="count">${count}</div><div class="unit">${unit}</div>` +
     `<ul class="bays">${zonesOf(n).map(z => bayRow(z, t)).join('')}</ul></article>`;
@@ -238,10 +242,21 @@ function renderVerdict(now) {
   const newest = Math.min(...ZONE_IDS.map(z => records[z] ? now - records[z].start : Infinity));
   const arrive = '<span class="arrive">I arrive in ' + [0, 5, 10, 15].map(m =>
     `<button class="pick" aria-pressed="${lead === m}" onclick="setLead(${m})">${m ? m + ' min' : 'now'}</button>`).join(' ') + '</span>';
+  const last = d.state === 'unknown' ? ParkingModel.lastCounts(records, ZONE_IDS, now) : null;
+  if (last) { // every count is past the horizon: keep showing it, labelled as old, never as live
+    $('verdict').innerHTML = `<span class="verdict-word unknown">Last count</span><span class="verdict-detail"><b>${(last.bays < last.of ? '≥' : '') + last.open}</b> open when last counted · ${since(last.oldest, now)} · not live</span>` + lastBest(now);
+    return;
+  }
   $('verdict').innerHTML = `<span class="verdict-word ${d.verdict}">${VERDICT[d.verdict]}</span>` +
     `<span class="verdict-detail">${d.state === 'unknown' ? 'No counts yet' : `<b>${count}</b> open · ${unit}`}` +
     (lead ? ` · <b>predicted for ${lead} minutes from now</b>` : '') +
-    (Number.isFinite(newest) ? ` · newest count ${Math.max(0, Math.floor(newest / 60e3))} min ago` : '') + '</span>' + arrive + bestBet(t);
+    (Number.isFinite(newest) ? ` · newest count ${since(now - newest, now)}` : '') + '</span>' + arrive + bestBet(t);
+}
+// With only old counts, point at the bays that had the most room when last counted, and say so.
+function lastBest(t) {
+  const top = ZONE_IDS.filter(z => records[z] && records[z].count > 0).sort((a, b) => records[b].count - records[a].count).slice(0, 3);
+  if (!top.length) return '<span class="best">No bay had an open space at the last count. If the deck is full: Shuttle Lot and the Big Owl Bus.</span>';
+  return '<span class="best"><b>Most room at the last count:</b> ' + top.map(z => `<button class="pick" onclick="selectBay('${z}')">${bayName(z)} · <b>${records[z].count}</b> open · ${since(records[z].start, t)}</button>`).join(' ') + '</span>';
 }
 // "Where should I try first?" Whole bays only: nothing here knows which individual spaces are open.
 function bestBet(t) {

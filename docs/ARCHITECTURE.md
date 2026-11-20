@@ -34,7 +34,7 @@ flowchart LR
 | A new count replaces the old one; it is never added | `ParkingModel.complete` |
 | A count's age runs from when the survey started | `ParkingModel.status` |
 | A stale survey cannot overwrite a newer one | version check in `complete` |
-| An ageing count becomes a range, then unknown | `ParkingModel.estimate` |
+| An ageing count becomes a range, then a labelled last count that is never erased | `ParkingModel.estimate`, `ParkingModel.lastCounts` |
 | Totals only cover bays that are known, and say how many | `ParkingModel.levelSummary`, `deckSummary` |
 | Anything read from storage is validated before display | `ParkingModel.sanitize` |
 | One vehicle is counted once, even if seen as car and truck | `CarDetect.nms` |

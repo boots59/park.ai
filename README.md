@@ -15,7 +15,7 @@ Built for the KSU AI Club Hackathon 2026 by Kell Enow.
 |---|---|
 | Students | A deck verdict (Room likely, Tight, Likely full, Not enough counts), a "try first" list of the best bays, level cards, and per-bay numbers |
 | Students | A 3D deck whose bays recolour (room, a few, full, unknown) the moment a count is saved |
-| Students | A count under 5 minutes old is shown as counted. From 5 to 60 minutes it becomes a range that widens with age and follows the bay's recent trend. After 60 minutes it says unknown |
+| Students | A count under 5 minutes old is shown as counted. From 5 to 60 minutes it becomes a range that widens with age and follows the bay's recent trend. After 60 minutes the count is kept and shown as "Last count" with its age (hours or days), never as a live number, until a new count replaces it |
 | Students | **"I arrive in…"**: the verdict and "try first" predicted for 5, 10 or 15 minutes from now |
 | Students | **One-tap report after parking** (plenty, a few, full): a lower-trust source that fills in between staff counts |
 | Staff | A bounded survey of one bay: start, count, confirm coverage, complete. A new count replaces the old one |
