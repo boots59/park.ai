@@ -7,7 +7,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // Bay colour = how much room (see ParkingModel.bayState). The number badge on
 // each bay carries the same information in text.
-const COLORS = { room: '#2f8f4e', few: '#d9a21b', full: '#b8402f', unknown: '#9aa69a' };
+const COLORS = { room: '#2f8f4e', few: '#d9a21b', full: '#b8402f', unknown: '#9aa69a', staff: '#6c7a89' }; // staff: a bay with only faculty/staff stalls, never shown as open to students
 // "Slide levels apart": each level moves sideways and up from the one below,
 // like pulling out drawers, so every bay can be seen and tapped.
 const LEVEL_SLIDE = 58; // metres sideways per level
@@ -102,7 +102,15 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [] } 
     const pin = new THREE.Group(), mat = new THREE.MeshStandardMaterial({ color: colour, emissive: colour, emissiveIntensity: 0.4 });
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, height, 10), mat); pole.position.y = height / 2;
     const head = new THREE.Mesh(new THREE.SphereGeometry(1.7, 16, 12), mat); head.position.y = height;
-    pin.add(pole, head); pin.position.set(at.x, floor, at.z); gltf.scene.add(pin); level.attach(pin); // slides with its level
+    pin.add(pole, head); pin.position.set(at.x, tower ? new THREE.Box3().setFromObject(tower).max.y : floor, at.z); gltf.scene.add(pin); level.attach(pin); // slides with its level
+    if (tower) { // the stair and lift tower belongs to the floor its exit is on: it moves with that level, and a blue footpath leads out of it
+      level.attach(tower);
+      const tb = new THREE.Box3().setFromObject(tower), path = new THREE.Mesh(new THREE.PlaneGeometry(12, 4), new THREE.MeshStandardMaterial({ color: colour, emissive: colour, emissiveIntensity: 0.4, side: THREE.DoubleSide }));
+      path.rotation.x = -Math.PI / 2; path.position.set(tb.max.x + 6, around.max.y + 0.1, (tb.min.z + tb.max.z) / 2);
+      const tip = new THREE.Shape(); tip.moveTo(0, -3.5); tip.lineTo(0, 3.5); tip.lineTo(5, 0); tip.closePath();
+      const arrow = new THREE.Mesh(new THREE.ShapeGeometry(tip), path.material); arrow.rotation.x = -Math.PI / 2; arrow.position.set(tb.max.x + 12, around.max.y + 0.1, (tb.min.z + tb.max.z) / 2);
+      gltf.scene.add(path, arrow); level.attach(path); level.attach(arrow);
+    }
     pins.push({ a, head });
   }
   const base = levels.map(l => l.position.clone());
@@ -151,7 +159,7 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [] } 
     const w = container.clientWidth, h = container.clientHeight;
     for (const [name, el] of Object.entries(labels)) {
       box.setFromObject(bays[name]).getCenter(p); p.project(camera); // middle of the bay, wherever its level has slid to
-      const show = p.z < 1 && el.textContent;
+      const show = p.z < 1 && el.textContent && !(apart < 0.6 && el.classList.contains('staff')); // a faculty level sits under the others when stacked
       el.style.display = show ? '' : 'none';
       if (show) el.style.transform = `translate(-50%,-50%) translate(${((p.x + 1) / 2 * w).toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
     }
@@ -173,7 +181,8 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [] } 
   function paint() {
     for (const [name, mesh] of Object.entries(bays)) {
       const info = states[name] || { state: 'unknown', label: '' }, col = COLORS[info.state] || COLORS.unknown;
-      labels[name].textContent = info.label; labels[name].classList.toggle('selected', name === selected);
+      labels[name].textContent = info.label; labels[name].classList.toggle('selected', name === selected); labels[name].classList.toggle('staff', info.state === 'staff');
+      if (info.sub) { const sub = document.createElement('small'); sub.textContent = info.sub; labels[name].appendChild(sub); } // e.g. faculty stalls inside a student bay
       mesh.material.color.set(col);
       mesh.material.emissive.set(col);
       mesh.material.emissiveIntensity = name === selected ? 0.9 : 0.35; // the selected bay glows

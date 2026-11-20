@@ -158,6 +158,8 @@ details.panel[open] > summary { margin-bottom: 8px; }
 .access span { padding-left: 8px; border-left: 4px solid var(--black); }
 .access span.walk { border-left-color: #1f5fbf; }
 .access b { font-family: var(--sign); text-transform: uppercase; letter-spacing: .04em; margin-right: 4px; }
+.bay-label.staff { background: #6c7a89; color: var(--white); border-color: #6c7a89; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.bay-label small { display: block; font-size: 10px; font-weight: 600; color: #4d5a66; margin-top: 2px; text-transform: uppercase; letter-spacing: .03em; }
 .bay-label.selected { background: var(--gold); }
 .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin: 8px 0 4px; }
 .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 1px; margin-right: 4px; vertical-align: -2px; }

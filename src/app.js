@@ -287,10 +287,14 @@ function render() {
     ' · clock moved forward ' + Math.round(offset / 60e3) + ' min · stall numbers counted on foot Nov 19.';
   if (!Sync.on) $('notice').innerHTML = demo === 'own' ? '<b>Test entries</b> typed in on this device. Not verified.' : NOTICE[demo];
   renderNext(); renderGrids(); renderGuide();
-  if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z), r = records[z];
+  // Bays with no regular stalls (Level 1) are labelled as faculty/staff parking; a student bay that also holds faculty stalls says how many.
+  const staffBays = ALL_IDS.filter(z => !ZONE_IDS.includes(z) && DECK.zones[z].facultyStaff > 0).map((z, i, all) => [z, { state: 'staff', // one flag per level, on its centre bay, with the level's faculty/staff total
+      label: /_Centre$/.test(z) ? 'Faculty/staff only · ' + all.filter(o => DECK.zones[o].level === DECK.zones[z].level).reduce((n, o) => n + DECK.zones[o].facultyStaff, 0) : '' }]);
+  const facultySub = z => DECK.zones[z].facultyStaff > 0 ? { sub: '+' + DECK.zones[z].facultyStaff + ' faculty' } : {};
+  if (viewer) viewer.setBays(Object.fromEntries(staffBays.concat(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z), r = records[z];
     // A bay whose count is too old to estimate from keeps the colour and number of its last count (the note under the model says how old).
-    if (!b.est && r) return [z, { state: r.count >= Settings.bayRoomAt ? 'room' : r.count === 0 ? 'full' : 'few', label: String(r.count) }];
-    return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
+    if (!b.est && r) return [z, { state: r.count >= Settings.bayRoomAt ? 'room' : r.count === 0 ? 'full' : 'few', label: String(r.count), ...facultySub(z) }];
+    return [z, { state: b.state, label: b.est ? range(b.est) : '?', ...facultySub(z) }]; }))));
   const old = ParkingModel.deckSummary(records, ZONE_IDS, t, reports).state === 'unknown' ? ParkingModel.lastCounts(records, ZONE_IDS, t) : null;
   if ($('ageNote')) $('ageNote').textContent = old ? 'Last count: ' + since(old.oldest, t) + '. Not live.' : '';
   renderSelection();
