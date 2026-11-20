@@ -4,8 +4,10 @@
 spaces one bay at a time, an on-device AI model helps them count, and students see the count, or an honest estimate with
 a range once the count starts to age.
 
-> **Status: concept prototype with simulated data.** Not a KSU system and not affiliated with KSU. Nothing here is a
-> real-time feed. What is measured, assumed and simulated is tracked in [docs/EVIDENCE.md](docs/EVIDENCE.md).
+> **Try it:** https://boots59.github.io/park.ai/ (opens on a replay of the real count of Nov 19, 2026).
+>
+> **Status: concept prototype.** The demo replays real counts taken on foot on one morning; nothing here is a
+> real-time feed. Not a KSU system and not affiliated with KSU. What is measured, assumed and simulated is tracked in [docs/EVIDENCE.md](docs/EVIDENCE.md).
 
 Built for the KSU AI Club Hackathon 2026 by Kell Enow.
 
