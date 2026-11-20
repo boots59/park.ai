@@ -94,6 +94,7 @@ function renderGuide() {
       // Someone who has not reported yet is nudged, once per screen, to the one place they can help.
       if (screenNow === 'deck' && pick) { text = 'Best bet: ' + bayName(pick.zone) + ' · ' + range(pick.est) + ' open'; label = 'I parked'; act = () => setView('report'); }
       else if (screenNow === 'about' && pick) { text = 'Best bet: ' + bayName(pick.zone) + ' · ' + range(pick.est) + ' open'; label = 'Show me'; act = () => showBay(pick.zone); }
+      else if (!pick && lastTop(t)) { const z = lastTop(t); text = 'Last count ' + since(records[z].start, t) + '. Most room: ' + bayName(z) + ' · ' + records[z].count; label = 'Show me'; act = () => showBay(z); }
       else if (!pick && screenNow !== 'about') { text = 'No known open space. If the deck is full: Shuttle Lot + Big Owl Bus.'; warn = true; label = 'I parked'; act = () => setView('report'); }
       else { text = 'Parked already? One tap helps the next driver.'; label = 'Report'; act = () => setView('report'); }
     }
@@ -252,6 +253,11 @@ function renderVerdict(now) {
     (lead ? ` · <b>predicted for ${lead} minutes from now</b>` : '') +
     (Number.isFinite(newest) ? ` · newest count ${since(now - newest, now)}` : '') + '</span>' + arrive + bestBet(t);
 }
+// The bay with the most room at the last count, used only when nothing current is known.
+function lastTop(t) {
+  if (ParkingModel.deckSummary(records, ZONE_IDS, t, reports).state !== 'unknown') return null;
+  return ZONE_IDS.filter(z => records[z] && records[z].count > 0).sort((a, b) => records[b].count - records[a].count)[0] || null;
+}
 // With only old counts, point at the bays that had the most room when last counted, and say so.
 function lastBest(t) {
   const top = ZONE_IDS.filter(z => records[z] && records[z].count > 0).sort((a, b) => records[b].count - records[a].count).slice(0, 3);
@@ -273,7 +279,12 @@ function render() {
     ' · clock moved forward ' + Math.round(offset / 60e3) + ' min · stall numbers counted on foot Nov 19.';
   if (!Sync.on) $('notice').innerHTML = demo === 'own' ? '<b>Test entries</b> typed in on this device. Not verified.' : NOTICE[demo];
   renderNext(); renderGrids(); renderGuide();
-  if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z); return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
+  if (viewer) viewer.setBays(Object.fromEntries(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z), r = records[z];
+    // A bay whose count is too old to estimate from keeps the colour and number of its last count (the note under the model says how old).
+    if (!b.est && r) return [z, { state: r.count >= Settings.bayRoomAt ? 'room' : r.count === 0 ? 'full' : 'few', label: String(r.count) }];
+    return [z, { state: b.state, label: b.est ? range(b.est) : '?' }]; })));
+  const old = ParkingModel.deckSummary(records, ZONE_IDS, t, reports).state === 'unknown' ? ParkingModel.lastCounts(records, ZONE_IDS, t) : null;
+  if ($('ageNote')) $('ageNote').textContent = old ? 'Last count: ' + since(old.oldest, t) + '. Not live.' : '';
   renderSelection();
 }
 function selectBay(z) {
@@ -291,7 +302,7 @@ function renderSelection() {
   if (!selectedBay) { el.textContent = 'Tap a bay.'; return; }
   const t = now(), r = records[selectedBay], e = est(selectedBay, t);
   el.textContent = bayName(selectedBay) + (DECK.zones[selectedBay].note ? ' (' + DECK.zones[selectedBay].note + ')' : '') + ': ' +
-    (!e ? 'unknown' : e.counted ? r.count + ' counted open, ' + minsAgo(r, t) + ' min ago'
+    (!e ? (r ? `last count ${r.count} open, ${since(r.start, t)}; not live` : 'no count yet') : e.counted ? r.count + ' counted open, ' + minsAgo(r, t) + ' min ago'
       : e.source === 'students' ? `${range(e)} open according to a student who parked here ${ago(e.reportedAt, t)} ("${BAND_TEXT[e.band]}"${e.students > 1 ? ', ' + e.students + ' reports agree' : ''}); not a staff count`
       : `estimated ${range(e)} open (${r.count} counted ${minsAgo(r, t)} min ago${trendText(e.rate)})`) +
     '. ' + stallNote(selectedBay) + '.';
