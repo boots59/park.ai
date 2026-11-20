@@ -175,6 +175,12 @@ select, input, textarea { width: 100%; padding: 12px; border: 1px solid #8f8f8c;
 .number-controls button { margin: 0; }
 .number-controls input, .confirmed { text-align: center; font-family: var(--sign); font-size: 28px; font-weight: 700; }
 .confirmed { align-self: center; }
+.cambox { margin-top: 8px; }
+.camview { position: relative; background: #000; border-radius: 4px; overflow: hidden; line-height: 0; }
+.camview video, .camview canvas { width: 100%; height: auto; display: block; }
+.camview canvas { position: absolute; inset: 0; height: 100%; pointer-events: none; }
+.camlive { position: absolute; left: 8px; top: 8px; background: var(--black); color: var(--gold); font-family: var(--sign); font-weight: 700; font-size: 18px; line-height: 1; padding: 6px 8px; border-radius: 2px; }
+.or { text-align: center; text-transform: uppercase; letter-spacing: .08em; font-family: var(--sign); font-size: 13px; color: var(--muted); margin: 20px 0 8px; }
 .assist { border: 1px solid var(--line); border-radius: 2px; padding: 12px; margin-top: 24px; }
 .assist summary { font-weight: 600; font-size: 15px; cursor: pointer; }
 #scanCanvas { width: 100%; height: auto; border-radius: 2px; margin-top: 8px; display: block; }

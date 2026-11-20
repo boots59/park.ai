@@ -37,13 +37,14 @@
 
   // Count vehicles in one photo. If `canvas` is given, draw the photo there
   // with a numbered box on each vehicle so a person can check the result.
-  async function count(file, canvas) {
+  // `quick` looks at the whole frame once (no enlarged quarters): faster and less thorough, for the live camera view.
+  async function count(file, canvas, { quick = false } = {}) {
     const session = await ready();
     const img = await decodeImage(file), W = img.width, H = img.height;
     const small = document.createElement('canvas'), g = small.getContext('2d', { willReadFrequently: true });
     const t0 = performance.now(), found = [];
     // Look at the whole photo, then at enlarged overlapping quarters (see CarDetect.regions).
-    for (const r of CarDetect.regions(W, H)) {
+    for (const r of quick ? CarDetect.regions(W, H, 1) : CarDetect.regions(W, H)) {
       const box = CarDetect.letterbox(r.w, r.h, SIZE);
       small.width = box.w; small.height = box.h;
       g.drawImage(img, r.x, r.y, r.w, r.h, 0, 0, box.w, box.h);
@@ -54,7 +55,7 @@
     const dets = CarDetect.merge(found), ms = Math.round(performance.now() - t0);
     if (canvas) show(canvas, img, W, H, dets);
     if (img.close) img.close();
-    return { count: dets.length, ms };
+    return { count: dets.length, ms, boxes: dets.map(d => ({ x: d.x, y: d.y, w: d.w, h: d.h })), width: W, height: H };
   }
 
   // The latest photo is kept (in memory only) so its boxes can be tapped.

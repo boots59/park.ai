@@ -34,3 +34,6 @@ The photo test and any future use of cameras or plate scans need KSU's review.
 
 ## Tester reviews (`?try`)
 Opened from the "Try the app" QR code, the app asks for a review: four one-tap answers and an optional suggestion of up to 300 characters. It is sent once to the write-only `poll` list with `kind: "app-review"` and a time. No name, device id or location is sent. The form asks people not to write names; free text is still free text, so read it before quoting it.
+
+## Live camera scan
+The Count screen can open the phone's camera. Frames are read into memory, measured by the model on the phone, and dropped: no video or photo is recorded, saved or uploaded, and the camera is switched off as soon as a view is captured or the count is closed. A camera view of a deck still contains plates and possibly people while it is on screen, so point it at parked rows, not at people.

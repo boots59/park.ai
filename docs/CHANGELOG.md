@@ -100,3 +100,5 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 ## 2026-11-19, evening (Claude, at Kell's request)
 - **Counts are never erased.** Monitors do not pass through on a fixed schedule, so a count past the 60-minute estimate window now stays on screen as "Last count" with its age (minutes, hours or days) until a new tally replaces it. It is labelled "not live" and is never turned into an estimate or a verdict (`ParkingModel.lastCounts`).
 - Deck switcher on Now (`data/places.json`), tester review mode (`?try`), share-link fallback on the QR screen.
+- **Camera scan is now the main way to count** (Kell's decision): live camera view with a quick on-device vehicle count and boxes, then a thorough pass on the captured view. Hand tally stays as the fallback. In-deck accuracy is still only measured on two photos.
+- 3D deck: entrances, exit to campus, level tags, faculty/staff parking.

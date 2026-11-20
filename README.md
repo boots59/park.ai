@@ -20,7 +20,7 @@ Built for the KSU AI Club Hackathon 2026 by Kell Enow.
 | Students | **One-tap report after parking** (plenty, a few, full): a lower-trust source that fills in between staff counts |
 | Staff | A bounded survey of one bay: start, count, confirm coverage, complete. A new count replaces the old one |
 | Staff | **Count next:** the app points the counter at the bay where a fresh count would help most |
-| Staff | **Camera AI test (optional):** a detection model counts vehicles in a phone photo; the person taps to leave out or add vehicles |
+| Staff | **Camera scan (the main way to count):** the phone's camera view shows a live count of the vehicles a detection model sees, on the device; "Count this view" runs the thorough pass and the person taps to leave out or add vehicles. Tallying by hand is the fallback |
 | The project | A field log that scores the AI against the person, and the estimates against later real counts |
 
 ## Run it

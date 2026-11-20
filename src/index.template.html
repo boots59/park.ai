@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' /*SYNC_ORIGIN*/; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; font-src data:; connect-src 'self' /*SYNC_ORIGIN*/; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer"><title>Park.AI · West Deck · student project</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#231f20"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Park.AI"><style>
 /*STYLES*/
 </style></head><body>
@@ -44,19 +44,23 @@
 <div id="bayGrid" class="baygrid"></div><select id="bay" class="hidden" aria-hidden="true" tabindex="-1"></select>
 <button class="hidden" id="start" onclick="startSurvey()" tabindex="-1" aria-hidden="true">Start count</button>
 <div id="surveyFields" class="hidden"><p id="modelled" class="small"></p>
+<button class="primary tally" id="camBtn" onclick="openCamera()">Scan with camera · AI</button>
+<div id="camBox" class="cambox hidden"><div class="camview"><video id="cam" playsinline muted autoplay></video><canvas id="camOverlay" aria-hidden="true"></canvas><span id="camLive" class="camlive" role="status" aria-live="polite">Starting…</span></div>
+<div class="row" style="margin-top:8px"><button class="primary" id="shutter" style="flex:1;margin-top:0" onclick="captureFrame()">Count this view</button><button class="secondary" onclick="closeCamera()">Close</button></div></div>
+<div id="scanStatus" class="small" role="status" aria-live="polite"></div>
+<canvas id="scanCanvas" class="hidden" onclick="tapBox(event)" style="cursor:pointer" aria-label="The captured view with a numbered box on each vehicle the model found. Tap a box to leave that vehicle out"></canvas>
+<div id="scanPanel"></div>
+<p class="or">or tally by hand</p>
 <div class="seg" id="kindSeg"><button class="secondary" id="kindOpen" aria-pressed="true" onclick="setKind('open')">Open stalls</button><button class="secondary" id="kindScan" aria-pressed="false" onclick="setKind('scan')">Truck count</button></div><select id="entryKind" class="hidden" aria-hidden="true" tabindex="-1" onchange="kindChanged()"><option value="open">open</option><option value="scan">scan</option></select>
 <label for="count" id="countLabel">Open stalls</label>
 <button class="primary tally" id="tallyButton" onclick="adjust(1)" aria-label="Add one">+1 open stall</button>
 <div class="number-controls" style="margin-top:8px"><button class="secondary" aria-label="Subtract one" onclick="adjust(-1)">−</button><input id="count" type="number" inputmode="numeric" min="0" max="999" step="1" value="0"><button class="secondary" aria-label="Add five" onclick="adjust(5)">+5</button></div>
 <label class="hidden"><input type="checkbox" id="coverage" tabindex="-1"><span id="coverageLabel"> Whole bay walked</span></label>
 <div class="row" style="margin-top:16px"><button class="primary" id="saveBtn" style="flex:1;margin-top:0" onclick="saveWalked()">Save: whole bay walked</button><button class="secondary" onclick="cancelSurvey()">Cancel</button></div>
-<details class="assist" id="assist"><summary>Camera AI test (optional)</summary>
-<p class="small">Walking and tallying is the reliable count. This tests the vehicle-detection model that could one day count from the deck's own cameras, using a phone photo as a stand-in. Photograph one section; the model counts the vehicles on this device and you check it. The photo is not saved or uploaded.</p>
-<button class="secondary" onclick="document.getElementById('photo').click()">Photograph a section</button>
-<input id="photo" type="file" accept="image/*" capture="environment" class="hidden" onchange="scanPhoto(this)">
-<div id="scanStatus" class="small" role="status" aria-live="polite"></div>
-<canvas id="scanCanvas" class="hidden" onclick="tapBox(event)" style="cursor:pointer" aria-label="Your photo with a numbered box on each vehicle the model found. Tap a box to leave that vehicle out"></canvas>
-<div id="scanPanel"></div></details></div>
+<details class="assist" id="assist"><summary>Use a photo instead</summary>
+<p class="small">The model counts the vehicles on this phone and you check the number. Nothing is saved or uploaded. It is the same model that could one day count from the deck's own cameras, with KSU's approval.</p>
+<button class="secondary" onclick="document.getElementById('photo').click()">Choose or take a photo</button>
+<input id="photo" type="file" accept="image/*" capture="environment" class="hidden" onchange="scanPhoto(this)"></details></div>
 <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
 </div></section>
 

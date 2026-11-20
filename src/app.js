@@ -84,7 +84,7 @@ function renderGuide() {
     const p = parkedHere(), parked = p && !p.left && t - p.t < 16 * 3600e3 && t >= p.t;
     if (screenNow === 'staff') {
       const next = ParkingModel.recheckNext(records, ZONE_IDS, t, reports, 1)[0];
-      if (survey) text = 'Tap +1 for each open stall, then Save.';
+      if (survey) text = 'Scan the bay with the camera, or tally by hand. Then Save.';
       else if (next) { text = 'Count next: ' + bayName(next.zone); label = 'Start'; act = () => pickBay(next.zone); }
       else text = 'Every bay has a fresh count.';
     } else if (parked) { text = 'Parked in ' + bayName(p.zone) + '. Leaving?'; label = "I'm leaving"; act = leaveParked; }
@@ -398,7 +398,7 @@ function startSurvey() {
   feedback('Counting ' + bayName(zone) + '.'); renderGuide();
 }
 function cancelSurvey(message = 'Survey closed. No unfinished count was saved.') {
-  survey = null;
+  survey = null; closeCamera();
   $('surveyFields').classList.add('hidden');
   $('start').disabled = false; $('bay').disabled = false; $('observer').disabled = false; renderGrids();
   $('scanCanvas').classList.add('hidden'); // the photo preview is discarded with the survey
@@ -436,20 +436,69 @@ function finishSurvey() {
 }
 
 // ---- AI assist: a model counts vehicles in a photo, a person confirms ----
+// ---- Camera scan: the main way to count ----
+// The phone's camera view stays on screen with a live, quick count of what the model sees. "Count this view"
+// runs the thorough pass on that frame, and the person checks it. Frames exist only in memory: nothing is
+// recorded, saved or uploaded. If the camera cannot be opened, the photo picker is used instead.
+let camStream = null, camLoop = 0;
+async function openCamera() {
+  if (!survey) return;
+  const media = typeof navigator !== 'undefined' && navigator.mediaDevices;
+  if (!media || !media.getUserMedia) { $('scanStatus').textContent = 'No live camera here. Use a photo instead.'; $('assist').open = true; return; }
+  try {
+    camStream = await media.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false });
+    const v = $('cam'); v.srcObject = camStream; await v.play();
+    $('camBox').classList.remove('hidden'); $('camBtn').classList.add('hidden'); $('scanStatus').textContent = '';
+    liveLook(++camLoop);
+  } catch (e) { closeCamera(); $('scanStatus').textContent = 'Camera not available (' + (e.name || e.message) + '). Use a photo instead.'; $('assist').open = true; }
+}
+function closeCamera() {
+  camLoop++; if (camStream) for (const t of camStream.getTracks()) t.stop();
+  camStream = null; if ($('cam')) $('cam').srcObject = null;
+  $('camBox').classList.add('hidden'); $('camBtn').classList.remove('hidden');
+}
+function grabFrame() {
+  const v = $('cam'), c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight;
+  if (!c.width) return null; c.getContext('2d').drawImage(v, 0, 0); return c;
+}
+// The live look: a quick pass on the current frame, again and again, with a box on each vehicle found.
+async function liveLook(id) {
+  const live = $('camLive'), over = $('camOverlay');
+  while (id === camLoop && camStream) {
+    const frame = grabFrame();
+    if (!frame || !window.CarCounter) { await new Promise(r => setTimeout(r, 300)); continue; }
+    try {
+      const r = await window.CarCounter.count(frame, null, { quick: true }); if (id !== camLoop) return;
+      over.width = r.width; over.height = r.height; const g = over.getContext('2d');
+      g.lineWidth = Math.max(3, r.width / 200); g.strokeStyle = '#ffc629';
+      for (const b of r.boxes) g.strokeRect(b.x, b.y, b.w, b.h);
+      live.textContent = 'AI sees ' + r.count + (r.count === 1 ? ' vehicle' : ' vehicles');
+    } catch (e) { live.textContent = e.message; return; }
+    await new Promise(r => setTimeout(r, 150));
+  }
+}
+async function captureFrame() {
+  const frame = grabFrame(); if (!frame) return;
+  closeCamera(); await scanSource(frame);
+}
 async function scanPhoto(input) {
   const file = input.files && input.files[0];
+  if (file) await scanSource(file);
+  input.value = ''; // let the same photo be chosen again
+}
+// Count the vehicles in one captured frame or photo, and let the person check the result.
+async function scanSource(file) {
   if (!survey || !file) return;
   const status = $('scanStatus'), mine = survey;
-  status.textContent = 'Counting vehicles on this device… the first photo also loads the model.';
+  status.textContent = 'Counting vehicles on this device… the first count also loads the model.';
   try {
     if (!window.CarCounter) throw Error('AI count is not available in this build. Count by eye instead.');
     const result = await window.CarCounter.count(file, $('scanCanvas'));
     if (survey !== mine) return; // survey was cancelled or finished while the model ran
     survey.photos.push({ ai: result.count, confirmed: result.count, outside: 0, added: 0, adjust: 0 });
-    $('scanCanvas').classList.remove('hidden'); $('assist').open = true;
+    $('scanCanvas').classList.remove('hidden');
     status.textContent = '';
   } catch (e) { status.textContent = e.message; }
-  input.value = ''; // let the same photo be chosen again
   renderScan();
 }
 function adjustPhoto(n) {
