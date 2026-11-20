@@ -134,15 +134,17 @@ const historyList = () => [...sharedHistory, ...fieldLog.map(e => ({ zone: e.zon
 
 // Stall diagram: one small box per regular stall, in two rows like the bay itself.
 // Filled from the left: taken, possibly taken, open. It shows how many, not which.
-function stallStrip(z, e) {
-  const n = DECK.zones[z].stalls, split = ParkingModel.stallSplit(n, e), rows = n > 20 ? 2 : 1, per = Math.ceil(n / rows);
+// `last` is a count too old to estimate from: the diagram is filled in from it, and its label says so.
+function stallStrip(z, e, last) {
+  const n = DECK.zones[z].stalls, open = last ? Math.min(n, last.count) : 0;
+  const split = last && !e ? { taken: n - open, maybe: 0, open } : ParkingModel.stallSplit(n, e), rows = n > 20 ? 2 : 1, per = Math.ceil(n / rows);
   let boxes = '';
   for (let i = 0; i < n; i++) {
     const kind = !split ? 'u' : i < split.taken ? 't' : i < split.taken + split.maybe ? 'm' : 'o';
     boxes += `<rect class="s-${kind}" x="${(i % per) * 10 + 1}" y="${Math.floor(i / per) * 16 + 1}" width="8" height="13" rx="1.5"/>`;
   }
   const label = !split ? `${n} regular stalls, none with a current count`
-    : `${n} regular stalls: ${split.taken} taken, ${split.maybe ? split.maybe + ' possibly taken, ' : ''}${split.open} open. Which stalls is not known`;
+    : `${n} regular stalls: ${split.taken} taken, ${split.maybe ? split.maybe + ' possibly taken, ' : ''}${split.open} open${last && !e ? ' at the last count' : ''}. Which stalls is not known`;
   return `<svg class="strip" viewBox="0 0 ${per * 10 + 1} ${rows * 16}" role="img" aria-label="${label}">${boxes}</svg>`;
 }
 function bayRow(z, t) {
@@ -156,7 +158,7 @@ function bayRow(z, t) {
   return `<li><button class="bay${z === selectedBay ? ' selected' : ''}" onclick="selectBay('${z}')" aria-pressed="${z === selectedBay}">` +
     `<span class="bay-name">${DECK.zones[z].label}</span>` +
     `<b class="bay-count">${e ? range(e) : r ? r.count : '?'}</b>` +
-    `<span class="status ${STATUS_CLASS[src]}">${!e && r ? 'Last count' : STATUS_TEXT[src]} · ${detail}</span>${stallStrip(z, e)}</button></li>`;
+    `<span class="status ${STATUS_CLASS[src]}">${!e && r ? 'Last count' : STATUS_TEXT[src]} · ${detail}</span>${stallStrip(z, e, r)}</button></li>`;
 }
 function summaryText(sum, ids, t) {
   const last = sum.state === 'unknown' && ids ? ParkingModel.lastCounts(records, ids, t) : null;

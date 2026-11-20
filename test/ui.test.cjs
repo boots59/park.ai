@@ -117,6 +117,7 @@ test('an ageing count becomes a range, then a labelled last count that is never 
   assert.match(b.els.cards.innerHTML, /bay-count">14<\/b><span class="status unknown">Last count · 60 min ago/);   // kept, never erased
   assert.match(b.els.verdict.innerHTML, /Last count<\/span>.*<b>≥14<\/b> open when last counted · 60 min ago · not live/);
   assert.match(b.els.verdict.innerHTML, /Most room at the last count:.*Level 3 · West bay · <b>14<\/b> open/);
+  assert.match(b.els.cards.innerHTML, /aria-label="74 regular stalls: 60 taken, 14 open at the last count\./);       // the diagram is filled in from it
   b.run('advance(60 * 24 * 3)');                                                    // three days later it is still there, with its age
   assert.match(b.els.cards.innerHTML, /bay-count">14<\/b><span class="status unknown">Last count · 3 days ago/);
   assert.match(b.els.verdict.innerHTML, /3 days ago · not live/);
