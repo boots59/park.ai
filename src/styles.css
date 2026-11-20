@@ -196,6 +196,12 @@ details.panel[open] > summary { margin-bottom: 8px; }
 .step { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--black); color: var(--gold); font-size: 16px; margin-right: 8px; vertical-align: middle; }
 .hint { margin: 6px 0 0; }
 .level-tag.on { background: var(--black); color: var(--gold); border-color: var(--gold); }
+.stepper .stepq { font-family: var(--sign); font-size: 20px; font-weight: 700; margin: 14px 0 8px; }
+.stepper .steprow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.stepper .steprow.five { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.stepper .spot { min-height: 60px; font-size: 18px; }
+.stepper .steprow.five .spot { font-size: 15px; padding: 2px; }
+.stepper .spot:disabled { opacity: .45; }
 .lock { background: var(--black); color: var(--white); border-radius: 4px; padding: 16px; margin: 8px 0 16px; }
 .lock h2 { color: var(--gold); margin: 0 0 6px; }
 .lock .small { color: #d6d6d6; }

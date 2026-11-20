@@ -124,3 +124,4 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - The replay always opens at 11:58 AM on Nov 19. Before, a returning visitor's saved replay aged in real time and showed day-old "last counts".
 - Tapping any bay (on the 3D model, a bay button, or the level list) now offers "I parked here" straight away, with the level and bay buttons still on screen for choosing another. After checking in from the model you stay on the Deck screen.
 - Now screen: the monitor shortcut is a small link at the bottom.
+- **Monitors start a count in three steps**: 1 Which deck? (West Deck; the others say soon) 2 Which level? 3 Which bay? (West, Centre, East, North, South). The third tap opens the count. The deck and level are remembered, so the next bay on the same level is one tap. The "Count next" shortcuts above still jump straight to a suggested bay.

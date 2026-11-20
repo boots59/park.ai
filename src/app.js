@@ -531,15 +531,36 @@ function renderNext() {
     `<button class="pick" onclick="pickBay('${p.zone}')">${bayName(p.zone)}</button> <span class="small">${i ? '' : '(' + p.why + ')'}</span>`).join(' ')
     : 'Every bay has a fresh count. Nothing needs recounting yet.';
 }
-function pickBay(z) { if (!staffOk()) { setView('staff'); return; } if (!survey) { $('bay').value = z; renderGrids(); startSurvey(); } }
+function pickBay(z) { if (!staffOk()) { setView('staff'); return; } if (!survey) { countDeck = 'west'; countLevel = DECK.zones[z].level; $('bay').value = z; renderGrids(); startSurvey(); } }
 
 // ---- Bay pickers: one tap on a button, no drop-down. A hidden <select> still holds the value. ----
 function renderGrids() {
-  for (const [gridId, selectId] of [['reportGrid', 'reportBay'], ['bayGrid', 'bay']]) {
-    const chosen = $(selectId).value, locked = selectId === 'bay' && !!survey;
-    $(gridId).innerHTML = LEVELS.filter(n => zonesOf(n).length).map(n => `<div class="lvl">Level ${n}</div>` + zonesOf(n).map(z =>
-      `<button class="spot" aria-pressed="${z === chosen}"${locked ? ' disabled' : ''} onclick="chooseBay('${selectId}','${z}')" aria-label="${bayName(z)}">${DECK.zones[z].label.split(' ')[0]}</button>`).join('')).join('');
-  }
+  const chosen = $('reportBay').value;
+  $('reportGrid').innerHTML = LEVELS.filter(n => zonesOf(n).length).map(n => `<div class="lvl">Level ${n}</div>` + zonesOf(n).map(z =>
+    `<button class="spot" aria-pressed="${z === chosen}" onclick="chooseBay('reportBay','${z}')" aria-label="${bayName(z)}">${shortName(z)}</button>`).join('')).join('');
+  renderCountSteps();
+}
+// ---- Monitors: three steps to start a count. Deck, then level, then bay. ----
+// The deck and level are remembered while the page is open, so the next bay on the same level is one tap.
+let countDeck = null, countLevel = null;
+function countPick(what, value) {
+  if (survey) return; // a count is open: finish or cancel it first
+  if (what === 'deck') { countDeck = value; countLevel = null; }
+  else if (what === 'level') countLevel = value;
+  renderCountSteps();
+}
+function renderCountSteps() {
+  const el = $('bayGrid'); if (!el) return;
+  const locked = !!survey, chosen = locked ? survey.zone : null, dis = locked ? ' disabled' : '';
+  if (chosen) { countDeck = 'west'; countLevel = DECK.zones[chosen].level; }
+  const live = PLACES.filter(p => p.live), q = (n, text) => `<div class="stepq"><span class="step">${n}</span>${text}</div>`;
+  let html = q(1, 'Which deck?') + '<div class="steprow">' + live.map(p => `<button class="spot" aria-pressed="${countDeck === p.id}"${dis} onclick="countPick('deck','${p.id}')">${p.name}</button>`).join('') +
+    '<button class="spot" disabled>Other decks: soon</button></div>';
+  if (countDeck) html += q(2, 'Which level?') + '<div class="steprow">' + LEVELS.filter(n => zonesOf(n).length).map(n =>
+    `<button class="spot" aria-pressed="${countLevel === n}"${dis} onclick="countPick('level',${n})">Level ${n}</button>`).join('') + '</div>';
+  if (countDeck && countLevel) html += q(3, 'Which bay?') + '<div class="steprow five">' + zonesOf(countLevel).map(z =>
+    `<button class="spot" aria-pressed="${z === chosen}"${dis} onclick="chooseBay('bay','${z}')" aria-label="${bayName(z)}">${shortName(z)}</button>`).join('') + '</div>';
+  el.innerHTML = html;
 }
 function chooseBay(selectId, zone) {
   $(selectId).value = zone; if (selectId === 'reportBay') $('reportBay').dataset && ($('reportBay').dataset.chosen = '1');

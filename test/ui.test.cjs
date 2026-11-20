@@ -283,6 +283,18 @@ test('guided path: pick on Now, drive, I parked here, optional fullness, back to
   b.run("startTrip('L2_West'); endTrip()");                                         // "Pick another bay" goes back without checking in
   assert.equal(b.els.tripCard.innerHTML, '');
 });
+test('monitors start a count in three steps: deck, level, bay', () => {
+  const b = boot();
+  assert.match(b.els.bayGrid.innerHTML, /Which deck\?.*West Deck/); assert.doesNotMatch(b.els.bayGrid.innerHTML, /Which level\?/);
+  b.run("countPick('deck','west')");
+  assert.match(b.els.bayGrid.innerHTML, /Which level\?.*Level 3.*Level 2/); assert.doesNotMatch(b.els.bayGrid.innerHTML, /Which bay\?/);
+  b.run("countPick('level',2)");
+  assert.match(b.els.bayGrid.innerHTML, /Which bay\?.*aria-label="Level 2 · West bay">West.*Centre.*East.*North.*South/);
+  b.run("chooseBay('bay','L2_North')");                                             // the third tap starts the count
+  assert.match(b.els.bayGrid.innerHTML, /aria-pressed="true" disabled onclick="chooseBay\('bay','L2_North'\)"/);
+  b.run('cancelSurvey()');
+  assert.match(b.els.bayGrid.innerHTML, /aria-pressed="true" onclick="countPick\('level',2\)"/);   // the deck and level are remembered for the next bay
+});
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
 const photo = () => ({ files: [{}], value: 'x' });
 (async () => {
