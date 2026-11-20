@@ -173,7 +173,7 @@ test('the guide always offers the most useful next step', () => {
   assert.match(b.els.guideText.textContent, /Parked already\? One tap helps the next driver/);  // someone who has not reported is pointed to Report
   assert.equal(b.els.guideBtn.textContent, 'Report');
   b.run("setView('deck')"); assert.match(b.els.guideText.textContent, /Best bet: Level 3 · East bay · 11 open/);   // from the same prediction as the Now screen
-  assert.equal(b.els.guideBtn.textContent, 'I parked');
+  assert.equal(b.els.guideBtn.textContent, 'I parked here');
   b.run("setView('staff')"); assert.match(b.els.guideText.textContent, /Count next: Level 2 · South bay/);
   b.run("setView('student'); clearDemo()"); assert.match(b.els.guideText.textContent, /No known open space/);
   b.els.reportBay.value = 'L2_East'; b.run("reportBay('few')");
@@ -232,6 +232,19 @@ test('Ask Park.AI answers from the counts and matches typed questions to topics'
   assert.match(b.els.askLog.innerHTML, /&lt;b&gt;pizza&lt;\/b&gt;.*I can only answer the questions on the buttons/);   // typed text is escaped; no made-up answer
   b.run('clearDemo(); askTopic("room")');
   assert.match(b.els.askLog.innerHTML, /West Deck\. No counts yet\./);
+});
+test('one-tap check-in from the deck: I parked here, then how full', () => {
+  const b = boot();
+  b.run("selectBay('L2_West')");
+  assert.match(b.els.checkin.innerHTML, /parkHere\('L2_West'\)">I parked here/);
+  assert.equal(b.els.guideBtn.textContent, 'I parked here');
+  b.run('guideTap()');                                                              // one tap checks in
+  assert.equal(JSON.parse(b.storage['west-deck-parked-v1']).zone, 'L2_West');
+  assert.match(b.els.checkin.innerHTML, /How full is it\? One tap/);
+  assert.equal(JSON.parse(b.storage['west-deck-reports-v1'] || '[]').length, 0);     // no fullness is invented for them
+  b.run("reportBay('few')");                                                        // the optional second tap
+  assert.equal(JSON.parse(b.storage['west-deck-reports-v1']).at(-1).band, 'few');
+  assert.match(b.els.checkin.innerHTML, /I'm leaving Level 2 · West bay/);
 });
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
 const photo = () => ({ files: [{}], value: 'x' });

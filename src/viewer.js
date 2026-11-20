@@ -20,7 +20,7 @@ function base64ToArrayBuffer(b64) {
   return bytes.buffer;
 }
 
-async function mount(container, glbBase64, { onPick, bayIds = [], access = [], staffParts = [] } = {}) {
+async function mount(container, glbBase64, { onPick, bayIds = [], access = [], staffParts = [], deckName = '' } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -169,7 +169,8 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
   // Which way is north: a compass fixed in the corner whose needle turns as the model is rotated
   // (testers asked which way the model faces). North is -z in the model.
   const compass = document.createElement('div'); compass.className = 'compass'; compass.setAttribute('aria-hidden', 'true');
-  compass.innerHTML = '<span></span><b>N</b>'; container.appendChild(compass);
+  compass.innerHTML = '<div class="dial"><span></span><b class="n">N</b><b class="e">E</b><b class="s">S</b><b class="w">W</b></div>'; container.appendChild(compass);
+  const title = document.createElement('div'); title.className = 'deck-title'; title.setAttribute('aria-hidden', 'true'); title.textContent = deckName; if (deckName) container.appendChild(title);
   const pn = new THREE.Vector3();
   const p = new THREE.Vector3(), box = new THREE.Box3();
   function placeLabels() {
@@ -181,7 +182,7 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
       if (show) el.style.transform = `translate(-50%,-50%) translate(${((p.x + 1) / 2 * w).toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
     }
     p.copy(controls.target).project(camera); pn.copy(controls.target).add(new THREE.Vector3(0, 0, -20)).project(camera);
-    compass.firstChild.style.transform = `rotate(${Math.atan2((pn.x - p.x) * w, (pn.y - p.y) * h)}rad)`; // screen direction of north
+    compass.firstChild.style.setProperty('--a', Math.atan2((pn.x - p.x) * w, (pn.y - p.y) * h) + 'rad'); // the dial turns so N points to north on screen; the letters stay upright
     for (const { anchor, el } of tags) {
       anchor.getWorldPosition(p).project(camera);
       el.style.display = apart > 0.6 && p.z < 1 ? '' : 'none';
@@ -201,6 +202,7 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
     for (const [name, mesh] of Object.entries(bays)) {
       const info = states[name] || { state: 'unknown', label: '' }, col = COLORS[info.state] || COLORS.unknown;
       labels[name].textContent = info.label; labels[name].classList.toggle('selected', name === selected); labels[name].classList.toggle('staff', info.state === 'staff');
+      if (info.name && info.label) { const nm = document.createElement('i'); nm.textContent = info.name; labels[name].prepend(nm); } // the bay's name above its number
       if (info.sub) { const sub = document.createElement('small'); sub.textContent = info.sub; labels[name].appendChild(sub); } // e.g. faculty stalls inside a student bay
       mesh.material.color.set(col);
       mesh.material.emissive.set(col);

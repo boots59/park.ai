@@ -103,3 +103,9 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - **Camera scan is now the main way to count** (Kell's decision): live camera view with a quick on-device vehicle count and boxes, then a thorough pass on the captured view. Hand tally stays as the fallback. In-deck accuracy is still only measured on two photos.
 - 3D deck: entrances, exit to campus, level tags, faculty/staff parking.
 - **Ask Park.AI**: a guide opened from the header. Ten topics (where to park, room now, in 10 minutes, walk to campus, drive in, just parked, leaving, monitor count, faculty parking, other decks), each answered from the app's current counts with a button that goes to the right screen. Typed questions are matched to a topic by shared words, on the phone. It is not a language model and says so on screen.
+
+## 2026-11-20 (Claude, at Kell's request)
+- 3D deck: the compass shows N, E, S and W; every bay label carries its name (West, Centre, East, North, South) above its number; the model is titled "West Deck".
+- **One-tap check-in**: after tapping a recommended bay, "I parked here" saves the check-in on the Deck screen and offers one optional tap for how full the bay is. "I'm leaving" appears on the same bay afterwards.
+- Report screen: the two steps are numbered.
+- Camera scan is the main way to count; Ask Park.AI; deck switcher; entrances; counts are never erased. Demo videos and the final pitch deck are in `submission/`.

@@ -7,6 +7,7 @@ const ALL_IDS = Object.keys(DECK.zones);
 const ZONE_IDS = ALL_IDS.filter(z => DECK.zones[z].stalls > 0); // bays with regular stalls: the only ones surveyed and shown as open
 const LEVELS = [...new Set(ALL_IDS.map(z => DECK.zones[z].level))].sort((a, b) => b - a); // top first
 const zonesOf = n => ZONE_IDS.filter(z => DECK.zones[z].level === n);
+const shortName = z => DECK.zones[z].label.split(' ')[0]; // West, Centre, East, North, South
 const bayName = z => 'Level ' + DECK.zones[z].level + ' · ' + DECK.zones[z].label;
 // Stall numbers are either a 3D-model estimate or counted on foot; always say which.
 const counted = z => DECK.zones[z].source === 'counted';
@@ -92,7 +93,8 @@ function renderGuide() {
     else {
       const pick = ParkingModel.recommend(records, ZONE_IDS, t + lead * 60e3, 1, reports)[0];
       // Someone who has not reported yet is nudged, once per screen, to the one place they can help.
-      if (screenNow === 'deck' && pick) { text = 'Best bet: ' + bayName(pick.zone) + ' · ' + range(pick.est) + ' open'; label = 'I parked'; act = () => setView('report'); }
+      if (screenNow === 'deck' && selectedBay) { text = 'Parked in ' + bayName(selectedBay) + '?'; label = 'I parked here'; act = () => parkHere(selectedBay); }
+      else if (screenNow === 'deck' && pick) { text = 'Best bet: ' + bayName(pick.zone) + ' · ' + range(pick.est) + ' open'; label = 'I parked here'; act = () => parkHere(pick.zone); }
       else if (screenNow === 'about' && pick) { text = 'Best bet: ' + bayName(pick.zone) + ' · ' + range(pick.est) + ' open'; label = 'Show me'; act = () => showBay(pick.zone); }
       else if (!pick && lastTop(t)) { const z = lastTop(t); text = 'Last count ' + since(records[z].start, t) + '. Most room: ' + bayName(z) + ' · ' + records[z].count; label = 'Show me'; act = () => showBay(z); }
       else if (!pick && screenNow !== 'about') { text = 'No known open space. If the deck is full: Shuttle Lot + Big Owl Bus.'; warn = true; label = 'I parked'; act = () => setView('report'); }
@@ -357,8 +359,8 @@ function render() {
   const facultySub = z => DECK.zones[z].facultyStaff > 0 ? { sub: '+' + DECK.zones[z].facultyStaff + ' faculty' } : {};
   if (viewer) viewer.setBays(Object.fromEntries(staffBays.concat(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z), r = records[z];
     // A bay whose count is too old to estimate from keeps the colour and number of its last count (the note under the model says how old).
-    if (!b.est && r) return [z, { state: r.count >= Settings.bayRoomAt ? 'room' : r.count === 0 ? 'full' : 'few', label: String(r.count), ...facultySub(z) }];
-    return [z, { state: b.state, label: b.est ? range(b.est) : '?', ...facultySub(z) }]; }))));
+    if (!b.est && r) return [z, { state: r.count >= Settings.bayRoomAt ? 'room' : r.count === 0 ? 'full' : 'few', label: String(r.count), name: shortName(z), ...facultySub(z) }];
+    return [z, { state: b.state, label: b.est ? range(b.est) : '?', name: shortName(z), ...facultySub(z) }]; }))));
   const old = ParkingModel.deckSummary(records, ZONE_IDS, t, reports).state === 'unknown' ? ParkingModel.lastCounts(records, ZONE_IDS, t) : null;
   if ($('ageNote')) $('ageNote').textContent = old ? 'Last count: ' + since(old.oldest, t) + '. Not live.' : '';
   renderSelection();
@@ -374,6 +376,7 @@ function selectBay(z) {
   render();
 }
 function renderSelection() {
+  renderCheckin();
   const el = $('selection'); if (!el) return;
   if (!selectedBay) { el.textContent = 'Tap a bay.'; return; }
   const t = now(), r = records[selectedBay], e = est(selectedBay, t);
@@ -403,12 +406,32 @@ function renderParked() {
 function leaveParked() { const p = parkedHere(); if (!p) return; $('reportBay').value = p.zone; reportBay('leaving'); }
 
 // ---- Student report: "I just parked here" (anonymous, low trust, expires) ----
+// ---- One-tap check-in from the deck: "I parked here" ----
+// Tapping it on a bay (usually the one the app just recommended) saves where this phone parked, so "I'm leaving"
+// works later, and asks the one thing a tap cannot know: how full the bay is. That second tap is optional.
+let askFull = null;
+function parkHere(zone) {
+  if (!ZONE_IDS.includes(zone)) return;
+  $('reportBay').value = zone; if ($('reportBay').dataset) $('reportBay').dataset.chosen = '1';
+  try { localStorage.setItem(PARKED_KEY, JSON.stringify({ zone, t: now(), left: false })); } catch (e) {}
+  askFull = zone; selectedBay = zone; if (viewer) viewer.select(zone);
+  renderGrids(); renderParked(); render(); say('Checked in: ' + bayName(zone) + '. How full is it?', 6000);
+}
+function renderCheckin() {
+  const el = $('checkin'); if (!el) return;
+  const p = parkedHere(), here = p && !p.left && p.zone === selectedBay;
+  el.innerHTML = askFull && askFull === selectedBay
+    ? '<p>How full is it? One tap.</p><div class="choices" style="margin:0"><button class="choice room" onclick="reportBay(\'plenty\')"><b>Plenty</b>5 or more</button><button class="choice few" onclick="reportBay(\'few\')"><b>A few</b>1 to 4</button><button class="choice full" onclick="reportBay(\'full\')"><b>Full</b>none</button></div>'
+    : selectedBay && here ? `<button class="primary" onclick="leaveParked()">I'm leaving ${bayName(selectedBay)}</button>`
+    : selectedBay ? `<button class="primary" onclick="parkHere('${selectedBay}')">I parked here</button>` : '';
+}
 function reportBay(band) {
   const zone = $('reportBay').value, t = now(), msg = $('reportMsg');
   let last = {}; try { last = JSON.parse(localStorage.getItem(REPORTED_KEY)) || {}; } catch (e) {}
   const slot = zone + (band === 'leaving' ? ':out' : ':in'); // parking and leaving are separate events: leaving soon after parking is allowed
   if (t - (last[slot] || 0) < Settings.studentRepeatMinutes * 60e3 && t >= (last[slot] || 0)) {
     msg.textContent = 'You already reported this bay a few minutes ago. One report per bay is enough.'; return; }
+  askFull = null;
   const report = { zone, band, t };
   reports = ParkingModel.cleanReports([...reports, report], ZONE_IDS, t); saveReports();
   last[slot] = t; try { localStorage.setItem(REPORTED_KEY, JSON.stringify(last)); } catch (e) {}
@@ -708,7 +731,7 @@ async function mountViewer() {
     $('viewerNote').textContent = '3D view is not included in this build. The level cards show the same data.'; return;
   }
   try {
-    viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay, bayIds: ALL_IDS, access: DECK.access,
+    viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay, bayIds: ALL_IDS, access: DECK.access, deckName: placeOf('west').name,
       // student bays that are part faculty/staff, and which end of the bay those stalls are at
       staffParts: ZONE_IDS.filter(z => DECK.zones[z].facultyEnd && DECK.zones[z].facultyStaff > 0).map(z => ({ bay: z, end: DECK.zones[z].facultyEnd, share: DECK.zones[z].facultyStaff / (DECK.zones[z].stalls + DECK.zones[z].facultyStaff) })) });
     viewer.setSpread($('spread').getAttribute('aria-pressed') === 'true', true); // apart by default, no animation on load
