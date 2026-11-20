@@ -30,7 +30,7 @@ test('seed shows a counted level, an estimated level, a level with no student st
 });
 test('recommends where to try first, and says so plainly when nothing is known to be open', () => {
   const b = boot();
-  assert.match(b.els.verdict.innerHTML, /Try first:.*Level 3 · East bay · <b>11<\/b> open<\/button>.*then.*Level 3 · West bay · <b>6<\/b> open/);
+  assert.match(b.els.verdict.innerHTML, /Where do you want to park\?.*class="pick top".*Level 3 · East bay · <b>11<\/b> open<\/button>.*Level 3 · West bay · <b>6<\/b> open/);
   b.run('clearDemo()');
   assert.match(b.els.verdict.innerHTML, /No bay has a known open space right now/);
 });
@@ -40,7 +40,7 @@ test('advice can be predicted for a later arrival', () => {
   assert.match(b.els.verdict.innerHTML, /newest count 1 min ago/);
   b.run('setLead(10)');
   assert.match(b.els.verdict.innerHTML, /predicted for 10 minutes from now/);
-  assert.match(b.els.verdict.innerHTML, /Try first:.*\(estimate\)/);                 // every count will be older than 5 minutes by then
+  assert.match(b.els.verdict.innerHTML, /Where do you want to park\?.*\(estimate\)/);                 // every count will be older than 5 minutes by then
   assert.doesNotMatch(b.els.verdict.innerHTML, /Level 2 · Centre ramp/);              // it was filling: not recommended for later
 });
 test('staff are told which bay to count next', () => {
@@ -52,7 +52,7 @@ test('staff are told which bay to count next', () => {
 test('a first visit opens on the replay of the real Nov 19 count, labelled as a replay', () => {
   const b = boot({}, { replay: true });
   assert.match(b.els.verdict.innerHTML, /Room likely.*<b>56–83<\/b> open · estimate/);   // 70 were counted; five bays are 5-9 minutes old in the replay
-  assert.match(b.els.verdict.innerHTML, /Try first:.*Level 2 · West bay · <b>22<\/b> open/);
+  assert.match(b.els.verdict.innerHTML, /Where do you want to park\?.*Level 2 · West bay · <b>22<\/b> open/);
   assert.match(b.els.notice.innerHTML, /A replay, not live.*Thursday, Nov 19, 2026/);
   assert.match(b.els.clock.textContent, /Replay of Thu Nov 19/);
   b.run("loadDemo('sample')"); assert.match(b.els.notice.innerHTML, /made-up sample data/);
@@ -146,7 +146,7 @@ test('selecting a bay explains it in words', () => {
 test('a student report fills an unknown bay as a band and feeds the recommendation', () => {
   const b = boot(); b.run('clearDemo()'); b.els.reportBay.value = 'L2_North'; b.run("reportBay('few')");
   assert.match(b.els.cards.innerHTML, /bay-count">1–4<\/b><span class="status students">Student report · "a few left", 0 min ago/);
-  assert.match(b.els.verdict.innerHTML, /Try first:.*Level 2 · North bay · <b>1–4<\/b> open \(student report\)/);
+  assert.match(b.els.verdict.innerHTML, /Where do you want to park\?.*Level 2 · North bay · <b>1–4<\/b> open \(student report\)/);
   assert.match(b.els.reportMsg.textContent, /now shows "a few left" as a student report/);
   b.run("reportBay('full')");                                   // same device, same bay, straight away
   assert.match(b.els.reportMsg.textContent, /already reported this bay/);

@@ -326,7 +326,8 @@ function renderVerdict(now) {
   $('verdict').innerHTML = `<span class="verdict-word ${d.verdict}">${VERDICT[d.verdict]}</span>` +
     `<span class="verdict-detail">${d.state === 'unknown' ? 'No counts yet' : `<b>${count}</b> open · ${unit}`}` +
     (lead ? ` · <b>predicted for ${lead} minutes from now</b>` : '') +
-    (Number.isFinite(newest) ? ` · newest count ${since(now - newest, now)}` : '') + '</span>' + arrive + bestBet(t);
+    (Number.isFinite(newest) ? ` · newest count ${since(now - newest, now)}` : '') + '</span>' + arrive;
+  $('verdict').innerHTML = bestBet(t) + $('verdict').innerHTML; // the question and its answers come first
 }
 // The bay with the most room at the last count, used only when nothing current is known.
 function lastTop(t) {
@@ -343,8 +344,9 @@ function lastBest(t) {
 function bestBet(t) {
   const picks = ParkingModel.recommend(records, ZONE_IDS, t, 3, reports);
   if (!picks.length) return '<span class="best">No bay has a known open space right now. If the deck is full: Shuttle Lot and the Big Owl Bus.</span>';
-  const item = ({ zone, est }) => `<button class="pick" onclick="selectBay('${zone}')">${bayName(zone)} · <b>${range(est)}</b> open${{ counted: '', estimate: ' (estimate)', students: ' (student report)' }[est.source]}</button>`;
-  return `<span class="best"><b>Try first:</b> ${item(picks[0])}${picks.length > 1 ? ' <span class="then">then</span> ' + picks.slice(1).map(item).join(' ') : ''}</span>`;
+  const item = ({ zone, est }, i) => `<button class="pick${i ? '' : ' top'}" onclick="selectBay('${zone}')">${bayName(zone)} · <b>${range(est)}</b> open${{ counted: '', estimate: ' (estimate)', students: ' (student report)' }[est.source]}</button>`;
+  // The first thing on the screen: one question, and the best bays as the answers. Tap one, drive there, park.
+  return `<span class="best"><b class="q">Where do you want to park?</b>${picks.map(item).join('')}</span>`;
 }
 function render() {
   const t = now();

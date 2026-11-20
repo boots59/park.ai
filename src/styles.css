@@ -135,7 +135,12 @@ details.panel[open] > summary { margin-bottom: 8px; }
 .arrive { flex-basis: 100%; font-size: 14px; color: #cfcfcf; margin-top: 8px; }
 .best { flex-basis: 100%; font-size: 15px; margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .pick { background: #3a3536; color: var(--white); border-radius: 2px; padding: 8px 12px; font-size: 15px; min-height: 44px; }
-.best .pick { flex-basis: 100%; text-align: left; min-height: 52px; font-size: 17px; } .best .then { display: none; }
+.best .pick { flex-basis: 100%; text-align: left; min-height: 60px; font-size: 18px; margin: 0; } .best .then { display: none; }
+.best { order: -1; margin: 0 0 16px; }
+.best .q { flex-basis: 100%; font-family: var(--sign); font-size: 30px; line-height: 1.05; text-transform: uppercase; color: var(--gold); margin-bottom: 2px; }
+.best .pick.top { background: var(--gold); color: var(--black); min-height: 72px; font-size: 21px; font-weight: 700; }
+.best .pick.top b { color: var(--black); }
+.best ~ .verdict-word, #verdict .verdict-word { font-size: 34px; }
 .pick b { font-family: var(--sign); font-size: 20px; color: var(--gold); }
 .pick[aria-pressed="true"] { background: var(--gold); color: var(--black); font-weight: 600; }
 .then { color: #cfcfcf; font-size: 13px; }
