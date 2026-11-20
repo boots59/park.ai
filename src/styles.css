@@ -141,6 +141,10 @@ details.panel[open] > summary { margin-bottom: 8px; }
 .hero b { display: block; font-size: 92px; line-height: .92; letter-spacing: 0; }
 .hero.room b { color: #7fe3a0; } .hero.tight b { color: var(--gold); } .hero.full b { color: #ff9a8b; } .hero.unknown b { color: #cfcfcf; }
 .best .q { flex-basis: 100%; font-family: var(--sign); font-size: 30px; line-height: 1.05; text-transform: uppercase; color: var(--gold); margin-bottom: 2px; }
+.best .tap { flex-basis: 100%; font-size: 14px; color: #cfcfcf; margin: -2px 0 4px; }
+.best .pick { position: relative; display: block; padding-right: 70px; border: 2px solid var(--gold); border-radius: 4px; }
+.best .pick::after { content: 'GO ›'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-family: var(--sign); font-size: 18px; font-weight: 700; letter-spacing: .04em; color: var(--gold); }
+.best .pick.top::after { color: var(--black); }
 .best .pick.top { background: var(--gold); color: var(--black); min-height: 72px; font-size: 21px; font-weight: 700; }
 .best .pick.top b { color: var(--black); }
 #verdict .verdict-word { font-size: 26px; margin-top: 6px; }

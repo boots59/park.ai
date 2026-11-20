@@ -13,7 +13,6 @@
 <div id="verdict" role="status" aria-live="polite"></div>
 <button id="monitorBtn" class="secondary wide-btn monitorbtn" onclick="setView('staff')">Are you a monitor? <b>Count a bay</b></button>
 <div id="places" class="places" role="group" aria-label="Choose a deck or lot" style="margin-top:16px"></div>
-<p id="placeSpec" class="spec"></p>
 </div></section>
 
 <section id="deck" class="screen" aria-label="Deck"><div class="inner">
@@ -26,7 +25,8 @@
 <p id="selection" class="selection" role="status" aria-live="polite"></p>
 <div id="checkin" class="checkin"></div>
 <div class="deckrow"><span id="viewerNote" class="small">Loading…</span><button id="spread" class="secondary" aria-pressed="true" onclick="toggleSpread()" style="margin:0">Levels apart</button></div>
-<details class="deckmore"><summary>Colours, and ways in and out</summary>
+<details class="deckmore"><summary>About this deck, colours, ways in and out</summary>
+<p id="placeSpec" class="spec"></p>
 <div class="legend"><span><i style="background:#2f8f4e"></i>Room (5 or more)</span><span><i style="background:#d9a21b"></i>A few</span><span><i style="background:#b8402f"></i>Full</span><span><i style="background:#9aa69a"></i>Unknown</span><span><i style="background:#6c7a89"></i>Faculty/staff only</span></div>
 <p id="access" class="access"></p></details>
 </div></section>

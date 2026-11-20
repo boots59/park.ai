@@ -59,7 +59,9 @@ function seed() {
 function load() {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY));
-    if (saved && typeof saved.offset === 'number') { records = ParkingModel.sanitize(saved.records, ZONE_IDS); offset = Sync.on ? 0 : saved.offset; demo = saved.demo === 'sample' ? 'sample' : saved.demo === 'own' ? 'own' : 'nov19'; return; }
+    if (saved && typeof saved.offset === 'number') { records = ParkingModel.sanitize(saved.records, ZONE_IDS); offset = Sync.on ? 0 : saved.offset; demo = saved.demo === 'sample' ? 'sample' : saved.demo === 'own' ? 'own' : 'nov19';
+      if (demo === 'nov19' && !Sync.on) { offset = 0; seedNov19(); } // the replay always opens at 11:58 on Nov 19, never as day-old counts
+      return; }
   } catch (e) {}
   if (Sync.on) { records = {}; return; } // shared mode starts empty: no sample data mixed with real entries
   startedFresh = true; seedNov19(); // a first visit opens on the replay of the real count
@@ -309,19 +311,18 @@ function renderPlaces() {
     `<button aria-pressed="${p.id === place}" onclick="setPlace('${p.id}')">${p.name}<small>${p.live ? 'live' : 'soon'}</small></button>`).join('');
   const p = placeOf(place), all = Object.values(DECK.zones), sum = k => all.reduce((n, z) => n + (z[k] || 0), 0);
   $('placeName').innerHTML = `${p.name} <span>${p.campus} campus</span>`;
-  $('placeSpec').textContent = p.live
-    ? `${LEVELS.length} levels · ${sum('stalls') + sum('accessible') + sum('facultyStaff') + sum('otherReserved')} stalls, ${sum('stalls')} student · clearance ${p.clearance} · counted on foot Nov 19`
-    : p.clearance ? `Clearance ${p.clearance} (KSU)` : '';
+  const west = placeOf('west');
+  if ($('placeSpec')) $('placeSpec').textContent = `${LEVELS.length} levels · ${sum('stalls') + sum('accessible') + sum('facultyStaff') + sum('otherReserved')} stalls, ${sum('stalls')} student · clearance ${west.clearance} · counted on foot Nov 19`;
 }
 function renderVerdict(now) {
-  if (!placeOf(place).live) { $('verdict').innerHTML = `<span class="soon"><b>Coming soon</b>Not counted yet. Park.AI starts with West Deck.</span><button class="pick" aria-pressed="true" onclick="setPlace('west')">Back to West Deck</button>`; return; }
+  if (!placeOf(place).live) { $('verdict').innerHTML = `<span class="soon"><b>Coming soon</b>Not counted yet. Park.AI starts with West Deck.${placeOf(place).clearance ? ' Clearance ' + placeOf(place).clearance + ' (KSU).' : ''}</span><button class="pick" aria-pressed="true" onclick="setPlace('west')">Back to West Deck</button>`; return; }
   const t = now + lead * 60e3, d = ParkingModel.deckSummary(records, ZONE_IDS, t, reports), [count, unit] = summaryText(d);
   const newest = Math.min(...ZONE_IDS.map(z => records[z] ? now - records[z].start : Infinity));
   const arrive = '<span class="arrive">I arrive in ' + [0, 5, 10, 15].map(m =>
     `<button class="pick" aria-pressed="${lead === m}" onclick="setLead(${m})">${m ? m + ' min' : 'now'}</button>`).join(' ') + '</span>';
   const last = d.state === 'unknown' ? ParkingModel.lastCounts(records, ZONE_IDS, now) : null;
   if (last) { // every count is past the horizon: keep showing it, labelled as old, never as live
-    $('verdict').innerHTML = `<span class="verdict-word unknown">Last count</span><span class="verdict-detail"><b>${(last.bays < last.of ? '≥' : '') + last.open}</b> open when last counted · ${since(last.oldest, now)} · not live</span>` + lastBest(now);
+    $('verdict').innerHTML = `<span class="hero unknown"><b>${(last.bays < last.of ? '≥' : '') + last.open}</b>open at the last count · not live</span><span class="verdict-word unknown">Last count</span><span class="verdict-detail"><b>${(last.bays < last.of ? '≥' : '') + last.open}</b> open when last counted · ${since(last.oldest, now)} · not live</span>` + lastBest(now);
     return;
   }
   $('verdict').innerHTML = `<span class="verdict-word ${d.verdict}">${VERDICT[d.verdict]}</span>` +
@@ -341,7 +342,7 @@ function lastTop(t) {
 function lastBest(t) {
   const top = ZONE_IDS.filter(z => records[z] && records[z].count > 0).sort((a, b) => records[b].count - records[a].count).slice(0, 3);
   if (!top.length) return '<span class="best">No bay had an open space at the last count. If the deck is full: Shuttle Lot and the Big Owl Bus.</span>';
-  return '<span class="best"><b>Most room at the last count:</b> ' + top.map(z => `<button class="pick" onclick="startTrip('${z}')">${bayName(z)} · <b>${records[z].count}</b> open · ${since(records[z].start, t)}</button>`).join(' ') + '</span>';
+  return '<span class="best"><b class="q">Where do you want to park?</b><span class="tap">Most room at the last count: tap a bay</span>' + top.map(z => `<button class="pick" onclick="startTrip('${z}')">${bayName(z)} · <b>${records[z].count}</b> open · ${since(records[z].start, t)}</button>`).join(' ') + '</span>';
 }
 // "Where should I try first?" Whole bays only: nothing here knows which individual spaces are open.
 function bestBet(t) {
@@ -349,7 +350,7 @@ function bestBet(t) {
   if (!picks.length) return '<span class="best">No bay has a known open space right now. If the deck is full: Shuttle Lot and the Big Owl Bus.</span>';
   const item = ({ zone, est }, i) => `<button class="pick${i ? '' : ' top'}" onclick="startTrip('${zone}')">${bayName(zone)} · <b>${range(est)}</b> open${{ counted: '', estimate: ' (estimate)', students: ' (student report)' }[est.source]}</button>`;
   // The first thing on the screen: one question, and the best bays as the answers. Tap one, drive there, park.
-  return `<span class="best"><b class="q">Where do you want to park?</b>${picks.map(item).join('')}</span>`;
+  return `<span class="best"><b class="q">Where do you want to park?</b><span class="tap">Tap a bay to go there</span>${picks.map(item).join('')}</span>`;
 }
 function render() {
   const t = now();

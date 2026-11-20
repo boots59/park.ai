@@ -215,7 +215,7 @@ test('deck switcher: West Deck is live, every other place says coming soon', () 
   b.run("setPlace('north')");
   assert.match(b.els.verdict.innerHTML, /Coming soon/);
   assert.doesNotMatch(b.els.verdict.innerHTML, /open/);                       // no number is ever shown for a place nobody counted
-  assert.match(b.els.placeSpec.textContent, /6 ft 8 in/);
+  assert.match(b.els.verdict.innerHTML, /Clearance 6 ft 8 in \(KSU\)/);
   b.run("setPlace('west')");
   assert.match(b.els.verdict.innerHTML, /open/);
 });
