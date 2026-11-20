@@ -543,7 +543,12 @@ async function liveLook(id) {
 }
 async function captureFrame() {
   const frame = grabFrame(); if (!frame) return;
-  closeCamera(); await scanSource(frame);
+  closeCamera();
+  // Show the captured view at once and let the screen repaint: the thorough count keeps the phone busy for a few seconds.
+  const cv = $('scanCanvas'); cv.width = frame.width; cv.height = frame.height; cv.getContext('2d').drawImage(frame, 0, 0); cv.classList.remove('hidden');
+  $('scanStatus').textContent = 'Counting vehicles on this device…';
+  await new Promise(r => setTimeout(r, 80));
+  await scanSource(frame);
 }
 async function scanPhoto(input) {
   const file = input.files && input.files[0];
