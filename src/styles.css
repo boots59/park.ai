@@ -55,6 +55,22 @@ body { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; 
 #tabs { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--black); margin: 0; border: 0; padding-bottom: env(safe-area-inset-bottom); overflow: visible; gap: 0; }
 #tabs button { background: none; color: #cfcfcf; font-family: var(--sign); font-size: 19px; font-weight: 600; padding: 8px 4px; min-height: 56px; border-radius: 0; border-top: 4px solid transparent; }
 #tabs button.active { color: var(--gold); border-top-color: var(--gold); background: none; }
+.askbtn { height: 36px; padding: 0 12px; margin-right: 8px; border-radius: 18px; background: var(--gold); color: var(--black); font-family: var(--sign); font-size: 17px; font-weight: 700; line-height: 1; }
+.ask { position: fixed; inset: 0; z-index: 25; background: var(--black); color: var(--white); padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.ask.hidden { display: none; }
+.askhead { display: flex; justify-content: space-between; align-items: center; }
+.askhead h2 { color: var(--gold); margin: 0; }
+.askhead button { margin: 0; }
+.asklog { display: grid; gap: 8px; }
+.asklog .q { justify-self: end; background: var(--gold); color: var(--black); padding: 8px 12px; border-radius: 12px 12px 2px 12px; font-weight: 600; max-width: 85%; }
+.asklog .a { justify-self: start; background: #3a3536; padding: 10px 12px; border-radius: 12px 12px 12px 2px; max-width: 92%; line-height: 1.35; }
+.asklog .a button { display: block; margin: 8px 0 0; background: var(--gold); color: var(--black); font-family: var(--sign); font-size: 17px; font-weight: 700; padding: 8px 14px; border-radius: 2px; min-height: 44px; }
+.askchips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.askchips button { min-height: 52px; margin: 0; padding: 6px 8px; background: #3a3536; color: var(--white); border-radius: 4px; font-size: 15px; text-align: left; }
+.askform { display: flex; gap: 8px; }
+.askform input { flex: 1; min-width: 0; padding: 10px; font: inherit; border: 0; border-radius: 4px; }
+.askform button { margin: 0; background: var(--gold); color: var(--black); }
+.ask .small { color: #cfcfcf; margin: 0; }
 .info { width: 36px; height: 36px; border-radius: 50%; background: none; border: 2px solid var(--gold); color: var(--gold); font-family: var(--sign); font-size: 20px; font-weight: 700; line-height: 1; }
 .info.active { background: var(--gold); color: var(--black); }
 .fold { border-top: 1px solid var(--line); padding: 12px 0; font-size: 14px; color: var(--muted); }

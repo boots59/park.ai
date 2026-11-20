@@ -1,9 +1,9 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; font-src data:; connect-src 'self' /*SYNC_ORIGIN*/; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; font-src data:; connect-src 'self' /*SYNC_ORIGIN*/; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
 <meta name="referrer" content="no-referrer"><title>Park.AI · West Deck · student project</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#231f20"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Park.AI"><style>
 /*STYLES*/
 </style></head><body>
-<header><div class="brand"><svg class="owl" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><path fill="#ffc629" d="M5 4l5 4h12l5-4v14a11 11 0 0 1-22 0z"/><circle cx="11.5" cy="14" r="4.2" fill="#231f20"/><circle cx="20.5" cy="14" r="4.2" fill="#231f20"/><circle cx="11.5" cy="14" r="1.7" fill="#fff"/><circle cx="20.5" cy="14" r="1.7" fill="#fff"/><path fill="#231f20" d="M16 17l-2.2 3.2h4.4z"/></svg><span class="name">Park<span>.AI</span></span><span class="by"><b>KSU edition</b>student project</span></div><button id="aboutTab" class="info" onclick="setView('about')" aria-label="About, limits and settings" aria-selected="false">i</button></header>
+<header><div class="brand"><svg class="owl" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><path fill="#ffc629" d="M5 4l5 4h12l5-4v14a11 11 0 0 1-22 0z"/><circle cx="11.5" cy="14" r="4.2" fill="#231f20"/><circle cx="20.5" cy="14" r="4.2" fill="#231f20"/><circle cx="11.5" cy="14" r="1.7" fill="#fff"/><circle cx="20.5" cy="14" r="1.7" fill="#fff"/><path fill="#231f20" d="M16 17l-2.2 3.2h4.4z"/></svg><span class="name">Park<span>.AI</span></span><span class="by"><b>KSU edition</b>student project</span></div><button id="askBtn" class="askbtn" onclick="openAsk()" aria-label="Ask Park.AI">Ask</button><button id="aboutTab" class="info" onclick="setView('about')" aria-label="About, limits and settings" aria-selected="false">i</button></header>
 <div class="notice" id="notice"></div>
 <main id="screens">
 
@@ -109,6 +109,13 @@
 <footer>Park.AI · Concept by Kell Enow · The owl mark is an original drawing, not a KSU logo · 3D model contributed by a collaborator · Browser-local prototype, no data sent anywhere. <br>Model data: USGS 3DEP lidar · Imagery: USDA NAIP · Level count: © OpenStreetMap contributors (ODbL) · Detection: YOLOX (Apache-2.0), ONNX Runtime Web (MIT) · 3D: three.js (MIT)</footer>
 </div></section>
 </main>
+<div id="ask" class="ask hidden" role="dialog" aria-modal="true" aria-label="Ask Park.AI">
+<div class="askhead"><h2>Ask Park.AI</h2><button class="secondary" onclick="closeAsk()">Close</button></div>
+<div id="askLog" class="asklog" role="log" aria-live="polite"></div>
+<div id="askChips" class="askchips"></div>
+<form class="askform" onsubmit="askTyped(); return false"><input id="askText" type="text" maxlength="120" autocomplete="off" placeholder="Or type a question" aria-label="Type a question"><button class="primary" type="submit">Ask</button></form>
+<p class="small">Answers come from this app's counts, on this phone. It matches your question to what the app knows; it is not a chatbot and sends nothing anywhere.</p>
+</div>
 <div id="review" class="review hidden" role="dialog" aria-modal="true" aria-label="Rate Park.AI">
 <h2>Rate Park.AI <span>4 taps, anonymous</span></h2>
 <div id="reviewQs"></div>

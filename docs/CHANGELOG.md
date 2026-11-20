@@ -102,3 +102,4 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Deck switcher on Now (`data/places.json`), tester review mode (`?try`), share-link fallback on the QR screen.
 - **Camera scan is now the main way to count** (Kell's decision): live camera view with a quick on-device vehicle count and boxes, then a thorough pass on the captured view. Hand tally stays as the fallback. In-deck accuracy is still only measured on two photos.
 - 3D deck: entrances, exit to campus, level tags, faculty/staff parking.
+- **Ask Park.AI**: a guide opened from the header. Ten topics (where to park, room now, in 10 minutes, walk to campus, drive in, just parked, leaving, monitor count, faculty parking, other decks), each answered from the app's current counts with a button that goes to the right screen. Typed questions are matched to a topic by shared words, on the phone. It is not a language model and says so on screen.

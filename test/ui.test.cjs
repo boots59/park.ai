@@ -220,6 +220,19 @@ test('ways in and out are listed as text', () => {
   assert.match(b.els.access.innerHTML, /<b>Main in\/out<\/b> Level 1, south side, far east end/);
   assert.match(b.els.access.innerHTML, /<b>Side in\/out<\/b> Level 1, west side, north of the middle/);
 });
+test('Ask Park.AI answers from the counts and matches typed questions to topics', () => {
+  const b = boot();
+  b.run("openAsk(); askTopic('park')");
+  assert.match(b.els.askLog.innerHTML, /Try Level 3 · East bay first: 11 open, just counted\./);
+  b.run("$('askText').value = 'how do i get to class on foot?'; askTyped()");
+  assert.match(b.els.askLog.innerHTML, /To campus: Level 3, north-east corner/);
+  b.run("$('askText').value = 'where do teachers park'; askTyped()");
+  assert.match(b.els.askLog.innerHTML, /Level 1 is faculty\/staff only \(174 stalls\), plus 38 on the Level 2 centre ramp/);
+  b.run("$('askText').value = '<b>pizza</b>'; askTyped()");
+  assert.match(b.els.askLog.innerHTML, /&lt;b&gt;pizza&lt;\/b&gt;.*I can only answer the questions on the buttons/);   // typed text is escaped; no made-up answer
+  b.run('clearDemo(); askTopic("room")');
+  assert.match(b.els.askLog.innerHTML, /West Deck\. No counts yet\./);
+});
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
 const photo = () => ({ files: [{}], value: 'x' });
 (async () => {

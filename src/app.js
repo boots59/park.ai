@@ -186,6 +186,70 @@ const VERDICT = { room: 'Room likely', tight: 'Tight', full: 'Likely full', unkn
 // every count is older by then, so ranges are wider, and a bay that was filling is projected forward.
 let lead = 0; // minutes from now
 function setLead(minutes) { lead = minutes; render(); }
+// ---- Ask Park.AI: a guide that answers from the app's own counts and takes you to the right screen ----
+// Each topic has trigger words, an answer built from the current data, and (usually) a button that goes there.
+// A typed question is matched to the topic whose words it shares most. This is word matching on the phone,
+// not a language model: it can only answer the topics below, and it says so when nothing matches.
+const ASK = [
+  { id: 'park', q: 'Where should I park?', words: 'where park best spot space bay try first recommend open', answer(t) {
+      const pick = ParkingModel.recommend(records, ZONE_IDS, t, 1, reports)[0], old = lastTop(t);
+      if (pick) return { text: `Try ${bayName(pick.zone)} first: ${range(pick.est)} open${{ counted: ', just counted', estimate: ' (estimate)', students: ' (student report)' }[pick.est.source]}.`, label: 'Show me', go: () => showBay(pick.zone) };
+      if (old) return { text: `Nothing current. At the last count (${since(records[old].start, t)}) ${bayName(old)} had the most room: ${records[old].count} open. Not live.`, label: 'Show me', go: () => showBay(old) };
+      return { text: 'No bay has a known open space. If the deck is full: Shuttle Lot and the Big Owl Bus.', label: 'Open Now', go: () => setView('student') }; } },
+  { id: 'room', q: 'Is there room right now?', words: 'room full busy now crowded many how spaces available status', answer(t) {
+      const d = ParkingModel.deckSummary(records, ZONE_IDS, t, reports), last = ParkingModel.lastCounts(records, ZONE_IDS, t);
+      const text = d.state !== 'unknown' ? `${VERDICT[d.verdict]}: ${summaryText(d).join(' open · ')}.` : last ? `No current count. Last count: ${last.open} open, ${since(last.oldest, t)}. Not live.` : 'No counts yet.';
+      return { text: 'West Deck. ' + text, label: 'Open Now', go: () => setView('student') }; } },
+  { id: 'soon', q: 'What about in 10 minutes?', words: 'minutes later soon arrive predict forecast future when', answer(t) {
+      const d = ParkingModel.deckSummary(records, ZONE_IDS, t + 10 * 60e3, reports);
+      return { text: d.state === 'unknown' ? 'Not enough recent counts to predict 10 minutes ahead.' : `Predicted for 10 minutes from now: ${VERDICT[d.verdict]}, ${summaryText(d).join(' open · ')}. A prediction from the last counts, not a measurement.`, label: 'See it', go: () => { setLead(10); setView('student'); } }; } },
+  { id: 'walk', q: 'How do I walk to campus?', words: 'walk campus exit stairs lift elevator building class foot out', answer() {
+      const a = (DECK.access || []).filter(a => a.kind === 'walk');
+      return { text: a.length ? a.map(a => `${a.label}: ${a.where}.`).join(' ') : 'No walk exit is recorded yet.', label: 'Show on the deck', go: () => setView('deck') }; } },
+  { id: 'drive', q: 'Where do I drive in?', words: 'drive enter entrance gate car in way road', answer() {
+      const a = (DECK.access || []).filter(a => a.kind === 'drive');
+      return { text: a.length ? a.map(a => `${a.label}: ${a.where}.`).join(' ') : 'No entrance is recorded yet.', label: 'Show on the deck', go: () => setView('deck') }; } },
+  { id: 'parked', q: 'I just parked', words: 'parked report tell help just here', answer() {
+      return { text: 'Thanks. Tap your bay, then how full it is. One tap helps the next driver.', label: 'Report', go: () => setView('report') }; } },
+  { id: 'leaving', q: "I'm leaving", words: 'leaving leave going gone bye pulling', answer() {
+      const p = parkedHere();
+      return p && !p.left ? { text: `You parked in ${bayName(p.zone)}. Tap to tell the next driver a space is opening.`, label: "I'm leaving", go: () => { leaveParked(); setView('student'); } }
+        : { text: 'Tell me where you parked first, then tap "leaving" there.', label: 'Report', go: () => setView('report') }; } },
+  { id: 'monitor', q: "I'm a monitor: count a bay", words: 'monitor staff count scan camera tally survey patrol', answer(t) {
+      const next = ParkingModel.recheckNext(records, ZONE_IDS, t, reports, 1)[0];
+      return next ? { text: `Count ${bayName(next.zone)} next. Scan it with the camera, or tally by hand.`, label: 'Start', go: () => { setView('staff'); pickBay(next.zone); } }
+        : { text: 'Every bay has a fresh count. Pick any bay to recount.', label: 'Open Count', go: () => setView('staff') }; } },
+  { id: 'faculty', q: 'Where is faculty parking?', words: 'faculty staff teacher professor employee reserved permit', answer() {
+      const z = Object.values(DECK.zones), l1 = z.filter(b => b.level === 1).reduce((n, b) => n + (b.facultyStaff || 0), 0), up = z.filter(b => b.level > 1).reduce((n, b) => n + (b.facultyStaff || 0), 0);
+      return { text: `Level 1 is faculty/staff only (${l1} stalls)${up ? `, plus ${up} on the Level 2 centre ramp` : ''}. Student stalls are on Levels 2 and 3.`, label: 'Show levels', go: () => setView('levels') }; } },
+  { id: 'decks', q: 'Other decks and lots?', words: 'other deck decks lot lots central east north marietta shuttle economy clearance height tall truck', answer() {
+      const w = PLACES.find(p => p.live);
+      return { text: `Only ${w.name} has counts so far (clearance ${w.clearance}). The other KSU decks and lots are listed as coming soon.`, label: 'See the list', go: () => setView('student') }; } }];
+function askMatch(text) {
+  const said = String(text).toLowerCase().match(/[a-z']+/g) || [];
+  let best = null, score = 0;
+  const common = ['where', 'park', 'how', 'in', 'out', 'now', 'here', 'way', 'many', 'when', 'first', 'just']; // words several topics share count for less
+  for (const topic of ASK) { const words = topic.words.split(' ');
+    const n = said.reduce((sum, w) => sum + (words.includes(w) || words.includes(w.replace(/(ing|s)$/, '')) ? (common.includes(w) ? 0.4 : 1) : 0), 0);
+    if (n > score) { best = topic; score = n; } }
+  return best;
+}
+let askGo = [];
+function askSay(question, topic) {
+  const a = topic ? topic.answer(now()) : { text: 'I can only answer the questions on the buttons below. Tap one.' };
+  askGo.push(a.go || null);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  $('askLog').innerHTML += `<div class="q">${esc(question)}</div><div class="a">${esc(a.text)}${a.go ? `<button onclick="askTake(${askGo.length - 1})">${esc(a.label)}</button>` : ''}</div>`;
+}
+function askTopic(id) { const t = ASK.find(a => a.id === id); if (t) askSay(t.q, t); }
+function askTyped() { const el = $('askText'), text = String(el.value || '').trim(); if (!text) return; el.value = ''; askSay(text, askMatch(text)); }
+function askTake(i) { const go = askGo[i]; closeAsk(); if (go) go(); }
+function openAsk() {
+  if (!$('askLog').innerHTML) { $('askChips').innerHTML = ASK.map(a => `<button onclick="askTopic('${a.id}')">${a.q}</button>`).join(''); askSay('Hi', { answer: () => ({ text: 'Hi. Tap a question, or type one. I answer from the counts in this app and take you to the right screen.' }) }); }
+  $('ask').classList.remove('hidden');
+}
+function closeAsk() { $('ask').classList.add('hidden'); }
+
 // ---- Tester review (only when the page is opened with ?try, from the "Try the app" QR code) ----
 // A tester uses the app, then answers four one-tap questions and an optional suggestion. Anonymous: no name,
 // no device id. A web page cannot stop someone closing it, so the review is offered three ways instead:
