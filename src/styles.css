@@ -172,7 +172,12 @@ details.panel[open] > summary { margin-bottom: 8px; }
 
 /* 3D deck */
 #deck3d { height: min(56dvh, 460px); border-radius: 2px; overflow: hidden; background: #efefed; touch-action: none; border: 1px solid var(--line); }
-#deck3dStaff { height: 240px; margin: 12px 0 4px; border-radius: 2px; overflow: hidden; background: #efefed; touch-action: none; border: 1px solid var(--line); }
+#deck3dStaff { height: 170px; margin: 12px 0 4px; border-radius: 2px; overflow: hidden; background: #efefed; touch-action: pan-y; border: 1px solid var(--line); }
+#deck3dStaff .compass { transform: scale(.7); transform-origin: top right; }
+#deck3dStaff .deck-title { font-size: 14px; padding: 4px 7px; }
+#deck3dStaff .level-tag { font-size: 11px; padding: 3px 5px; }
+#deck3dStaff .bay-label { font-size: 12px; padding: 2px 4px; }
+#deck3dStaff .access-label { display: none !important; }
 .stepper .spot.seen { border-color: var(--gold); box-shadow: inset 0 0 0 2px var(--gold); }
 #deck3d canvas { width: 100% !important; height: 100% !important; }
 .bay-label { position: absolute; left: 0; top: 0; pointer-events: none; background: var(--white); color: var(--ink); font-family: var(--sign); font-size: 15px; font-weight: 700; line-height: 1; padding: 3px 6px; border-radius: 2px; border: 1px solid var(--black); white-space: nowrap; }

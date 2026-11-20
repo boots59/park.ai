@@ -20,7 +20,7 @@ function base64ToArrayBuffer(b64) {
   return bytes.buffer;
 }
 
-async function mount(container, glbBase64, { onPick, onLevel, bayIds = [], access = [], staffParts = [], deckName = '' } = {}) {
+async function mount(container, glbBase64, { onPick, onLevel, bayIds = [], access = [], staffParts = [], deckName = '', still = false } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -131,6 +131,8 @@ async function mount(container, glbBase64, { onPick, onLevel, bayIds = [], acces
   const camera = new THREE.PerspectiveCamera(35, 1, 1, 3000);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.maxPolarAngle = Math.PI * 0.48; // don't go under the ground
+  // A still model does not rotate, so a finger dragged over it scrolls the page instead. Taps still pick levels and bays.
+  if (still) { controls.enabled = false; renderer.domElement.style.touchAction = 'pan-y'; }
   controls.addEventListener('change', render);
 
   // Fit the whole model in view: distance from the bounding sphere and the

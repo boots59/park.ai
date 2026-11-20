@@ -851,7 +851,7 @@ async function mountStaffViewer() {
      typeof window === 'undefined' || typeof window.DeckViewer === 'undefined' || typeof GLB_B64 === 'undefined') return;
   viewer2Loading = true;
   try {
-    viewer2 = await window.DeckViewer.mount(box, GLB_B64, { bayIds: ALL_IDS, access: DECK.access, deckName: placeOf('west').name,
+    viewer2 = await window.DeckViewer.mount(box, GLB_B64, { still: true, bayIds: ALL_IDS, access: DECK.access, deckName: placeOf('west').name,
       onLevel: n => { if (!survey) { countDeck = 'west'; countLevel = n; renderCountSteps(); } },
       onPick: z => { if (!survey && ZONE_IDS.includes(z)) { countDeck = 'west'; countLevel = DECK.zones[z].level; countBay = z; renderCountSteps(); } }, // tap a bay to see where it is; the bay button starts the count
       staffParts: ZONE_IDS.filter(z => DECK.zones[z].facultyEnd && DECK.zones[z].facultyStaff > 0).map(z => ({ bay: z, end: DECK.zones[z].facultyEnd, share: DECK.zones[z].facultyStaff / (DECK.zones[z].stalls + DECK.zones[z].facultyStaff) })) });
