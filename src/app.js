@@ -109,7 +109,7 @@ function renderGuide() {
   const b = $('guideBtn'); b.textContent = label; b.classList.toggle('hidden', !act); guideAct = act;
 }
 function markTab(id) {
-  screenNow = id; renderGuide();
+  screenNow = id; renderGuide(); if (id === 'staff') mountStaffViewer();
   for (const name of SCREENS) { const tab = $(name + 'Tab'); tab.classList.toggle('active', name === id); tab.setAttribute('aria-selected', String(name === id)); }
 }
 function setView(id) {
@@ -365,10 +365,12 @@ function render() {
   const staffBays = ALL_IDS.filter(z => !ZONE_IDS.includes(z) && DECK.zones[z].facultyStaff > 0).map((z, i, all) => [z, { state: 'staff', // one flag per level, on its centre bay, with the level's faculty/staff total
       label: /_Centre$/.test(z) ? 'Faculty/staff only · ' + all.filter(o => DECK.zones[o].level === DECK.zones[z].level).reduce((n, o) => n + DECK.zones[o].facultyStaff, 0) : '' }]);
   const facultySub = z => DECK.zones[z].facultyStaff > 0 ? { sub: '+' + DECK.zones[z].facultyStaff + ' faculty' } : {};
-  if (viewer) viewer.setBays(Object.fromEntries(staffBays.concat(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z), r = records[z];
+  const bayMap = Object.fromEntries(staffBays.concat(ZONE_IDS.map(z => { const b = ParkingModel.bayState(records[z], t, reports, z), r = records[z];
     // A bay whose count is too old to estimate from keeps the colour and number of its last count (the note under the model says how old).
     if (!b.est && r) return [z, { state: r.count >= Settings.bayRoomAt ? 'room' : r.count === 0 ? 'full' : 'few', label: String(r.count), name: shortName(z), ...facultySub(z) }];
-    return [z, { state: b.state, label: b.est ? range(b.est) : '?', name: shortName(z), ...facultySub(z) }]; }))));
+    return [z, { state: b.state, label: b.est ? range(b.est) : '?', name: shortName(z), ...facultySub(z) }]; })));
+  if (viewer) viewer.setBays(bayMap);
+  if (viewer2) { viewer2.setBays(bayMap); syncStaffModel(); } // the monitors' model shows the same counts, the moment one is saved
   const old = ParkingModel.deckSummary(records, ZONE_IDS, t, reports).state === 'unknown' ? ParkingModel.lastCounts(records, ZONE_IDS, t) : null;
   if ($('ageNote')) $('ageNote').textContent = old ? 'Last count: ' + since(old.oldest, t) + '. Not live.' : '';
   renderSelection();
@@ -457,7 +459,7 @@ function unlock(inputId, msgId) {
   const owner = inputId === 'ownerPass';
   if (passSum($(inputId).value) !== (owner ? OWNER_CHECK : PASS_CHECK)) { $(msgId).textContent = 'That is not the password.'; return; }
   try { localStorage.setItem(owner ? OWNER_KEY : PASS_KEY, '1'); } catch (e) {}
-  $(inputId).value = ''; $(msgId).textContent = ''; applyLock(); renderGuide();
+  $(inputId).value = ''; $(msgId).textContent = ''; applyLock(); renderGuide(); if (screenNow === 'staff') mountStaffViewer();
 }
 function lockAgain() { try { localStorage.removeItem(PASS_KEY); localStorage.removeItem(OWNER_KEY); } catch (e) {} cancelSurvey(); applyLock(); renderGuide(); }
 
@@ -545,6 +547,7 @@ function renderGrids() {
 let countDeck = null, countLevel = null;
 function countPick(what, value) {
   if (survey) return; // a count is open: finish or cancel it first
+  countBay = null;
   if (what === 'deck') { countDeck = value; countLevel = null; }
   else if (what === 'level') countLevel = value;
   renderCountSteps();
@@ -559,8 +562,10 @@ function renderCountSteps() {
   if (countDeck) html += q(2, 'Which level?') + '<div class="steprow">' + LEVELS.filter(n => zonesOf(n).length).map(n =>
     `<button class="spot" aria-pressed="${countLevel === n}"${dis} onclick="countPick('level',${n})">Level ${n}</button>`).join('') + '</div>';
   if (countDeck && countLevel) html += q(3, 'Which bay?') + '<div class="steprow five">' + zonesOf(countLevel).map(z =>
-    `<button class="spot" aria-pressed="${z === chosen}"${dis} onclick="chooseBay('bay','${z}')" aria-label="${bayName(z)}">${shortName(z)}</button>`).join('') + '</div>';
+    `<button class="spot${z === countBay && !chosen ? ' seen' : ''}" aria-pressed="${z === chosen}"${dis} onclick="chooseBay('bay','${z}')" aria-label="${bayName(z)}">${shortName(z)}</button>`).join('') + '</div>';
   el.innerHTML = html;
+  if ($('deck3dStaff')) $('deck3dStaff').classList.toggle('hidden', !countDeck); // the model appears once a deck is picked
+  mountStaffViewer(); syncStaffModel();
 }
 function chooseBay(selectId, zone) {
   $(selectId).value = zone; if (selectId === 'reportBay') $('reportBay').dataset && ($('reportBay').dataset.chosen = '1');
@@ -830,6 +835,27 @@ function resetDemo() { loadDemo(demo === 'own' ? 'nov19' : demo); }
 function clearDemo() { cancelSurvey(); records = {}; reports = []; demo = 'own'; saveReports(); save(); render(); } // from here on, whatever is shown was entered on this device
 
 // ---- 3D model (optional: the page works without it) ----
+// ---- The monitors' own 3D model, on the Count screen ----
+// It follows the three step buttons: the level you pick lights up, then the bay. It loads the first time the
+// Count screen is opened and unlocked, so students never pay for it.
+let viewer2 = null, viewer2Loading = false;
+function syncStaffModel() { if (viewer2) viewer2.setFocus(countLevel, survey ? survey.zone : countBay); }
+let countBay = null; // a bay highlighted on the monitors' model before its count is started
+async function mountStaffViewer() {
+  const box = $('deck3dStaff');
+  if (viewer2 || viewer2Loading || !box || !staffOk() || !countDeck || screenNow !== 'staff' || // it needs a visible box to size itself
+     typeof window === 'undefined' || typeof window.DeckViewer === 'undefined' || typeof GLB_B64 === 'undefined') return;
+  viewer2Loading = true;
+  try {
+    viewer2 = await window.DeckViewer.mount(box, GLB_B64, { bayIds: ALL_IDS, access: DECK.access, deckName: placeOf('west').name,
+      onLevel: n => { if (!survey) { countDeck = 'west'; countLevel = n; renderCountSteps(); } },
+      onPick: z => { if (!survey && ZONE_IDS.includes(z)) { countDeck = 'west'; countLevel = DECK.zones[z].level; countBay = z; renderCountSteps(); } }, // tap a bay to see where it is; the bay button starts the count
+      staffParts: ZONE_IDS.filter(z => DECK.zones[z].facultyEnd && DECK.zones[z].facultyStaff > 0).map(z => ({ bay: z, end: DECK.zones[z].facultyEnd, share: DECK.zones[z].facultyStaff / (DECK.zones[z].stalls + DECK.zones[z].facultyStaff) })) });
+    viewer2.setSpread(true, true);
+    render();
+  } catch (e) { viewer2 = null; }
+  viewer2Loading = false;
+}
 async function mountViewer() {
   const box = $('deck3d');
   if (!box) return;

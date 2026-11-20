@@ -50,7 +50,8 @@
 <section id="staff" class="screen" aria-label="Count"><div class="inner">
 <div id="staffLock" class="lock"><h2>Staff only</h2><p class="small">Counts are entered by parking monitors. Enter the monitor password once on this phone.</p><form class="lockform" onsubmit="unlock('staffPass','staffPassMsg'); return false"><input id="staffPass" type="password" autocomplete="off" autocapitalize="off" placeholder="Password" aria-label="Monitor password"><button class="primary" type="submit">Unlock</button></form><p id="staffPassMsg" class="small" role="status" aria-live="polite"></p></div>
 <p id="countNext" class="small next"></p>
-<div id="bayGrid" class="stepper"></div><select id="bay" class="hidden" aria-hidden="true" tabindex="-1"></select>
+<div id="bayGrid" class="stepper"></div>
+<div id="deck3dStaff" class="deck3d-staff hidden" role="img" aria-label="3D model of the deck. The level and bay you pick with the buttons above are lit; the rest is faded."></div><select id="bay" class="hidden" aria-hidden="true" tabindex="-1"></select>
 <button class="hidden" id="start" onclick="startSurvey()" tabindex="-1" aria-hidden="true">Start count</button>
 <div id="surveyFields" class="hidden"><p id="modelled" class="small"></p>
 <button class="primary tally" id="camBtn" onclick="openCamera()">Scan with camera · AI</button>
