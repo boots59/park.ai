@@ -20,7 +20,7 @@ function base64ToArrayBuffer(b64) {
   return bytes.buffer;
 }
 
-async function mount(container, glbBase64, { onPick, bayIds = [], access = [], staffParts = [], deckName = '' } = {}) {
+async function mount(container, glbBase64, { onPick, onLevel, bayIds = [], access = [], staffParts = [], deckName = '' } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -163,8 +163,9 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
     const n = level.name.replace('Level_', ''), around = new THREE.Box3(), anchor = new THREE.Object3D();
     for (const side of ['West', 'Centre', 'East']) if (bays[`L${n}_${side}`]) around.expandByObject(bays[`L${n}_${side}`]);
     anchor.position.set(around.min.x + 14, around.max.y + 1, around.min.z - 12); gltf.scene.add(anchor); level.attach(anchor);
-    const el = document.createElement('div'); el.className = 'level-tag'; el.textContent = 'Level ' + n; el.setAttribute('aria-hidden', 'true');
-    container.appendChild(el); return { anchor, el };
+    const el = document.createElement('div'); el.className = 'level-tag'; el.textContent = 'Level ' + n; el.setAttribute('aria-hidden', 'true'); // the same choice is offered as buttons under the model
+    el.addEventListener('click', () => { if (onLevel) onLevel(Number(n)); });
+    container.appendChild(el); return { anchor, el, n: Number(n) };
   });
   // Which way is north: a compass fixed in the corner whose needle turns as the model is rotated
   // (testers asked which way the model faces). North is -z in the model.
@@ -179,12 +180,24 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
   const parkLabel = document.createElement('div'); parkLabel.className = 'parked-label'; parkLabel.textContent = 'You parked here'; parkLabel.setAttribute('aria-hidden', 'true'); parkLabel.style.display = 'none';
   container.appendChild(parkLabel);
   let parkedAt = null;
+  // Focus on one level: it stays solid, the others fade to a ghost and lose their labels.
+  // Every mesh in a level gets its own material first, so fading one level cannot fade another.
+  let focus = null;
+  for (const l of levels) l.traverse(o => { if (o.isMesh && !bays[o.name]) o.material = o.material.clone(); });
+  function applyFocus() {
+    for (const l of levels) { const dim = focus !== null && l.name !== 'Level_' + focus;
+      l.traverse(o => { if (!o.isMesh) return; const m = o.material;
+        if (m.userData.op === undefined) { m.userData.op = m.opacity; m.userData.tr = m.transparent; }
+        m.transparent = dim || m.userData.tr; m.opacity = dim ? 0.1 : m.userData.op; m.depthWrite = !dim; m.needsUpdate = true; }); }
+    for (const t of tags) t.el.classList.toggle('on', t.n === focus);
+  }
+  const off = name => focus !== null && Number((/^L(\d)_/.exec(name) || [])[1]) !== focus; // a label on a faded level
   const p = new THREE.Vector3(), box = new THREE.Box3();
   function placeLabels() {
     const w = container.clientWidth, h = container.clientHeight;
     for (const [name, el] of Object.entries(labels)) {
       box.setFromObject(bays[name]).getCenter(p); p.project(camera); // middle of the bay, wherever its level has slid to
-      const show = p.z < 1 && el.textContent && !(apart < 0.6 && el.classList.contains('staff')); // a faculty level sits under the others when stacked
+      const show = p.z < 1 && el.textContent && !off(name) && !(apart < 0.6 && el.classList.contains('staff')); // a faculty level sits under the others when stacked
       el.style.display = show ? '' : 'none';
       if (show) el.style.transform = `translate(-50%,-50%) translate(${((p.x + 1) / 2 * w).toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
     }
@@ -201,7 +214,7 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
       parkLabel.style.transform = `translate(-50%,-150%) translate(${x.toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`; }
     for (const { a, head, el } of pins) {
       head.getWorldPosition(p).project(camera);
-      el.style.display = p.z < 1 ? '' : 'none';
+      el.style.display = p.z < 1 && !(focus !== null && a.level !== focus) ? '' : 'none';
       const half = el.offsetWidth / 2 + 4, x = Math.max(half, Math.min(w - half, (p.x + 1) / 2 * w)); // keep the flag inside the view
       el.style.transform = `translate(-50%,${a.kind === 'drive' ? '70%' : '-140%'}) translate(${x.toFixed(1)}px,${((1 - p.y) / 2 * h).toFixed(1)}px)`;
     }
@@ -245,6 +258,8 @@ async function mount(container, glbBase64, { onPick, bayIds = [], access = [], s
     bayNames: Object.keys(bays),
     setBays(map) { states = map; paint(); }, // { bayName: { state: 'room'|'few'|'full'|'unknown', label: '6-14' } }
     select(name) { selected = name; paint(); },
+    // Highlight one level (1, 2, 3) and fade the rest; null shows them all.
+    setFocus(n) { focus = n; applyFocus(); render(); },
     // Mark the bay this phone is parked in (or pass null to clear the mark).
     setParked(name) {
       if (name === parkedAt) return;

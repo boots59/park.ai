@@ -184,7 +184,13 @@ details.panel[open] > summary { margin-bottom: 8px; }
 .checkin p { margin: 0 0 6px; font-weight: 700; }
 .step { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--black); color: var(--gold); font-size: 16px; margin-right: 8px; vertical-align: middle; }
 .hint { margin: 6px 0 0; }
-.level-tag { position: absolute; left: 0; top: 0; pointer-events: none; font-family: var(--sign); font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; line-height: 1; padding: 4px 8px; border-radius: 2px; white-space: nowrap; background: var(--gold); color: var(--black); border: 2px solid var(--black); }
+.level-tag.on { background: var(--black); color: var(--gold); border-color: var(--gold); }
+.levelpick { display: flex; gap: 6px; margin: 8px 0; }
+.levelpick button { flex: 1; min-height: 44px; margin: 0; padding: 4px; background: var(--white); border: 2px solid #8f8f8c; border-radius: 4px; font-family: var(--sign); font-size: 16px; font-weight: 700; color: var(--ink); }
+.levelpick button[aria-pressed="true"] { background: var(--black); border-color: var(--black); color: var(--gold); }
+.levelfocus { margin: 0 0 8px; font-size: 15px; }
+.levelfocus b.n { font-family: var(--sign); font-size: 30px; margin-right: 6px; }
+.level-tag { position: absolute; left: 0; top: 0; pointer-events: auto; cursor: pointer; font-family: var(--sign); font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; line-height: 1; padding: 4px 8px; border-radius: 2px; white-space: nowrap; background: var(--gold); color: var(--black); border: 2px solid var(--black); }
 .access-label.walk { background: #1f5fbf; }
 .access { display: grid; gap: 4px; margin: 8px 0; font-size: 14px; }
 .access span { padding-left: 8px; border-left: 4px solid var(--black); }

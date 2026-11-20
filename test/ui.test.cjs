@@ -247,6 +247,16 @@ test('one-tap check-in from the deck: I parked here, then how full', () => {
   assert.match(b.els.checkin.innerHTML, /I'm leaving Level 2 · West bay/);
   assert.match(b.els.parkedNow.innerHTML, /You parked in <b>Level 2 · West bay<\/b>.*showBay\('L2_West'\)/);        // the Now screen remembers where
 });
+test('focusing a level shows its counts; Level 1 shows it has no student stalls', () => {
+  const b = boot();
+  b.run('focusLevel(3)');
+  assert.match(b.els.levelFocus.innerHTML, /<b class="n">25<\/b>open on Level 3 · counted<br>West <b>6<\/b> · Centre <b>0<\/b> · East <b>11<\/b> · North <b>3<\/b> · South <b>5<\/b>/);
+  assert.match(b.els.levelPick.innerHTML, /aria-pressed="true" onclick="focusLevel\(3\)">Level 3/);
+  b.run('focusLevel(1)');
+  assert.match(b.els.levelFocus.innerHTML, /<b class="n">0<\/b>student stalls on Level 1\. Faculty and staff only: 174 stalls\./);
+  b.run('focusLevel(1)');                                                           // tapping the same level again shows all
+  assert.equal(b.els.levelFocus.innerHTML, '');
+});
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
 const photo = () => ({ files: [{}], value: 'x' });
 (async () => {

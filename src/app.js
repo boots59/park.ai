@@ -376,7 +376,7 @@ function selectBay(z) {
   render();
 }
 function renderSelection() {
-  renderCheckin();
+  renderCheckin(); renderLevelFocus();
   const el = $('selection'); if (!el) return;
   if (!selectedBay) { el.textContent = 'Tap a bay.'; return; }
   const t = now(), r = records[selectedBay], e = est(selectedBay, t);
@@ -410,6 +410,22 @@ function renderParked() {
 function leaveParked() { const p = parkedHere(); if (!p) return; $('reportBay').value = p.zone; reportBay('leaving'); }
 
 // ---- Student report: "I just parked here" (anonymous, low trust, expires) ----
+// ---- Focus on one level of the 3D deck: that level stays lit with its counts, the others fade ----
+let focusLvl = null;
+function focusLevel(n) { focusLvl = focusLvl === n || n === null ? null : n; if (viewer && viewer.setFocus) viewer.setFocus(focusLvl); renderLevelFocus(); }
+function renderLevelFocus() {
+  const pick = $('levelPick'), el = $('levelFocus'); if (!pick || !el) return;
+  pick.innerHTML = `<button aria-pressed="${focusLvl === null}" onclick="focusLevel(null)">All</button>` +
+    LEVELS.map(n => `<button aria-pressed="${focusLvl === n}" onclick="focusLevel(${n})">Level ${n}</button>`).join('');
+  if (focusLvl === null) { el.innerHTML = ''; return; }
+  const ids = zonesOf(focusLvl), t = now();
+  if (!ids.length) { const staff = ALL_IDS.filter(z => DECK.zones[z].level === focusLvl).reduce((s, z) => s + (DECK.zones[z].facultyStaff || 0), 0);
+    el.innerHTML = `<b class="n">0</b>student stalls on Level ${focusLvl}. Faculty and staff only: ${staff} stalls.`; return; }
+  const [count, unit] = summaryText(ParkingModel.levelSummary(records, ids, t, reports), ids, t);
+  el.innerHTML = `<b class="n">${count}</b>open on Level ${focusLvl} · ${unit}<br>` + ids.map(z => { const e = est(z, t), r = records[z];
+    return `${shortName(z)} <b>${e ? range(e) : r ? r.count : '?'}</b>`; }).join(' · ');
+}
+
 // ---- One-tap check-in from the deck: "I parked here" ----
 // Tapping it on a bay (usually the one the app just recommended) saves where this phone parked, so "I'm leaving"
 // works later, and asks the one thing a tap cannot know: how full the bay is. That second tap is optional.
@@ -740,7 +756,7 @@ async function mountViewer() {
     $('viewerNote').textContent = '3D view is not included in this build. The level cards show the same data.'; return;
   }
   try {
-    viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay, bayIds: ALL_IDS, access: DECK.access, deckName: placeOf('west').name,
+    viewer = await window.DeckViewer.mount(box, GLB_B64, { onPick: selectBay, onLevel: n => focusLevel(n), bayIds: ALL_IDS, access: DECK.access, deckName: placeOf('west').name,
       // student bays that are part faculty/staff, and which end of the bay those stalls are at
       staffParts: ZONE_IDS.filter(z => DECK.zones[z].facultyEnd && DECK.zones[z].facultyStaff > 0).map(z => ({ bay: z, end: DECK.zones[z].facultyEnd, share: DECK.zones[z].facultyStaff / (DECK.zones[z].stalls + DECK.zones[z].facultyStaff) })) });
     viewer.setSpread($('spread').getAttribute('aria-pressed') === 'true', true); // apart by default, no animation on load
