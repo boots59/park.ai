@@ -413,38 +413,48 @@ function leaveParked() { const p = parkedHere(); if (!p) return; $('reportBay').
 // ---- Student report: "I just parked here" (anonymous, low trust, expires) ----
 // ---- Focus on one level of the 3D deck: that level stays lit with its counts, the others fade ----
 let focusLvl = null;
-function focusLevel(n) { focusLvl = focusLvl === n || n === null ? null : n; if (viewer && viewer.setFocus) viewer.setFocus(focusLvl); renderLevelFocus(); }
+function focusLevel(n) { // a level button, or the level's tag on the model: show that whole level (tapping it again shows all)
+  const same = focusLvl === n && !selectedBay; focusLvl = same || n === null ? null : n;
+  selectedBay = null; if (viewer) viewer.select(null); render(); }
+// The model shows one bay alone when a bay is selected, otherwise the chosen level, otherwise everything.
+function syncFocus() { if (selectedBay) focusLvl = DECK.zones[selectedBay].level; if (viewer && viewer.setFocus) viewer.setFocus(focusLvl, selectedBay); }
 function renderLevelFocus() {
   const pick = $('levelPick'), el = $('levelFocus'); if (!pick || !el) return;
+  if (selectedBay) focusLvl = DECK.zones[selectedBay].level;
   pick.innerHTML = `<button aria-pressed="${focusLvl === null}" onclick="focusLevel(null)">All</button>` +
     LEVELS.map(n => `<button aria-pressed="${focusLvl === n}" onclick="focusLevel(${n})">Level ${n}</button>`).join('');
-  if (focusLvl === null) { el.innerHTML = ''; return; }
+  syncFocus(); const bp = $('bayPick');
+  if (focusLvl === null) { el.innerHTML = ''; if (bp) bp.innerHTML = ''; return; }
   const ids = zonesOf(focusLvl), t = now();
-  if (!ids.length) { const staff = ALL_IDS.filter(z => DECK.zones[z].level === focusLvl).reduce((s, z) => s + (DECK.zones[z].facultyStaff || 0), 0);
+  if (bp) bp.innerHTML = ids.map(z => { const e = est(z, t), r = records[z]; return `<button aria-pressed="${z === selectedBay}" onclick="selectBay('${z}')" aria-label="${bayName(z)}">${shortName(z)}<b>${e ? range(e) : r ? r.count : '?'}</b></button>`; }).join('');
+  if (selectedBay) { el.innerHTML = ''; return; } // the bay's own line and check-in button follow below
+  if (!ids.length) { if (bp) bp.innerHTML = ''; const staff = ALL_IDS.filter(z => DECK.zones[z].level === focusLvl).reduce((s, z) => s + (DECK.zones[z].facultyStaff || 0), 0);
     el.innerHTML = `<b class="n">0</b>student stalls on Level ${focusLvl}. Faculty and staff only: ${staff} stalls.`; return; }
   const [count, unit] = summaryText(ParkingModel.levelSummary(records, ids, t, reports), ids, t);
-  el.innerHTML = `<b class="n">${count}</b>open on Level ${focusLvl} · ${unit}<br>` + ids.map(z => { const e = est(z, t), r = records[z];
-    return `${shortName(z)} <b>${e ? range(e) : r ? r.count : '?'}</b>`; }).join(' · ');
+  el.innerHTML = `<b class="n">${count}</b>open on Level ${focusLvl} · ${unit}`; // each bay's number is on its button above
 }
 
 // ---- Staff password ----
 // A speed bump, not security: this is a static page, so the check runs on the phone and a determined person can
 // get past it. It keeps students and demo visitors out of the count screen and the project tools by accident or
 // curiosity. Real protection needs sign-in on a server (see docs/SECURITY.md). Remembered on this phone.
-const PASS_KEY = 'park-ai-staff-ok-v1', PASS_CHECK = 1983775257; // a checksum of the password, not the password
+const PASS_KEY = 'park-ai-staff-ok-v1', PASS_CHECK = 1983775257; // monitors: the Count screen. A checksum of the password, not the password
+const OWNER_KEY = 'park-ai-owner-ok-v1', OWNER_CHECK = 1734124753; // staff: the project tools on About, and the field kit
+function ownerOk() { try { return localStorage.getItem(OWNER_KEY) === '1'; } catch (e) { return false; } }
 const passSum = s => { let x = 2166136261; for (const c of String(s).trim().toLowerCase()) { x ^= c.charCodeAt(0); x = Math.imul(x, 16777619) >>> 0; } return x; };
 function staffOk() { try { return localStorage.getItem(PASS_KEY) === '1'; } catch (e) { return false; } }
 function applyLock() {
   const ok = staffOk();
   if ($('staff')) $('staff').classList.toggle('locked', !ok);
-  if (typeof document !== 'undefined' && document.body && document.body.classList) document.body.classList.toggle('staff-ok', ok);
+  if (typeof document !== 'undefined' && document.body && document.body.classList) { document.body.classList.toggle('staff-ok', ok); document.body.classList.toggle('owner-ok', ownerOk()); }
 }
 function unlock(inputId, msgId) {
-  if (passSum($(inputId).value) !== PASS_CHECK) { $(msgId).textContent = 'That is not the password.'; return; }
-  try { localStorage.setItem(PASS_KEY, '1'); } catch (e) {}
+  const owner = inputId === 'ownerPass';
+  if (passSum($(inputId).value) !== (owner ? OWNER_CHECK : PASS_CHECK)) { $(msgId).textContent = 'That is not the password.'; return; }
+  try { localStorage.setItem(owner ? OWNER_KEY : PASS_KEY, '1'); } catch (e) {}
   $(inputId).value = ''; $(msgId).textContent = ''; applyLock(); renderGuide();
 }
-function lockAgain() { try { localStorage.removeItem(PASS_KEY); } catch (e) {} cancelSurvey(); applyLock(); renderGuide(); }
+function lockAgain() { try { localStorage.removeItem(PASS_KEY); localStorage.removeItem(OWNER_KEY); } catch (e) {} cancelSurvey(); applyLock(); renderGuide(); }
 
 // ---- One-tap check-in from the deck: "I parked here" ----
 // Tapping it on a bay (usually the one the app just recommended) saves where this phone parked, so "I'm leaving"

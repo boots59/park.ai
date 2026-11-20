@@ -178,6 +178,8 @@ details.panel[open] > summary { margin-bottom: 8px; }
 .compass .w { left: 3px; top: 50%; margin-top: -9px; }
 .parked-label { position: absolute; left: 0; top: 0; pointer-events: none; font-family: var(--sign); font-size: 15px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; line-height: 1; padding: 6px 8px; border-radius: 2px; white-space: nowrap; background: #1f8f3a; color: #fff; border: 2px solid #fff; z-index: 2; }
 .deck-title { position: absolute; left: 8px; top: 8px; pointer-events: none; font-family: var(--sign); font-size: 20px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; line-height: 1; padding: 6px 10px; border-radius: 2px; background: var(--black); color: var(--gold); }
+.bay-label i, .bay-label small { display: none !important; }
+#deck3d.focused .bay-label i, #deck3d.focused .bay-label small { display: block !important; }
 .bay-label i { display: block; font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #4d5a66; margin-bottom: 2px; }
 .checkin { margin: 8px 0 0; }
 .checkin .primary { width: 100%; min-height: 56px; font-family: var(--sign); font-size: 22px; font-weight: 700; margin: 0; background: var(--gold); color: var(--black); }
@@ -193,8 +195,15 @@ details.panel[open] > summary { margin-bottom: 8px; }
 .lockform button { margin: 0; min-height: 48px; background: var(--gold); color: var(--black); font-weight: 700; }
 #staff:not(.locked) #staffLock { display: none; }
 #staff.locked .inner > :not(.lock) { display: none; }
-body:not(.staff-ok) .priv { display: none; }
-body.staff-ok .ownerlock { display: none; }
+body:not(.owner-ok) .priv { display: none; }
+body.owner-ok .ownerlock { display: none; }
+.baypick { display: flex; gap: 6px; margin: 0 0 8px; }
+.baypick button { flex: 1; min-height: 52px; margin: 0; padding: 4px 2px; background: var(--white); border: 2px solid #8f8f8c; border-radius: 4px; font-family: var(--sign); font-size: 13px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--ink); line-height: 1.1; }
+.baypick button b { display: block; font-size: 20px; }
+.baypick button[aria-pressed="true"] { background: var(--gold); border-color: var(--black); }
+.deckrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 4px 0; }
+.deckrow .legend { margin: 0; font-size: 12px; gap: 8px; }
+.deckmore summary { font-size: 14px; font-weight: 600; cursor: pointer; padding: 6px 0; }
 .levelpick { display: flex; gap: 6px; margin: 8px 0; }
 .levelpick button { flex: 1; min-height: 44px; margin: 0; padding: 4px; background: var(--white); border: 2px solid #8f8f8c; border-radius: 4px; font-family: var(--sign); font-size: 16px; font-weight: 700; color: var(--ink); }
 .levelpick button[aria-pressed="true"] { background: var(--black); border-color: var(--black); color: var(--gold); }

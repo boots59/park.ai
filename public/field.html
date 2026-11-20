@@ -239,8 +239,8 @@ function exportCsv() {
 }
 function clearAll() { if (confirm('Delete ALL poll responses and tallies on this phone? Export first.')) { data = { responses: [], tallies: [], stalls: [], staff: [] }; save(); renderSummary(); drawStalls(); } }
 // The field kit is a project tool. Students who scan the survey code (?survey) never see this lock.
-// A speed bump, not security: the check runs on the phone. Shared with the app's staff password.
-const PASS_KEY = 'park-ai-staff-ok-v1', PASS_CHECK = 1983775257;
+// A speed bump, not security: the check runs on the phone.
+const PASS_KEY = 'park-ai-owner-ok-v1', PASS_CHECK = 1734124753; // the staff password, shared with the About screen's project tools
 const passSum = s => { let x = 2166136261; for (const c of String(s).trim().toLowerCase()) { x ^= c.charCodeAt(0); x = Math.imul(x, 16777619) >>> 0; } return x; };
 function kitOk() { try { return localStorage.getItem(PASS_KEY) === '1'; } catch (e) { return false; } }
 function kitUnlock() { if (passSum($('kitPass').value) !== PASS_CHECK) { $('kitPassMsg').textContent = 'That is not the password.'; return; } try { localStorage.setItem(PASS_KEY, '1'); } catch (e) {} $('kitLock').classList.add('hidden'); }

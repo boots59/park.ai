@@ -254,12 +254,20 @@ test('one-tap check-in from the deck: I parked here, then how full', () => {
 test('focusing a level shows its counts; Level 1 shows it has no student stalls', () => {
   const b = boot();
   b.run('focusLevel(3)');
-  assert.match(b.els.levelFocus.innerHTML, /<b class="n">25<\/b>open on Level 3 · counted<br>West <b>6<\/b> · Centre <b>0<\/b> · East <b>11<\/b> · North <b>3<\/b> · South <b>5<\/b>/);
+  assert.match(b.els.levelFocus.innerHTML, /<b class="n">25<\/b>open on Level 3 · counted/);
+  assert.match(b.els.bayPick.innerHTML, /West<b>6<\/b>.*Centre<b>0<\/b>.*East<b>11<\/b>.*North<b>3<\/b>.*South<b>5<\/b>/);
   assert.match(b.els.levelPick.innerHTML, /aria-pressed="true" onclick="focusLevel\(3\)">Level 3/);
   b.run('focusLevel(1)');
   assert.match(b.els.levelFocus.innerHTML, /<b class="n">0<\/b>student stalls on Level 1\. Faculty and staff only: 174 stalls\./);
   b.run('focusLevel(1)');                                                           // tapping the same level again shows all
   assert.equal(b.els.levelFocus.innerHTML, '');
+  b.run("focusLevel(2); selectBay('L2_West')");                                      // a bay stands alone: buttons for its level, its own line below
+  assert.match(b.els.bayPick.innerHTML, /aria-pressed="true" onclick="selectBay\('L2_West'\)" aria-label="Level 2 · West bay">West<b>4<\/b>/);
+  assert.match(b.els.selection.textContent, /Level 2 · West bay/);
+  b.run("$('ownerPass').value = 'monitor'; unlock('ownerPass','ownerPassMsg')");      // the monitor password does not open the project tools
+  assert.match(b.els.ownerPassMsg.textContent, /not the password/);
+  b.run("$('ownerPass').value = 'staff'; unlock('ownerPass','ownerPassMsg')");
+  assert.equal(b.storage['park-ai-owner-ok-v1'], '1'); assert.equal(b.storage['park-ai-staff-ok-v1'], undefined);
 });
 // ---- AI assist and field log (the model is replaced by a stub that returns a fixed count) ----
 const photo = () => ({ files: [{}], value: 'x' });
