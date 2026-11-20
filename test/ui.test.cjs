@@ -27,6 +27,7 @@ test('seed shows a counted level, an estimated level, a level with no student st
   assert.match(els.cards.innerHTML, /bay-count">0–8<\/b><span class="status estimate">Estimate · counted 7, 8 min ago/); // it was filling: 12 then 7, so the middle is 3
   assert.match(els.cards.innerHTML, /Level 1<\/h3>.*no student stalls.*174 faculty\/staff · 3 accessible · 4 reserved/); // counted on foot
   assert.match(els.verdict.innerHTML, /Room likely.*<b>34–56<\/b> open · estimate/);
+  assert.match(els.verdict.innerHTML, /^<span class="hero room"><b>34–56<\/b>open spaces right now<\/span>/);   // how much parking there is comes first
 });
 test('recommends where to try first, and says so plainly when nothing is known to be open', () => {
   const b = boot();
