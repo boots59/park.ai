@@ -5,20 +5,20 @@ Read it aloud twice with a timer. Every number is from `docs/RESULTS.md`. Say "d
 ## The shape
 A morning every driver knows, the numbers that prove it, one plain sentence, then **one continuous story on the phone for half the time**, then the relief, who keeps it alive, the plan, and you. The slides are numbers and a few words. You carry the story.
 
-## 0:00 The morning (slide 1) · 25 seconds
+## 0:00 The morning (slide 1: 91%) · 25 seconds
 "Raise your hand if parking has ever made you late to class." *(wait for the hands)*
 "It's 11:50. You have class at 12:15. Level 1: nothing. Level 2: nothing. You walk in at 12:16. Late. Again."
 *[Your own line: what that walk into class feels like.]*
-"I'm Kell, and this is Park.AI."
+"Ninety-one percent of the drivers I polled have lived that morning. I'm Kell, and this is Park.AI."
 
-## 0:25 The numbers (slide 2) · 25 seconds
-"Ninety-one percent of the drivers I polled have lived that morning. Half of them, several times this semester. Three in four have given up on a deck completely.
+## 0:25 It keeps happening (slide 2: 76%, 50%, 57%) · 25 seconds
+"Three in four have given up on a deck completely and parked somewhere else. Half have been late several times this semester. More than half tried two or more levels that same day.
 And it is not only students. Staff told me the same thing: late to work, then sent to a far lot they did not pay for."
 
 ## 0:50 The twist (slide 3) · 20 seconds
-"Here is what nobody expects. That Thursday at 11:50, the deck was not full. Seventy student spaces were open. Fifty-seven of them sat in three bays. And Level 1 has 181 stalls with zero for students. The deck was not full. The information was missing."
+"Here is what nobody expects. That Thursday at 11:50, the deck was not full. Seventy student spaces were open. Eighty-one percent of them sat in just three bays. And Level 1 has 181 stalls with zero for students. The deck was not full. The information was missing."
 
-## 1:10 The solution (slide 4) · 20 seconds
+## 1:10 The solution (slide 4: AI, 0, 0) · 20 seconds
 "Park.AI tells you where the room is before you drive in. And the AI does the counting: a parking monitor points a phone down a row, and a vehicle-detection model on that phone counts every car. No plates. Nothing recorded. Let me show you."
 
 ## 1:30 Demo: one story, in order (slide 5, then the phone) · 2 minutes
@@ -31,8 +31,8 @@ Seventy-eight percent of the drivers I asked said they would check first. Sevent
 ## 3:55 Who keeps it alive (slide 7) · 25 seconds
 "I will push for the deck's own cameras, and that needs KSU's approval. Until then, it runs on the people who use the deck every day. Students, with one tap: 72 percent said they would. Monitors, who already patrol it, with the AI camera filling the gaps. And the plate truck that already drives through six or seven times a day. The more people use it, the fresher it gets."
 
-## 4:20 Plan and limits (slide 8) · 20 seconds
-"I'll be straight about the limits. One deck, one morning, one counter, and no agreement with KSU yet. The pilot is two weeks at West Deck. Then every deck on both campuses."
+## 4:20 The plan (slide 8: 14, 16, 7 of 9) · 20 seconds
+"The pilot is fourteen days at West Deck, with no hardware and no contract. Sixteen KSU decks and lots are already listed in the app, and West Deck is first. Seven of my first nine testers called it easy. So far it is one deck and one day of data, and nothing is agreed with KSU yet. That is what the pilot is for."
 
 ## 4:40 Close (slide 9) · 20 seconds
 "I park in West Deck. I counted every one of its 662 stalls and polled 54 drivers to build this. Whether you make it to class should not depend on a guess. Park.AI. Scan the code and try it now. Thank you."
