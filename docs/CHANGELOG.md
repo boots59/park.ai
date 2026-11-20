@@ -110,3 +110,5 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Report screen: the two steps are numbered.
 - Camera scan is the main way to count; Ask Park.AI; deck switcher; entrances; counts are never erased. Demo videos and the final pitch deck are in `submission/`.
 - **"You parked here"**: after a check-in, a green pin marks that bay on the 3D deck (it stays through a reload and moves with its level), and the Now screen shows where you parked with a button that opens it on the deck. Stored on the phone only.
+- Fixed (found by Kell on a real phone at West Deck): on a second camera scan the picture shrank inside black bars and the boxes were misplaced. Each scan now starts with a fresh video element and an empty overlay. Verified with three scans in a row on a simulated camera; not yet re-tested on a phone.
+- The camera scan was tried on a real phone in West Deck on 2026-11-20 and worked.

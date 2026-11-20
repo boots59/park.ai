@@ -210,6 +210,7 @@ select, input, textarea { width: 100%; padding: 12px; border: 1px solid #8f8f8c;
 .cambox { margin-top: 8px; }
 .camview { position: relative; background: #000; border-radius: 4px; overflow: hidden; line-height: 0; }
 .camview video, .camview canvas { width: 100%; height: auto; display: block; }
+.camview video { object-fit: cover; }
 .camview canvas { position: absolute; inset: 0; height: 100%; pointer-events: none; }
 .camlive { position: absolute; left: 8px; top: 8px; background: var(--black); color: var(--gold); font-family: var(--sign); font-weight: 700; font-size: 18px; line-height: 1; padding: 6px 8px; border-radius: 2px; }
 .or { text-align: center; text-transform: uppercase; letter-spacing: .08em; font-family: var(--sign); font-size: 13px; color: var(--muted); margin: 20px 0 8px; }

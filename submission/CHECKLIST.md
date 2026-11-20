@@ -25,8 +25,8 @@ Required: a PowerPoint pitch deck, plus a demo video or a note that the demo wil
 ## Still open (only Kell can do these)
 - [ ] **Submission link** from the organizer
 - [x] Voice-over recorded and fitted to the video
-- [ ] Camera scan tested on a real phone (only run with a simulated camera so far)
-- [ ] A photo of parked cars to replace the test image in the video's camera shot (optional)
+- [x] Camera scan tested on a real phone at West Deck (Nov 20): works. A second-scan display bug found there is fixed; re-test once before the pitch
+- [x] Kell's own West Deck photos in the video's camera shot and on slide 1 (plates blurred)
 - [ ] GitHub "About" box: description, website and topics (settings cannot be changed from the coding session)
 - [ ] What may be quoted from parking operations, and whether the official may be named
 

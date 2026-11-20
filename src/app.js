@@ -538,7 +538,11 @@ async function openCamera() {
   if (!media || !media.getUserMedia) { $('scanStatus').textContent = 'No live camera here. Use a photo instead.'; $('assist').open = true; return; }
   try {
     camStream = await media.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false });
-    const v = $('cam'); v.srcObject = camStream; await v.play();
+    // Start each scan with a fresh <video> and an empty overlay. A phone browser can keep the previous stream's
+    // size on a reused element, which shrank the second scan's picture inside black bars and left the boxes misplaced.
+    const old = $('cam'), v = old.cloneNode(false); old.replaceWith(v);
+    const over = $('camOverlay'); over.width = 0; over.height = 0; $('camLive').textContent = 'Starting…';
+    v.srcObject = camStream; await v.play();
     $('camBox').classList.remove('hidden'); $('camBtn').classList.add('hidden'); $('scanStatus').textContent = '';
     liveLook(++camLoop);
   } catch (e) { closeCamera(); $('scanStatus').textContent = 'Camera not available (' + (e.name || e.message) + '). Use a photo instead.'; $('assist').open = true; }
@@ -547,6 +551,7 @@ function closeCamera() {
   camLoop++; if (camStream) for (const t of camStream.getTracks()) t.stop();
   camStream = null; if ($('cam')) $('cam').srcObject = null;
   $('camBox').classList.add('hidden'); $('camBtn').classList.remove('hidden');
+  if ($('camLive')) $('camLive').textContent = ''; // no stale count when the camera is opened again
 }
 function grabFrame() {
   const v = $('cam'), c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight;
