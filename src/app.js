@@ -374,15 +374,12 @@ function render() {
   renderSelection();
 }
 function selectBay(z) {
-  trip = null; // tapping around the model leaves the guided path
   if (!ZONE_IDS.includes(z)) { // tapped a bay on the model that has no regular stalls
-    selectedBay = null; if (viewer) viewer.select(null); render();
+    trip = null; selectedBay = null; if (viewer) viewer.select(null); render();
     $('selection').textContent = 'That bay has no regular student stalls (faculty/staff, accessible or reserved), so it is not counted.'; return;
   }
-  selectedBay = selectedBay === z ? null : z;
-  if (selectedBay) { setView('deck'); $('reportBay').value = selectedBay; } // a pick shows on the 3D deck and pre-fills the report form
-  if (viewer) viewer.select(selectedBay);
-  render();
+  if (selectedBay === z) { trip = null; askFull = null; selectedBay = null; if (viewer) viewer.select(null); render(); return; } // tapping it again lets go of it
+  startTrip(z, 'deck'); // any bay you tap, on the model, a bay button or the level list, offers "I parked here" straight away
 }
 function renderSelection() {
   renderCheckin(); renderLevelFocus();
@@ -467,12 +464,16 @@ function lockAgain() { try { localStorage.removeItem(PASS_KEY); localStorage.rem
 // ---- The guided path: pick a bay on Now, drive there, tap "I parked here" ----
 // While it is active the Deck screen shows only the model, the bay, and the one next step. Everything else on
 // that screen (level and bay buttons, details, legend) is hidden until the path ends or the person taps the model.
-let trip = null;
-function startTrip(zone) { if (!ZONE_IDS.includes(zone)) return; trip = zone; askFull = null; showBay(zone); }
-function endTrip() { trip = null; askFull = null; selectedBay = null; focusLvl = null; if (viewer) viewer.select(null); setView('student'); render(); }
+let trip = null, tripFrom = 'now'; // 'now': picked on the Now screen (ends back there). 'deck': tapped while exploring the model (stays there)
+function startTrip(zone, from = 'now') { if (!ZONE_IDS.includes(zone)) return; trip = zone; tripFrom = from; askFull = null; showBay(zone); }
+function endTrip() {
+  trip = null; askFull = null; selectedBay = null; if (viewer) viewer.select(null);
+  if (tripFrom === 'now') { focusLvl = null; setView('student'); }
+  render();
+}
 function renderTrip(t) {
   const el = $('tripCard'); if (!el) return;
-  if ($('deck')) $('deck').classList.toggle('trip', !!trip);
+  if ($('deck')) { $('deck').classList.toggle('trip', !!trip && tripFrom === 'now'); $('deck').classList.toggle('triplite', !!trip && tripFrom === 'deck'); } // exploring keeps the level and bay buttons
   el.classList.toggle('hidden', !trip); if (!trip) { el.innerHTML = ''; return; }
   const p = parkedHere(), parked = p && !p.left && p.zone === trip, e = est(trip, t), r = records[trip];
   const walk = (DECK.access || []).find(a => a.kind === 'walk');
@@ -517,7 +518,7 @@ function reportBay(band) {
   render(); renderParked();
   const guided = !!trip; trip = null;
   showBay(zone); say('Thanks. ' + bayName(zone) + ' updated.'); // show the person what their tap changed
-  if (guided) { selectedBay = null; focusLvl = null; if (viewer) viewer.select(null); setView('student'); render(); } // the guided path ends back on Now, with "You parked in…" at the top
+  if (guided && tripFrom === 'now') { selectedBay = null; focusLvl = null; if (viewer) viewer.select(null); setView('student'); render(); } // the guided path ends back on Now, with "You parked in…" at the top
   msg.textContent = 'Thank you. ' + (est(zone, t)?.source === 'students'
     ? bayName(zone) + ' now shows "' + BAND_TEXT[band] + '" as a student report for the next ' + (band === 'leaving' ? Settings.studentLeavingMinutes : Settings.studentReportMinutes) + ' minutes.'
     : 'A staff count of ' + bayName(zone) + ' from the last 5 minutes is stronger evidence, so the display keeps it for now.');

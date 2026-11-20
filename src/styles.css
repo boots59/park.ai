@@ -216,6 +216,8 @@ body.owner-ok .ownerlock { display: none; }
 .tripcard .tgo { width: 100%; min-height: 68px; margin: 0 0 8px; background: var(--gold); color: var(--black); font-family: var(--sign); font-size: 26px; font-weight: 700; }
 .tripcard .tsmall { width: 100%; margin: 0; min-height: 44px; }
 #deck.trip #deck3d { height: 300px; }
+#deck.triplite #deck3d { height: 250px; }
+#deck.triplite #levelFocus, #deck.triplite #selection, #deck.triplite #checkin, #deck.triplite .deckrow, #deck.triplite .deckmore, #deck.triplite #ageNote { display: none; }
 #deck.trip #levelPick, #deck.trip #bayPick, #deck.trip #levelFocus, #deck.trip #selection, #deck.trip #checkin, #deck.trip .deckrow, #deck.trip .deckmore, #deck.trip #ageNote { display: none; }
 .monitorline { margin: 4px 0 0; text-align: right; }
 .monitorbtn { min-height: 44px; margin: 0; padding: 0 4px; background: none; border: 0; font-size: 14px; color: var(--muted); text-decoration: underline; }

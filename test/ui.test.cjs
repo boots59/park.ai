@@ -240,12 +240,11 @@ test('Ask Park.AI answers from the counts and matches typed questions to topics'
 });
 test('one-tap check-in from the deck: I parked here, then how full', () => {
   const b = boot();
-  b.run("selectBay('L2_West')");
-  assert.match(b.els.checkin.innerHTML, /parkHere\('L2_West'\)">I parked here/);
-  assert.equal(b.els.guideBtn.textContent, 'I parked here');
-  b.run('guideTap()');                                                              // one tap checks in
+  b.run("selectBay('L2_West')");                                                    // tapping a bay anywhere offers to park there
+  assert.match(b.els.tripCard.innerHTML, /Level 2 · West bay.*parkHere\('L2_West'\)">I parked here/);
+  b.run("parkHere('L2_West')");                                                     // one tap checks in
   assert.equal(JSON.parse(b.storage['west-deck-parked-v1']).zone, 'L2_West');
-  assert.match(b.els.checkin.innerHTML, /How full is it\? One tap/);
+  assert.match(b.els.tripCard.innerHTML, /How full is it\? One tap/);
   assert.equal(JSON.parse(b.storage['west-deck-reports-v1'] || '[]').length, 0);     // no fullness is invented for them
   b.run("reportBay('few')");                                                        // the optional second tap
   assert.equal(JSON.parse(b.storage['west-deck-reports-v1']).at(-1).band, 'few');

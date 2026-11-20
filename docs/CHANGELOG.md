@@ -122,3 +122,5 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Now screen (tester feedback): the number of open spaces is the first and largest thing on the screen, coloured by the verdict; the question and its bay buttons follow. Nothing was removed.
 - Now screen cleared (Kell): the deck's details (levels, stalls, clearance) moved to the Deck screen under "About this deck". The bay buttons are plain: the best bay solid gold, the others dark (Kell's chosen look). The last-count view now has the same shape as the normal one.
 - The replay always opens at 11:58 AM on Nov 19. Before, a returning visitor's saved replay aged in real time and showed day-old "last counts".
+- Tapping any bay (on the 3D model, a bay button, or the level list) now offers "I parked here" straight away, with the level and bay buttons still on screen for choosing another. After checking in from the model you stay on the Deck screen.
+- Now screen: the monitor shortcut is a small link at the bottom.
