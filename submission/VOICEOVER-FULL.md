@@ -1,46 +1,48 @@
-# Voice-over for `Park-AI-demo-FULL-SILENT.mp4` (2:56)
+# Voice-over for `Park-AI-demo-FULL-SILENT.mp4` (2:48)
 
-A real recording of the real app, driven automatically, with caption cards. Read each line as its caption appears. The order follows the hackathon judge's advice: **why** (your own reading of the problem), **how** it solves it, then **what** it does.
+The screen now carries only big numbers and a few words. **You carry the story.** The lines below are a starting point: say them your way, add your own, but keep every number exactly as written.
 
-| Time | Say |
-|---|---|
-| | **WHY** |
-| 0:00–0:04 | Watch this. West Deck, Thursday, 11:50 in the morning. Seventy open student spaces. |
-| 0:04–0:09 | Fifty-seven of them in three bays. And nothing told a single driver which three. |
-| 0:09–0:15 | I polled 54 drivers. Forty-nine have been late to class this semester because of parking. [Add one line of your own here: the day it happened to you.] |
-| 0:15–0:22 | And it is not only students. Staff told me the same story: late to work looking for a space, then sent to a far lot they did not pay for. |
-| | **HOW it knows, and how it updates** |
-| 0:22–0:28 | So I built Park.AI. It tells you where the room is, before you drive in. |
-| 0:28–0:33 | Here is how it knows. A parking monitor, already walking the deck, picks a bay. |
-| 0:33–0:41 | Points a phone down the row. The model counts every car, on the phone. Nothing is recorded. |
-| 0:41–0:54 | They check the number, and one button saves it. The new count replaces the old one. It is never added on top. |
-| 0:54–1:01 | No camera? Tap once per open stall. Or type in the count from the plate-scanning truck KSU already runs. |
-| 1:01–1:06 | Here is how it keeps itself honest. A fresh count is shown as a number. |
-| 1:06–1:13 | A few minutes later it becomes a range, and the range widens as the count gets older. |
-| 1:13–1:19 | After an hour it is kept as a last count, with its age on it. Never erased, never shown as live. |
-| | **WHAT it does: a student's trip** |
-| 1:19–1:27 | Now a student's day. Before you leave home, check the deck. Tell it you arrive in ten minutes and it predicts ahead. |
-| 1:27–1:34 | Every KSU deck and lot is listed. Only West Deck has counts so far; the rest say coming soon. |
-| 1:34–1:38 | Driving in. It names the bay to try first. One tap. |
-| 1:38–1:47 | And there it is in the deck. Green has room. Red is full. Level 1 is grey: faculty and staff only. |
-| 1:47–1:55 | The entrances are marked, and so is the exit to campus. Stack the levels, or slide them apart. |
-| 1:55–2:03 | Or read it as a list: every bay, every stall. How many are open, never which ones. |
-| 2:03–2:10 | You have parked. One tap tells the next driver how full your bay is. Anonymous. |
-| 2:10–2:18 | After class, tap I'm leaving, and the next driver sees a space opening up. |
-| 2:18–2:26 | Or skip all of it and just ask. |
-| | **PROOF** |
-| 2:26–2:34 | Would people really do that? I asked. Of 54 drivers, 42 would check it most times, 40 would go straight to that level, and 39 would tap after parking. |
-| 2:34–2:41 | Nine students have already tried it. Seven found it easy. Seven would check it before driving in. |
-| 2:41–2:47 | For faculty and staff: all 212 of their stalls are on the map already. Counting them works the same way, and it is next. |
-| 2:47–2:56 | I counted 662 stalls on foot to build this. Finding a space should not be a guessing game. Park.AI. |
+| Time | On screen | A line you can say |
+|---|---|---|
+| | **THE HOOK** | |
+| 0:00–0:04 | 91% · Late to class | Ninety-one percent. That is how many of the drivers I polled have been late to class because of parking. [Your own line: the day it was you.] |
+| 0:04–0:08 | 76% · Gave up on a deck | Three out of four have given up on a deck completely and parked somewhere else. |
+| 0:08–0:13 | 70 · Open spaces. Nobody found them | Here is what nobody expects. At 11:50 on a Thursday the deck was not full. Seventy student spaces were open. Fifty-seven of them sat in three bays, and nobody could find them. |
+| 0:13–0:18 | Staff too | Staff told me the same thing. Late to work. Sent to a far lot they did not pay for. |
+| | **HOW IT KNOWS AND UPDATES** | |
+| 0:18–0:24 | Know before you go | So I built Park.AI. Know before you go. |
+| 0:24–0:29 | A monitor picks a bay | Here is how it knows. A parking monitor, already walking the deck, picks a bay. |
+| 0:29–0:37 | AI counts the cars | Points a phone down the row, and the AI counts every car. On the phone. Nothing is recorded. |
+| 0:37–0:50 | Check. Save | They check it and save. The new count replaces the old one; it is never added on top. |
+| 0:50–0:57 | Tally by hand | No camera? One tap per open stall. Or the count from the plate truck KSU already runs. |
+| 0:57–1:02 | Fresh = a number | And it stays honest. A fresh count is a number. |
+| 1:02–1:09 | Older = a range | Minutes later it is a range that widens with age. |
+| 1:09–1:15 | Old = labelled. Never faked | After an hour it is labelled as a last count. Never erased, and never faked as live. |
+| | **A STUDENT'S DAY** | |
+| 1:15–1:23 | 78% · Would check first | Now your day. Before you leave home, you check. Seventy-eight percent of the drivers I asked said they would. Tell it you arrive in ten minutes and it predicts ahead. |
+| 1:23–1:30 | 16 · Decks and lots | Sixteen decks and lots across both campuses are listed. West Deck is first. |
+| 1:30–1:34 | 74% · Would go straight there | Driving in, it names the bay to try first. Seventy-four percent said they would go straight there. |
+| 1:34–1:43 | 662 · Stalls, counted on foot | Here it is in 3D. All 662 stalls, which I counted on foot. Green has room, red is full. |
+| 1:43–1:51 | Entrances. Exit to campus | The entrances are marked, and so is the exit to campus. |
+| 1:51–1:59 | 0 · Student stalls on Level 1, of 181 | And look at Level 1. A hundred and eighty-one stalls. Zero for students. Now you know before you waste the lap. |
+| 1:59–2:06 | 72% · Would tap for the next driver | You park. One tap tells the next driver. Seventy-two percent said they would do it. |
+| 2:06–2:14 | Leaving: one tap | After class, one more tap: I'm leaving. Someone else just found a space. |
+| 2:14–2:22 | Or just ask | Or just ask it. |
+| | **THE NUMBERS** | |
+| 2:22–2:28 | 91% · 57% · 37% | Fifty-four drivers. Ninety-one percent late. More than half tried two or more levels. Over a third spent six minutes or more hunting. |
+| 2:28–2:35 | 78% · 74% · 72% | And they want this. Seventy-eight percent would check first. Seventy-four percent would go straight to the level. Seventy-two percent would report back. |
+| 2:35–2:41 | 7 of 9 · 212 | Seven of the first nine testers called it easy. And all 212 faculty stalls are already on the map; counting them is next. |
+| 2:41–2:48 | Park.AI · Know before you go | Finding a space should not be a guessing game. Park.AI. Know before you go. |
 
-## Where your own voice goes
-- **0:09, the 49 of 54 card:** one sentence about the day parking made *you* late. Nobody else can say it.
-- **0:15, the staff card:** say it the way the staff member said it to you, without naming them.
-- Change any wording that does not sound like you. Keep the numbers exactly as written.
+## Make it yours
+- **0:00.** The hook is the number, then you. After "ninety-one percent", tell the ten-second version of the day parking made you late. That is the part a judge remembers.
+- **The staff card.** Tell it the way the staff member told you, without naming them.
+- **Slow down on the numbers.** Say the number, pause half a second, then say what it means.
+
+## What the percentages are
+Every percentage is out of the 54 drivers you polled at West Deck on Nov 19 (30 in person, 24 by QR code), and the card shows the count beside it. Say "of the drivers I polled", never "of KSU students". The "would" numbers are what people said they would do.
 
 ## Keep these as they are
-- "Counting faculty stalls is next." The app shows where the 212 faculty stalls are; it does not count open faculty stalls yet.
-- "What they said they would do." The survey measured intent, not use.
-- Do not name the parking official or quote his inbox in the video unless he has said you may. "Parking operations told me staff complain too" is safe.
-- The camera shot is a simulated camera on a test photo, and the caption says so.
+- The app maps the 212 faculty stalls; it does not count open faculty stalls yet. "Counting them is next."
+- The camera shot is a simulated camera on a test photo, and the card says so.
+- Do not name the parking official in the video unless he has said you may.
