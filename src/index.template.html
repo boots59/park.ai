@@ -12,7 +12,7 @@
 <div id="parkedNow" class="parked hidden"></div>
 <div id="verdict" role="status" aria-live="polite"></div>
 <div id="places" class="places" role="group" aria-label="Choose a deck or lot" style="margin-top:16px"></div>
-<p class="monitorline"><button id="monitorBtn" class="monitorbtn" onclick="setView('staff')">Are you a monitor? Count a bay ›</button></p>
+<p class="monitorline"><button id="rateBtn" class="monitorbtn" onclick="openReview()">Rate the app</button> <button id="monitorBtn" class="monitorbtn" onclick="setView('staff')">Are you a monitor? Count a bay ›</button></p>
 </div></section>
 
 <section id="deck" class="screen" aria-label="Deck"><div class="inner">
@@ -129,12 +129,13 @@
 <p class="small">Answers come from this app's counts, on this phone. It matches your question to what the app knows; it is not a chatbot and sends nothing anywhere.</p>
 </div>
 <div id="review" class="review hidden" role="dialog" aria-modal="true" aria-label="Rate Park.AI">
-<h2>Rate Park.AI <span>4 taps, anonymous</span></h2>
+<h2>Rate Park.AI <span>13 taps, anonymous</span></h2>
+<p class="small">Your answers decide what gets built next. Sent with them: how long you used the app and which screens you opened. No name, no device id, no location.</p>
 <div id="reviewQs"></div>
 <label for="reviewText">What should we add or fix? <span>optional, no names</span></label>
 <textarea id="reviewText" maxlength="300" rows="3"></textarea>
 <p id="reviewNote" class="small" role="status" aria-live="polite"></p>
-<div class="row"><button id="reviewSend" class="primary" onclick="sendReview()">Send</button><button class="secondary" onclick="closeReview()">Keep testing</button></div>
+<div class="row"><button id="reviewSend" class="primary" onclick="sendReview()">Send</button><button class="secondary" onclick="closeReview()">Not now</button></div>
 </div>
 <div id="guide" role="status" aria-live="polite"><span id="guideText"></span><button id="guideBtn" class="hidden" onclick="guideTap()"></button></div>
 <nav id="tabs" aria-label="Screens" role="tablist"><button id="studentTab" role="tab" class="active" aria-selected="true" onclick="setView('student')">Now</button><button id="deckTab" role="tab" aria-selected="false" onclick="setView('deck')">Deck</button><button id="levelsTab" role="tab" aria-selected="false" onclick="setView('levels')">Levels</button><button id="reportTab" role="tab" aria-selected="false" onclick="setView('report')">Report</button><button id="staffTab" role="tab" aria-selected="false" onclick="setView('staff')">Count</button></nav>

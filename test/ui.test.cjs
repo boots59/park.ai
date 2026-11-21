@@ -306,19 +306,33 @@ test('monitors start a count in three steps: deck, level, bay', () => {
 const photo = () => ({ files: [{}], value: 'x' });
 (async () => {
   const atest = async (name, fn) => { await fn(); pass++; console.log('ok -', name); };
-  await atest('tester review needs every question, then sends one anonymous record', async () => {
+  await atest('the review needs every question, then sends one anonymous record with what the visit did', async () => {
   const sent = [];
   const b = boot({}, { syncUrl: 'https://example.invalid', fetch: async (u, o) => { sent.push([u, o && o.body]); return { ok: true, json: async () => ({}) }; } });
   sent.length = 0;
   b.run("answerReview('easy','Yes')"); await b.run('sendReview()');
-  assert.match(b.els.reviewNote.textContent, /3 left/);
+  assert.match(b.els.reviewNote.textContent, /12 left/);
   assert.equal(sent.filter(s => /poll\.json/.test(s[0])).length, 0);
   b.run("answerReview('use','Maybe'); answerReview('trust','Somewhat'); answerReview('best','Now')");
+  b.run("answerReview('who','Commuter'); answerReview('days','4 or more'); answerReview('where','West Deck'); answerReview('hunt','10 to 20'); answerReview('late','3 or more')");
+  b.run("answerReview('often','Most trips'); answerReview('tap','Yes'); answerReview('more','Yes')"); await b.run('sendReview()');
+  assert.match(b.els.reviewNote.textContent, /1 left/);   // twelve of thirteen is still not sent
+  assert.equal(sent.filter(s => /poll\.json/.test(s[0])).length, 0);
+  b.run("answerReview('tell','Maybe'); setView('deck'); startTrip('L2_North'); parkHere('L2_North')");
   b.run("$('reviewText').value = 'Add East Deck'");
   await b.run('sendReview()');
   const rec = JSON.parse(sent.find(s => /poll\.json/.test(s[0]))[1]);
-  assert.deepEqual(Object.keys(rec).sort(), ['best', 'easy', 'kind', 't', 'text', 'trust', 'use']);
-  assert.equal(rec.kind, 'app-review'); assert.equal(rec.text, 'Add East Deck');
+  assert.deepEqual(Object.keys(rec).sort(), ['asked', 'best', 'days', 'easy', 'hunt', 'kind', 'late', 'more', 'often', 'parked', 'reports', 'screens', 'secs', 't', 'tap', 'tell', 'text', 'trips', 'trust', 'use', 'v', 'via', 'where', 'who']);
+  assert.equal(rec.kind, 'app-review'); assert.equal(rec.v, 2); assert.equal(rec.text, 'Add East Deck');
+  assert.equal(rec.trips, 1); assert.equal(rec.parked, 1); assert.match(rec.screens, /deck/); assert.equal(rec.via, 'app');
+  b.run('promptReview()'); assert.ok(b.els.review.classList.set.has('hidden'));   // sent once: never asked again
+});
+  await atest('the review opens by itself for a student, waits a minute after Not now, and never opens for staff', async () => {
+  const b = boot();
+  b.run("$('review').classList.add('hidden'); promptReview()"); assert.ok(!b.els.review.classList.set.has('hidden'));
+  b.run('closeReview(); promptReview()'); assert.ok(b.els.review.classList.set.has('hidden'));
+  b.run('reviewSnooze = 0; promptReview()'); assert.ok(!b.els.review.classList.set.has('hidden'));
+  b.run("closeReview(); reviewSnooze = 0; localStorage.setItem(PASS_KEY, '1'); promptReview()"); assert.ok(b.els.review.classList.set.has('hidden'));
 });
   await atest('AI count is a suggestion the person corrects, then saves', async () => {
     const b = boot(); b.ctx.window.CarCounter = { count: async () => ({ count: 30, ms: 5 }) };

@@ -32,8 +32,18 @@ License plates, faces, names, student IDs, emails, accounts, GPS location, enfor
 The prototype collects no personal information by design, but "no privacy concerns at all" would be an overstatement.
 The photo test and any future use of cameras or plate scans need KSU's review.
 
-## Tester reviews (`?try`)
-Opened from the "Try the app" QR code, the app asks for a review: four one-tap answers and an optional suggestion of up to 300 characters. It is sent once to the write-only `poll` list with `kind: "app-review"` and a time. No name, device id or location is sent. The form asks people not to write names; free text is still free text, so read it before quoting it.
+## App reviews (the "Rate Park.AI" screen)
+Every visitor who is not signed in as a monitor or the owner is asked to rate the app. The screen opens by itself after a check-in or a report, when the person returns to the tab, when the pointer leaves the top of a desktop window, and after two minutes of use (75 seconds from the "Try the app" QR code). A web page cannot block being closed, so "Not now" hides it for a minute and it returns until it is sent once.
+
+What is sent, once, to the write-only `poll` list with `kind: "app-review"`, `v: 2` and a time:
+
+| Sent | What it is |
+|---|---|
+| Thirteen one-tap answers | Who you are (commuter, resident, staff, visitor), days a week you park, where you park most, usual minutes to find a space, times late this semester, and eight answers about the app |
+| An optional suggestion | Up to 300 characters. The form asks for no names; free text is still free text, so read it before quoting it |
+| What the visit did | Seconds in the app, which screens were opened, how many times a trip was started, a bay was checked into, a report was made and the guide was opened, and whether the visit came from the "Try the app" QR code |
+
+No name, device id, address or location is sent, and nothing is sent unless the person presses Send. The screen says what is sent before the first question. The answers are self-reported and the people who answer chose to; treat them as a survey of app users, not of all KSU drivers.
 
 ## Live camera scan
 The Count screen can open the phone's camera. Frames are read into memory, measured by the model on the phone, and dropped: no video or photo is recorded, saved or uploaded, and the camera is switched off as soon as a view is captured or the count is closed. A camera view of a deck still contains plates and possibly people while it is on screen, so point it at parked rows, not at people.

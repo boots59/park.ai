@@ -76,6 +76,8 @@ const SCREENS = ['student', 'deck', 'levels', 'report', 'staff', 'about'];
 // It is driven by the same prediction the Now screen uses (where to try first), by what this phone last
 // reported (so leaving is one tap), and by which bay most needs a count. It is rules, not a chatbot.
 let screenNow = 'student', flash = null, guideAct = null;
+// What this visit did, counted on this phone and sent only with a review. No identity, nothing about where.
+const used = { t0: Date.now(), screens: {}, trips: 0, parked: 0, reports: 0, asked: 0 };
 function say(text, ms = 4000) { flash = { text, until: Date.now() + ms }; renderGuide(); if (typeof setTimeout === 'function') setTimeout(renderGuide, ms + 60); }
 function guideTap() { if (guideAct) guideAct(); }
 function showBay(zone) { selectedBay = zone; $('reportBay').value = zone; setView('deck'); if (viewer) viewer.select(zone); render(); }
@@ -114,6 +116,7 @@ function markTab(id) {
 }
 function setView(id) {
   if (!SCREENS.includes(id)) id = 'student';
+  used.screens[id] = 1;
   const strip = $('screens'), screen = $(id);
   if (strip.scrollTo) strip.scrollTo({ left: screen.offsetLeft, behavior: 'auto' });
   markTab(id);
@@ -251,47 +254,81 @@ function askTopic(id) { const t = ASK.find(a => a.id === id); if (t) askSay(t.q,
 function askTyped() { const el = $('askText'), text = String(el.value || '').trim(); if (!text) return; el.value = ''; askSay(text, askMatch(text)); }
 function askTake(i) { const go = askGo[i]; closeAsk(); if (go) go(); }
 function openAsk() {
+  used.asked++;
   if (!$('askLog').innerHTML) { $('askChips').innerHTML = ASK.map(a => `<button onclick="askTopic('${a.id}')">${a.q}</button>`).join(''); askSay('Hi', { answer: () => ({ text: 'Hi. Tap a question, or type one. I answer from the counts in this app and take you to the right screen.' }) }); }
   $('ask').classList.remove('hidden');
 }
 function closeAsk() { $('ask').classList.add('hidden'); }
 
-// ---- Tester review (only when the page is opened with ?try, from the "Try the app" QR code) ----
-// A tester uses the app, then answers four one-tap questions and an optional suggestion. Anonymous: no name,
-// no device id. A web page cannot stop someone closing it, so the review is offered three ways instead:
-// a button that stays in the guide bar, a prompt after 75 seconds, and a prompt when they come back to the tab.
+// ---- Rate Park.AI: the review every student is asked for when they finish ----
+// A web page cannot stop someone closing it, and cannot show anything at the moment it is closed. So the review
+// opens by itself at the moments that come just before: after a check-in or a report (the trip is finished),
+// when the pointer leaves the top of a desktop window, when the person comes back to the tab, and after two
+// minutes of use. "Not now" hides it for a minute; it keeps coming back until it is sent once.
+// Anonymous: thirteen one-tap answers, an optional suggestion, and what this visit did in the app (seconds,
+// screens opened, counts of taps). No name, no device id, no location. Monitors and the owner are never asked.
 const TRY = typeof location !== 'undefined' && /[?&]try\b/.test(location.search || '');
-const REVIEW_KEY = 'park-ai-reviewed-v1';
+const REVIEW_KEY = 'park-ai-reviewed-v2';
 const REVIEW_QS = [
-  ['easy', 'Easy to use?', ['Yes', 'Sort of', 'No']],
-  ['use', 'Would you check it before driving in?', ['Yes', 'Maybe', 'No']],
-  ['trust', 'Do you trust the numbers?', ['Yes', 'Somewhat', 'No']],
-  ['best', 'Most useful part?', ['Now', '3D deck', 'Levels', 'Report']]];
-let reviewAnswers = {};
+  ['About you', [
+    ['who', 'You are a…', ['Commuter', 'Resident', 'Staff', 'Visitor']],
+    ['days', 'Days a week you park at KSU?', ['4 or more', '2 to 3', '1 or fewer']],
+    ['where', 'Where do you park most?', ['West Deck', 'Other deck', 'A lot']]]],
+  ['Parking today, without the app', [
+    ['hunt', 'Minutes to find a space, usually?', ['Under 5', '5 to 10', '10 to 20', 'Over 20']],
+    ['late', 'Late because of parking this semester?', ['Never', '1 or 2 times', '3 or more']]]],
+  ['The app', [
+    ['easy', 'Easy to use?', ['Yes', 'Sort of', 'No']],
+    ['use', 'Would you check it before driving in?', ['Yes', 'Maybe', 'No']],
+    ['trust', 'Do you trust the numbers?', ['Yes', 'Somewhat', 'No']],
+    ['best', 'Most useful part?', ['Now', '3D deck', 'Levels', 'Report']],
+    ['often', 'How often would you open it?', ['Every trip', 'Most trips', 'Sometimes', 'Never']],
+    ['tap', 'Would you tap to report where you parked?', ['Yes', 'Maybe', 'No']],
+    ['more', 'Want it at other KSU decks and lots?', ['Yes', 'Not sure', 'No']],
+    ['tell', 'Would you tell a friend about it?', ['Yes', 'Maybe', 'No']]]]];
+const REVIEW_ALL = REVIEW_QS.flatMap(([, qs]) => qs);
+let reviewAnswers = {}, reviewSnooze = 0;
 function reviewed() { try { return !!localStorage.getItem(REVIEW_KEY); } catch (e) { return false; } }
+function usage() {
+  return { secs: Math.round((Date.now() - used.t0) / 1000), screens: Object.keys(used.screens).sort().join(' '),
+    trips: used.trips, parked: used.parked, reports: used.reports, asked: used.asked, via: TRY ? 'try' : 'app' };
+}
 function renderReview() {
-  $('reviewQs').innerHTML = REVIEW_QS.map(([k, q, opts]) => `<div class="q"><b>${q}</b><div>` +
-    opts.map(o => `<button aria-pressed="${reviewAnswers[k] === o}" onclick="answerReview('${k}','${o}')">${o}</button>`).join('') + '</div></div>').join('');
+  $('reviewQs').innerHTML = REVIEW_QS.map(([title, qs]) => `<h3>${title}</h3>` + qs.map(([k, q, opts]) => `<div class="q"><b>${q}</b><div>` +
+    opts.map(o => `<button aria-pressed="${reviewAnswers[k] === o}" onclick="answerReview('${k}','${o}')">${o}</button>`).join('') + '</div></div>').join('')).join('');
+  const left = REVIEW_ALL.filter(([k]) => !reviewAnswers[k]).length;
+  $('reviewNote').textContent = left ? left + ' of ' + REVIEW_ALL.length + ' left.' : 'All answered. Tap Send.';
 }
 function answerReview(k, o) { reviewAnswers[k] = o; renderReview(); }
-function openReview() { if (reviewed()) return; renderReview(); $('review').classList.remove('hidden'); }
-function closeReview() { $('review').classList.add('hidden'); }
+function openReview() {
+  if (reviewed()) { say('You already rated the app. Thank you.'); return; }
+  renderReview(); $('review').classList.remove('hidden');
+}
+// The automatic prompt. Staff and the owner are not the audience, and nobody is interrupted twice in a minute.
+function promptReview() {
+  if (reviewed() || staffOk() || ownerOk() || screenNow === 'staff' || Date.now() < reviewSnooze) return;
+  openReview();
+}
+function promptSoon(ms) { if (typeof setTimeout !== 'function') return; const tm = setTimeout(promptReview, ms); if (tm && tm.unref) tm.unref(); }
+function closeReview() { reviewSnooze = Date.now() + 60e3; $('review').classList.add('hidden'); }
 async function sendReview() {
-  const missing = REVIEW_QS.filter(([k]) => !reviewAnswers[k]);
+  const missing = REVIEW_ALL.filter(([k]) => !reviewAnswers[k]);
   if (missing.length) { $('reviewNote').textContent = 'One tap per question, please: ' + missing.length + ' left.'; return; }
   const text = String($('reviewText').value || '').slice(0, 300);
   $('reviewSend').disabled = true; $('reviewNote').textContent = 'Sending…';
   try {
-    const r = await fetch(Settings.syncUrl + '/v1/poll.json', { method: 'POST', body: JSON.stringify({ kind: 'app-review', t: Date.now(), ...reviewAnswers, text }) });
+    const r = await fetch(Settings.syncUrl + '/v1/poll.json', { method: 'POST', body: JSON.stringify({ kind: 'app-review', v: 2, t: Date.now(), ...reviewAnswers, text, ...usage() }) });
     if (!r.ok) throw Error('not saved');
     try { localStorage.setItem(REVIEW_KEY, '1'); } catch (e) {}
-    closeReview(); say('Thank you. Your review was sent.', 6000);
+    $('review').classList.add('hidden'); say('Thank you. Your review was sent.', 6000);
   } catch (e) { $('reviewNote').textContent = 'Not sent. Check your connection and tap Send again.'; }
   $('reviewSend').disabled = false;
 }
-if (TRY && typeof setTimeout === 'function') {
-  setTimeout(openReview, 75e3);
-  if (typeof document.addEventListener === 'function') document.addEventListener('visibilitychange', () => { if (!document.hidden) openReview(); });
+promptSoon(TRY ? 75e3 : 120e3);
+if (typeof document.addEventListener === 'function') {
+  const settled = () => Date.now() - used.t0 > 20e3; // not in the first seconds, before there is anything to rate
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && settled()) promptReview(); });
+  document.addEventListener('mouseout', e => { if (!e.relatedTarget && e.clientY <= 0 && settled()) promptReview(); });
 }
 
 // Ways in and out, as text (the 3D pins carry the same labels). From data/deck.json "access".
@@ -467,7 +504,7 @@ function lockAgain() { try { localStorage.removeItem(PASS_KEY); localStorage.rem
 // While it is active the Deck screen shows only the model, the bay, and the one next step. Everything else on
 // that screen (level and bay buttons, details, legend) is hidden until the path ends or the person taps the model.
 let trip = null, tripFrom = 'now'; // 'now': picked on the Now screen (ends back there). 'deck': tapped while exploring the model (stays there)
-function startTrip(zone, from = 'now') { if (!ZONE_IDS.includes(zone)) return; trip = zone; tripFrom = from; askFull = null; showBay(zone); }
+function startTrip(zone, from = 'now') { if (!ZONE_IDS.includes(zone)) return; used.trips++; trip = zone; tripFrom = from; askFull = null; showBay(zone); }
 function endTrip() {
   trip = null; askFull = null; selectedBay = null; if (viewer) viewer.select(null);
   if (tripFrom === 'now') { focusLvl = null; setView('student'); }
@@ -496,6 +533,7 @@ function parkHere(zone) {
   try { localStorage.setItem(PARKED_KEY, JSON.stringify({ zone, t: now(), left: false })); } catch (e) {}
   askFull = zone; selectedBay = zone; if (viewer) viewer.select(zone);
   renderGrids(); renderParked(); render(); say('Checked in: ' + bayName(zone) + '. How full is it?', 6000);
+  used.parked++; promptSoon(25e3);
 }
 function renderCheckin() {
   const el = $('checkin'); if (!el) return;
@@ -511,7 +549,7 @@ function reportBay(band) {
   const slot = zone + (band === 'leaving' ? ':out' : ':in'); // parking and leaving are separate events: leaving soon after parking is allowed
   if (t - (last[slot] || 0) < Settings.studentRepeatMinutes * 60e3 && t >= (last[slot] || 0)) {
     msg.textContent = 'You already reported this bay a few minutes ago. One report per bay is enough.'; return; }
-  askFull = null;
+  askFull = null; used.reports++; promptSoon(2500);
   const report = { zone, band, t };
   reports = ParkingModel.cleanReports([...reports, report], ZONE_IDS, t); saveReports();
   last[slot] = t; try { localStorage.setItem(REPORTED_KEY, JSON.stringify(last)); } catch (e) {}

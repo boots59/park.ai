@@ -25,6 +25,8 @@ Fill in the blanks yourself. A reviewer (or a Claude Corps application) will tru
 - With Kell's latitude: replaced "hide old counts" with estimates and ranges, added the deck verdict and the estimate check, and removed the student entry/exit reports that Kell had originally asked for.
 - Found and fixed: the phone layout scrolled sideways (14 px, tab bar); a camera bug in the new 3D viewer.
 
+- 2026-11-21: Kell asked for a rating screen on the main link that every student gets when they finish, collecting more than the first review. Claude wrote it (13 questions, visit usage, automatic prompts) and the tests; Kell chose the goal and reads the answers in the Firebase console.
+
 ## AI use statement (draft)
 "Built with AI coding assistants (Claude, Codex). I set the requirements, made the product decisions and checked the outputs;
 the commit history shows which assistant wrote each part. The product runs one AI model, an open-source vehicle detector, and a person confirms every count it suggests."

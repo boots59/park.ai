@@ -129,3 +129,9 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - Monitors can switch deck, level or bay at any time, including in the middle of a count, without pressing Cancel. The unsaved count is dropped (a note says so) and the new bay's count opens. A half-entered number never reaches students.
 - Count screen (tester feedback): the monitors' 3D model is smaller and no longer rotates, so dragging over it scrolls the page. Tapping a level tag or a bay on it still works.
 - A scroll bar down the right side of every screen that is longer than the phone: always visible, shows how far down you are, and can be dragged.
+
+## 2026-11-21 (Claude, at Kell's request)
+- **Rate Park.AI for every student, on the main link.** The review used to appear only from the "Try the app" QR code. It now opens by itself when a student finishes: after a check-in or a report, on coming back to the tab, when the pointer leaves the top of a desktop window, and after two minutes. A browser cannot block a page from closing, so "Not now" hides it for a minute and it comes back until it is sent once. Monitors and the owner (either password entered) are never asked. A small "Rate the app" link sits on the Now screen.
+- **Thirteen questions instead of four**, in three groups: about you (role, days a week, where you park), parking today without the app (minutes to find a space, times late this semester), and the app (easy, would check, trust, most useful part, how often, would report, want other decks, would tell a friend). Every question has a negative option.
+- **What the visit did is sent with the review**: seconds in the app, screens opened, trips started, check-ins, reports and guide opens. This shows whether an answer came from someone who actually used the app. No name, device id or location. `docs/PRIVACY.md` lists every field.
+- Records carry `v: 2`. The four original questions keep their keys, so the first nine reviews stay comparable.
