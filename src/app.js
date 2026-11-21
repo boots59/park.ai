@@ -486,19 +486,29 @@ const PASS_KEY = 'park-ai-staff-ok-v1', PASS_CHECK = 1983775257; // monitors: th
 const OWNER_KEY = 'park-ai-owner-ok-v1', OWNER_CHECK = 1734124753; // staff: the project tools on About, and the field kit
 function ownerOk() { try { return localStorage.getItem(OWNER_KEY) === '1'; } catch (e) { return false; } }
 const passSum = s => { let x = 2166136261; for (const c of String(s).trim().toLowerCase()) { x ^= c.charCodeAt(0); x = Math.imul(x, 16777619) >>> 0; } return x; };
-function staffOk() { try { return localStorage.getItem(PASS_KEY) === '1'; } catch (e) { return false; } }
+// With monitor sign-in configured (Settings.authKey) the Count screen needs a real account, checked by Firebase and by
+// the database rules. Without it, the shared password below is only a speed bump: see docs/SECURITY.md.
+function staffOk() { if (Sync.auth) return Sync.signedIn(); try { return localStorage.getItem(PASS_KEY) === '1'; } catch (e) { return false; } }
 function applyLock() {
   const ok = staffOk();
   if ($('staff')) $('staff').classList.toggle('locked', !ok);
+  if ($('staffEmail')) { $('staffEmail').classList.toggle('hidden', !Sync.auth); if (Sync.auth) $('staffLockText').textContent = 'Counts are entered by parking monitors. Sign in with your monitor account.'; }
   if (typeof document !== 'undefined' && document.body && document.body.classList) { document.body.classList.toggle('staff-ok', ok); document.body.classList.toggle('owner-ok', ownerOk()); }
+}
+async function signInMonitor() {
+  const msg = $('staffPassMsg'); msg.textContent = 'Signing in…';
+  try { await Sync.signIn(String($('staffEmail').value || '').trim(), $('staffPass').value); msg.textContent = ''; $('staffEmail').value = ''; }
+  catch (e) { msg.textContent = e.message; }
+  $('staffPass').value = ''; applyLock(); renderGuide(); if (staffOk() && screenNow === 'staff') mountStaffViewer();
 }
 function unlock(inputId, msgId) {
   const owner = inputId === 'ownerPass';
+  if (!owner && Sync.auth) return signInMonitor();
   if (passSum($(inputId).value) !== (owner ? OWNER_CHECK : PASS_CHECK)) { $(msgId).textContent = 'That is not the password.'; return; }
   try { localStorage.setItem(owner ? OWNER_KEY : PASS_KEY, '1'); } catch (e) {}
   $(inputId).value = ''; $(msgId).textContent = ''; applyLock(); renderGuide(); if (screenNow === 'staff') mountStaffViewer();
 }
-function lockAgain() { try { localStorage.removeItem(PASS_KEY); localStorage.removeItem(OWNER_KEY); } catch (e) {} cancelSurvey(); applyLock(); renderGuide(); }
+function lockAgain() { Sync.signOut(); try { localStorage.removeItem(PASS_KEY); localStorage.removeItem(OWNER_KEY); } catch (e) {} cancelSurvey(); applyLock(); renderGuide(); }
 
 // ---- The guided path: pick a bay on Now, drive there, tap "I parked here" ----
 // While it is active the Deck screen shows only the model, the bay, and the one next step. Everything else on
@@ -834,7 +844,7 @@ function shareCount(zone, record) {
   saveOutbox(); syncNow();
 }
 function shareReport(report) { if (!Sync.on) return; outbox.push({ kind: 'report', data: report }); saveOutbox(); syncNow(); }
-let syncing = null;
+let syncing = null, refusedCount = 0;
 function syncNow() {
   if (!Sync.on) return Promise.resolve();
   // If a round is already running it may have passed the sending step, so go again afterwards when something is waiting.
@@ -843,7 +853,8 @@ function syncNow() {
     try {
       while (outbox.length) { // send oldest first; stop at the first failure and keep the rest
         const item = outbox[0];
-        await (item.kind === 'count' ? Sync.saveCount(item.zone, item.data) : item.kind === 'report' ? Sync.addReport(item.data) : Sync.addHistory(item.data));
+        try { await (item.kind === 'count' ? Sync.saveCount(item.zone, item.data) : item.kind === 'report' ? Sync.addReport(item.data) : Sync.addHistory(item.data)); }
+        catch (e) { if (!e.refused) throw e; refusedCount++; } // the database said no: keep it out of the way of the entries behind it
         outbox.shift(); saveOutbox();
       }
       const remote = await Sync.pull(), t = now(), theirs = ParkingModel.sanitize(remote.counts, ZONE_IDS);
@@ -852,7 +863,8 @@ function syncNow() {
       reports = ParkingModel.cleanReports([...remote.reports, ...reports], ZONE_IDS, t).filter(r => { const k = r.zone + r.band + r.t; return !seen.has(k) && seen.add(k); });
       sharedHistory = remote.history.filter(h => h && DECK.zones[h.zone] && Number.isFinite(h.t) && Number.isInteger(h.count));
       save(); saveReports(); render();
-      $('syncStatus').textContent = 'Shared between phones · updated ' + new Date().toLocaleTimeString();
+      if (Sync.auth && !Sync.signedIn()) applyLock(); // the sign-in ran out: the Count screen locks until the monitor signs in again
+      $('syncStatus').textContent = 'Shared between phones · updated ' + new Date().toLocaleTimeString() + (refusedCount ? ' · ' + refusedCount + ' entr' + (refusedCount > 1 ? 'ies were' : 'y was') + ' refused by the shared database and not sent' : '');
     } catch (e) {
       $('syncStatus').textContent = 'Sharing is unavailable right now; showing what this phone has.' + (outbox.length ? ' ' + outbox.length + ' item(s) waiting to send.' : '');
       return 'failed';

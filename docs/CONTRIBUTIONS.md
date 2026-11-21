@@ -27,6 +27,8 @@ Fill in the blanks yourself. A reviewer (or a Claude Corps application) will tru
 
 - 2026-11-21: Kell asked for a rating screen on the main link that every student gets when they finish, collecting more than the first review. Claude wrote it (13 questions, visit usage, automatic prompts) and the tests; Kell chose the goal and reads the answers in the Firebase console.
 
+- 2026-11-21: Kell asked for the app's security to be reinforced ahead of a real backend. Claude wrote the stricter database rules, the optional monitor sign-in, the emulator checks, the nightly backup and the tests. Kell owns the Firebase and GitHub accounts and does the console steps.
+
 ## AI use statement (draft)
 "Built with AI coding assistants (Claude, Codex). I set the requirements, made the product decisions and checked the outputs;
 the commit history shows which assistant wrote each part. The product runs one AI model, an open-source vehicle detector, and a person confirms every count it suggests."

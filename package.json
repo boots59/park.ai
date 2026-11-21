@@ -8,7 +8,9 @@
     "build": "node scripts/build.cjs",
     "serve": "node scripts/serve.cjs",
     "test": "node scripts/build.cjs && node test/model.test.cjs && node test/detect.test.cjs && node test/ui.test.cjs",
-    "check:browser": "node test/browser.check.cjs"
+    "check:browser": "node test/browser.check.cjs",
+    "check:rules": "cd firebase && npx --yes firebase-tools@13 emulators:exec --only database --project demo-park-ai \"node ../test/rules.check.cjs\"",
+    "backup": "node scripts/backup-db.cjs"
   },
   "devDependencies": {
     "@fontsource/barlow": "^5.3.0",

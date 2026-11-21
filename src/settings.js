@@ -35,6 +35,10 @@ const Settings = {
   // A Firebase Realtime Database address, e.g. 'https://your-project-default-rtdb.firebaseio.com'.
   // See docs/SHARED-DATA.md before filling this in.
   syncUrl: 'https://park-ai-c7f27-default-rtdb.firebaseio.com',
+  // Monitor sign-in (leave empty for the shared-password speed bump). The Firebase project's Web API key: it
+  // identifies the project and is safe to publish. Setting it makes the Count screen ask for a monitor account.
+  // Do the steps in docs/SECURITY.md first, in order, or monitors will be locked out.
+  authKey: '',
 
   // --- What is being counted ---
   category: 'Regular student stalls',

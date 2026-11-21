@@ -30,7 +30,9 @@ const font = (pkg, file, family, weight) => `@font-face{font-family:'${family}';
 const fonts = [font('barlow', 'barlow-latin-400-normal.woff2', 'Barlow', 400), font('barlow', 'barlow-latin-600-normal.woff2', 'Barlow', 600),
   font('barlow-condensed', 'barlow-condensed-latin-600-normal.woff2', 'Barlow Condensed', 600), font('barlow-condensed', 'barlow-condensed-latin-700-normal.woff2', 'Barlow Condensed', 700)].join('\n');
 const styles = rd('src/styles.css').replace('/*FONTS*/', () => fonts);
-const syncOrigin = String(require(path.join(root, 'src/settings.js')).syncUrl || '').replace(/\/+$/, '');
+const settings = require(path.join(root, 'src/settings.js'));
+// The page may talk to the shared database, and to Firebase's sign-in service only when monitor sign-in is configured.
+const syncOrigin = [String(settings.syncUrl || '').replace(/\/+$/, ''), ...(settings.authKey ? ['https://identitytoolkit.googleapis.com', 'https://securetoken.googleapis.com'] : [])].join(' ').trim();
 const tpl = rd('src/index.template.html').replace('/*STYLES*/', () => styles).replace('/*SYNC_ORIGIN*/', syncOrigin);
 const parts = { '/*VIEWER*/': viewer, '/*DECK*/': 'const DECK=' + JSON.stringify(DECK) + ';const PLACES=' + JSON.stringify(require('../data/places.json').places) + ';',
   '/*SETTINGS*/': rd('src/settings.js'), '/*MODEL*/': rd('src/model.js'), '/*SYNC*/': rd('src/sync.js'), '/*DETECT*/': rd('src/detect.js'), '/*AI*/': rd('src/ai.js'), '/*APP*/': rd('src/app.js') };

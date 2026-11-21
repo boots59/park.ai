@@ -9,6 +9,7 @@ npm run fetch-model     # one-time: the 36 MB detection model (not in git), chec
 npm test                # builds dist/, then the model, detection and UI suites
 npm run check:browser   # headless Chromium at phone and desktop width
 npm run serve           # dist/ over local http (the camera and AI need http, not file://)
+npm run check:rules     # database rules in the Firebase emulator (needs Java). Run after any change in firebase/
 ```
 
 ## Where things are
@@ -19,6 +20,7 @@ npm run serve           # dist/ over local http (the camera and AI need http, no
 | `src/viewer.js` | three.js deck viewer |
 | `src/detect.js`, `src/ai.js` | Detection maths (pure, tested) and the browser glue around the model |
 | `data/` | The only source of deck facts: `deck.json`, `places.json`, raw field files in `data/field/` |
+| `firebase/` | Database rules: `rules.json` (live now) and `rules-signin.json` (with monitor sign-in). The console copy must match |
 | `docs/` | Evidence, results, privacy, data sources. Update them in the same change as the code |
 | `submission/` | Pitch deck, scripts, description |
 

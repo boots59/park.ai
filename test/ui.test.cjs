@@ -5,16 +5,16 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), vm = requ
 const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
 const appJs = html.match(/<script id="app-js">([\s\S]*?)<\/script>/)[1];
 
-function boot(storage = {}, { syncUrl = '', fetch, replay = false } = {}) {
+function boot(storage = {}, { syncUrl = '', fetch, replay = false, authKey = '' } = {}) {
   const els = {};
   const element = id => els[id] ??= { value: id === 'bay' ? 'L3_West' : '', checked: false, disabled: false,
     textContent: '', innerHTML: '', attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k] ?? null; },
     classList: { set: new Set(), toggle(c, on) { on ?? !this.set.has(c) ? this.set.add(c) : this.set.delete(c); }, add(c) { this.set.add(c); }, remove(c) { this.set.delete(c); } } };
-  const ctx = vm.createContext({ document: { getElementById: element }, localStorage: { getItem: k => storage[k] ?? null, setItem: (k, v) => { storage[k] = v; } },
+  const ctx = vm.createContext({ document: { getElementById: element }, localStorage: { getItem: k => storage[k] ?? null, setItem: (k, v) => { storage[k] = v; }, removeItem: k => { delete storage[k]; } },
     window: { addEventListener() {} }, setInterval() {}, ...(syncUrl ? { location: { search: '?live', protocol: 'https:' } } : {}), Date, Number, Math, JSON, Error, Object, Set, Array, Promise, String, encodeURIComponent, fetch });
   // Logic tests pin the estimate's variability at the value they were written against; the replay test uses the shipped value.
   const source = replay ? appJs : appJs.replace(/variability: [\d.]+,/, 'variability: 0.8,');
-  vm.runInContext(source.replace(/syncUrl: '[^']*',/, 'syncUrl: ' + JSON.stringify(syncUrl) + ','), ctx); // tests never touch the real database
+  vm.runInContext(source.replace(/syncUrl: '[^']*',/, 'syncUrl: ' + JSON.stringify(syncUrl) + ',').replace(/authKey: '[^']*',/, 'authKey: ' + JSON.stringify(authKey) + ','), ctx); // tests never touch the real database
   if (!replay) vm.runInContext("startedFresh && loadDemo('sample')", ctx); // most tests use the made-up sample; a real first visit opens on the Nov 19 replay
   return { els, ctx, storage, run: code => vm.runInContext(code, ctx), saved: () => JSON.parse(storage[syncUrl ? 'west-deck-live-v1' : 'west-deck-prototype-v2']).records };
 }
@@ -413,6 +413,56 @@ const photo = () => ({ files: [{}], value: 'x' });
     assert.match(student.els.cards.innerHTML, /bay-count">1–4<\/b><span class="status students">Student report/);
     assert.match(student.els.syncStatus.textContent, /Shared between phones/);
     assert.equal(Object.keys(db.data.v1.history).length, 1);
+  });
+  // ---- Monitor sign-in (Settings.authKey set). Firebase's sign-in service is replaced by a stand-in. ----
+  const signInService = (db, { monitors = { u1: true } } = {}) => {
+    const calls = [];
+    const fetch = async (url, o = {}) => {
+      calls.push([url, o.body]);
+      const json = (status, body) => ({ ok: status === 200, status, json: async () => body });
+      if (/identitytoolkit/.test(url)) { const b = JSON.parse(o.body); return b.password === 'right-horse' ? json(200, { localId: b.email === 'other@x.test' ? 'u2' : 'u1', idToken: 'tok-1', refreshToken: 'ref-1', expiresIn: '3600' }) : json(400, { error: { message: 'INVALID_LOGIN_CREDENTIALS' } }); }
+      if (/securetoken/.test(url)) return json(200, { id_token: 'tok-2', refresh_token: 'ref-2', expires_in: '3600' });
+      const m = /\/v1\/monitors\/(\w+)\.json/.exec(url); if (m) return json(200, monitors[m[1]] ?? null);
+      return db.fetch(url.replace(/[?&]auth=[^&]*/, ''), o);
+    };
+    return { fetch, calls };
+  };
+  await atest('with sign-in configured, the Count screen opens only for an account on the monitor list', async () => {
+    const db = fakeDatabase(), svc = signInService(db), b = boot({}, { syncUrl: 'https://example.test', fetch: svc.fetch, authKey: 'web-key' });
+    assert.equal(b.run('staffOk()'), false);
+    b.run("localStorage.setItem(PASS_KEY, '1')"); assert.equal(b.run('staffOk()'), false);          // the old shared password no longer opens anything
+    b.run("$('staffEmail').value = 'monitor@x.test'; $('staffPass').value = 'wrong'"); await b.run("unlock('staffPass','staffPassMsg')");
+    assert.equal(b.run('staffOk()'), false); assert.match(b.els.staffPassMsg.textContent, /not accepted/);
+    b.run("$('staffEmail').value = 'other@x.test'; $('staffPass').value = 'right-horse'"); await b.run("unlock('staffPass','staffPassMsg')");
+    assert.equal(b.run('staffOk()'), false); assert.match(b.els.staffPassMsg.textContent, /not on the monitor list/); // a real account that is not a monitor
+    b.run("$('staffEmail').value = 'monitor@x.test'; $('staffPass').value = 'right-horse'"); await b.run("unlock('staffPass','staffPassMsg')");
+    assert.equal(b.run('staffOk()'), true); assert.equal(b.els.staffPass.value, '');
+    assert.doesNotMatch(JSON.stringify(b.storage), /right-horse|monitor@x\.test/);                     // neither the password nor the email is kept on the phone
+    svc.calls.length = 0;
+    b.run('startSurvey()'); b.els.count.value = '9'; b.els.coverage.checked = true; b.run('finishSurvey()');
+    b.els.reportBay.value = 'L2_North'; b.run("reportBay('few')"); await b.run('syncNow()');
+    const sent = k => svc.calls.find(c => new RegExp('/v1/' + k).test(c[0]) && c[1]);
+    assert.match(sent('counts')[0], /\?auth=tok-1$/); assert.match(sent('history')[0], /\?auth=tok-1$/);    // counts carry the monitor's token
+    assert.equal(JSON.parse(sent('history')[1]).by, 'u1');                                              // and the history says which account
+    assert.doesNotMatch(sent('reports')[0], /auth=/); assert.equal(JSON.parse(sent('reports')[1]).by, undefined); // student reports stay anonymous
+    b.run('lockAgain()'); assert.equal(b.run('staffOk()'), false); assert.equal(b.storage['park-ai-monitor-v1'], undefined);
+  });
+  await atest('a monitor token is renewed before it runs out', async () => {
+    const db = fakeDatabase(), svc = signInService(db);
+    const b = boot({ 'park-ai-monitor-v1': JSON.stringify({ uid: 'u1', idToken: 'tok-old', refreshToken: 'ref-1', exp: Date.now() - 1000 }) }, { syncUrl: 'https://example.test', fetch: svc.fetch, authKey: 'web-key' });
+    b.run('startSurvey()'); b.els.count.value = '4'; b.els.coverage.checked = true; b.run('finishSurvey()'); await b.run('syncNow()');
+    assert.match(svc.calls.find(c => /\/v1\/counts\//.test(c[0]) && c[1])[0], /\?auth=tok-2$/);
+    assert.equal(JSON.parse(b.storage['park-ai-monitor-v1']).refreshToken, 'ref-2');
+  });
+  await atest('an entry the database refuses is dropped, so it cannot block the entries behind it', async () => {
+    const db = fakeDatabase();
+    const fetch = async (url, o = {}) => /reports\.json$/.test(url) && o.method === 'POST' ? { ok: false, status: 401, json: async () => ({}) } : db.fetch(url, o);
+    const b = boot({}, { syncUrl: 'https://example.test', fetch });
+    b.els.reportBay.value = 'L2_North'; b.run("reportBay('few')");
+    b.run('startSurvey()'); b.els.count.value = '9'; b.els.coverage.checked = true; b.run('finishSurvey()');
+    await b.run('syncNow()');
+    assert.equal(b.run('outbox.length'), 0); assert.equal(Object.keys(db.data.v1.counts).length, 1);
+    assert.match(b.els.syncStatus.textContent, /1 entry was refused/);
   });
   await atest('with a database configured but no ?live in the address, the page stays the self-contained demo', async () => {
     const db = fakeDatabase(), els = {};

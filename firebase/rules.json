@@ -1,0 +1,131 @@
+{
+  "rules": {
+    "v1": {
+      "counts": {
+        ".read": true,
+        "$bay": {
+          ".write": "newData.exists() && $bay.matches(/^L[1-9]_(West|Centre|East|North|South)$/)",
+          ".validate": "newData.hasChildren(['count','start','end','version','category']) && newData.child('end').val() >= newData.child('start').val()",
+          "count": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+          },
+          "start": {
+            ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 600000"
+          },
+          "end": {
+            ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 600000"
+          },
+          "version": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000000"
+          },
+          "category": {
+            ".validate": "newData.isString() && newData.val().length <= 80"
+          },
+          "method": {
+            ".validate": "newData.isString() && newData.val().matches(/^(manual|ai-assisted|scan)$/)"
+          },
+          "vehicles": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+          },
+          "prev": {
+            "count": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+            },
+            "start": {
+              ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 600000"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "photos": {
+            "$i": {
+              ".validate": "$i.matches(/^[0-9]{1,2}$/)",
+              "ai": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+              },
+              "confirmed": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+              },
+              "outside": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "reports": {
+        ".read": true,
+        "$id": {
+          ".write": "!data.exists()",
+          ".validate": "newData.hasChildren(['zone','band','t'])",
+          "zone": {
+            ".validate": "newData.isString() && newData.val().matches(/^L[1-9]_(West|Centre|East|North|South)$/)"
+          },
+          "band": {
+            ".validate": "newData.isString() && newData.val().matches(/^(plenty|few|full|leaving)$/)"
+          },
+          "t": {
+            ".validate": "newData.isNumber() && newData.val() <= now + 600000 && newData.val() >= now - 604800000"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "history": {
+        ".read": true,
+        "$id": {
+          ".write": "!data.exists()",
+          ".validate": "newData.hasChildren(['zone','t','count'])",
+          "zone": {
+            ".validate": "newData.isString() && newData.val().matches(/^L[1-9]_(West|Centre|East|North|South)$/)"
+          },
+          "t": {
+            ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 600000"
+          },
+          "count": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "poll": {
+        ".read": false,
+        "$id": {
+          ".write": "!data.exists()",
+          "$field": {
+            ".validate": "$field.length <= 40 && ((newData.isString() && newData.val().length <= 600) || newData.isNumber() || newData.isBoolean())"
+          }
+        }
+      },
+      "pollcount": {
+        ".read": true,
+        "$id": {
+          ".write": "!data.exists()",
+          ".validate": "newData.hasChildren(['t'])",
+          "t": {
+            ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 600000"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "fieldkit": {
+        ".read": false,
+        "$device": {
+          ".write": "$device.matches(/^d[a-z0-9]{1,12}$/)"
+        }
+      }
+    }
+  }
+}

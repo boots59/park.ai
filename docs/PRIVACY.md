@@ -47,3 +47,7 @@ No name, device id, address or location is sent, and nothing is sent unless the 
 
 ## Live camera scan
 The Count screen can open the phone's camera. Frames are read into memory, measured by the model on the phone, and dropped: no video or photo is recorded, saved or uploaded, and the camera is switched off as soon as a view is captured or the count is closed. A camera view of a deck still contains plates and possibly people while it is on screen, so point it at parked rows, not at people.
+
+## Monitor accounts (only when sign-in is switched on)
+A monitor signs in with an email and password held by Firebase Authentication. The password is sent to Google's sign-in service and never stored by this app. The phone keeps the account's id and tokens so the monitor stays signed in; "Lock again" removes them. Each saved count's history entry carries the monitor's account id (`by`), so a wrong count can be traced to an account. Students never have accounts and their reports carry no id.
+

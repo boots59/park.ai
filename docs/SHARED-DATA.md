@@ -10,47 +10,9 @@ every phone, give the app a shared database address. This is optional and takes 
 4. On the **Data** tab, copy the address at the top. It looks like `https://your-project-default-rtdb.firebaseio.com`.
 5. Paste it into `syncUrl` in `src/settings.js`, then build, push and publish.
 
-```json
-{
-  "rules": {
-    "v1": {
-      "counts": {
-        ".read": true,
-        "$bay": {
-          ".write": true,
-          ".validate": "newData.hasChildren(['count','start','end','version','category']) && newData.child('count').isNumber() && newData.child('count').val() >= 0 && newData.child('count').val() <= 999 && newData.child('start').isNumber() && newData.child('end').isNumber()"
-        }
-      },
-      "reports": {
-        ".read": true,
-        "$id": {
-          ".write": "!data.exists()",
-          ".validate": "newData.hasChildren(['zone','band','t']) && newData.child('zone').isString() && newData.child('band').isString() && newData.child('band').val().matches(/^(plenty|few|full|leaving)$/) && newData.child('t').isNumber()"
-        }
-      },
-      "poll": {
-        ".read": false,
-        "$id": { ".write": "!data.exists()" }
-      },
-      "pollcount": {
-        ".read": true,
-        "$id": { ".write": "!data.exists()", ".validate": "newData.hasChildren(['t']) && newData.child('t').isNumber()" }
-      },
-      "fieldkit": {
-        ".read": false,
-        "$device": { ".write": true }
-      },
-      "history": {
-        ".read": true,
-        "$id": {
-          ".write": "!data.exists()",
-          ".validate": "newData.hasChildren(['zone','t','count']) && newData.child('count').isNumber() && newData.child('t').isNumber()"
-        }
-      }
-    }
-  }
-}
-```
+The rules live in [`firebase/rules.json`](../firebase/rules.json). Paste that whole file into the **Rules** tab and press Publish.
+Use `firebase/rules-signin.json` instead once monitor sign-in is working; `docs/SECURITY.md` gives the order.
+`npm run check:rules` tests both files in the Firebase emulator. The console copy must match the file in this repository.
 
 ## The field kit and the student survey
 With the address set, the field kit backs up everything you collect (stall counts, poll answers, tallies) each time you

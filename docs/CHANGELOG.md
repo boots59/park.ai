@@ -135,3 +135,11 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
 - **Thirteen questions instead of four**, in three groups: about you (role, days a week, where you park), parking today without the app (minutes to find a space, times late this semester), and the app (easy, would check, trust, most useful part, how often, would report, want other decks, would tell a friend). Every question has a negative option.
 - **What the visit did is sent with the review**: seconds in the app, screens opened, trips started, check-ins, reports and guide opens. This shows whether an answer came from someone who actually used the app. No name, device id or location. `docs/PRIVACY.md` lists every field.
 - Records carry `v: 2`. The four original questions keep their keys, so the first nine reviews stay comparable.
+- **Security hardening** (Kell asked after watching an account of an AI-assisted attack on a small web app):
+  - `firebase/rules.json`: stricter database rules. Known bay ids only, counts 0 to 999, no future dates, no extra or nested fields, short strings, counts cannot be deleted. Same sign-in-free behaviour as before. **Must be pasted into the Firebase console to take effect.**
+  - `firebase/rules-signin.json` and monitor sign-in through Firebase Authentication (`src/sync.js`, `src/app.js`), **off until `authKey` is set**. Counts then need a signed-in account on the monitor list, and each history entry records the account.
+  - `npm run check:rules`: 71 checks of both rule sets in the Firebase emulator (needs Java; not part of `npm test`).
+  - An entry the database refuses is dropped from the outbox and reported, instead of blocking everything behind it.
+  - Nightly backup of counts, reports and history as a 90-day workflow artifact (`npm run backup`, `.github/workflows/backup.yml`).
+  - `docs/SECURITY.md` rewritten with the setup order and what is still open.
+

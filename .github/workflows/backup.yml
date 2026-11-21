@@ -1,0 +1,17 @@
+# Saves a nightly copy of the shared database's public data, kept for 90 days under this run's Artifacts.
+# If the shared data is ever polluted or wiped, download the last good copy from the Actions tab.
+name: backup shared data
+on:
+  schedule: [{ cron: "17 8 * * *" }]   # 08:17 UTC, about 3 am in Georgia
+  workflow_dispatch:
+permissions: { contents: read }
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/backup-db.cjs
+      - uses: actions/upload-artifact@v4
+        with: { name: "park-ai-shared-data-${{ github.run_id }}", path: backup/, retention-days: 90, if-no-files-found: error }

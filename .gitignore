@@ -4,3 +4,5 @@ dist/
 assets/models/*.onnx
 test/fixtures/
 outreach/
+backup/
+*.log
