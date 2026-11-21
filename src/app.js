@@ -845,6 +845,18 @@ function shareCount(zone, record) {
 }
 function shareReport(report) { if (!Sync.on) return; outbox.push({ kind: 'report', data: report }); saveOutbox(); syncNow(); }
 let syncing = null, refusedCount = 0;
+// ---- The app reports its own failures, so the owner hears about a broken page from the monitor and not from a student ----
+// Sent: the time, one of four kinds, and for a script error its message and line. No address, no account, no device id.
+// At most six a visit and one of each kind a minute, so a page stuck in a loop cannot flood the database.
+const told = { n: 0, last: {} };
+function tell(kind, msg) {
+  const t = Date.now(); if (told.n >= 6 || t - (told.last[kind] || 0) < 60e3) return;
+  told.n++; told.last[kind] = t; Sync.signal(kind, msg);
+}
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('error', e => tell('js', e && e.message ? `${e.message} @ ${e.lineno || 0}:${e.colno || 0}` : 'script error'));
+  window.addEventListener('unhandledrejection', e => tell('js', 'promise: ' + String(e && e.reason && e.reason.message || e && e.reason || '').slice(0, 200)));
+}
 function syncNow() {
   if (!Sync.on) return Promise.resolve();
   // If a round is already running it may have passed the sending step, so go again afterwards when something is waiting.
@@ -854,7 +866,7 @@ function syncNow() {
       while (outbox.length) { // send oldest first; stop at the first failure and keep the rest
         const item = outbox[0];
         try { await (item.kind === 'count' ? Sync.saveCount(item.zone, item.data) : item.kind === 'report' ? Sync.addReport(item.data) : Sync.addHistory(item.data)); }
-        catch (e) { if (!e.refused) throw e; refusedCount++; } // the database said no: keep it out of the way of the entries behind it
+        catch (e) { if (!e.refused) throw e; refusedCount++; tell('refused', item.kind); } // the database said no: keep it out of the way of the entries behind it
         outbox.shift(); saveOutbox();
       }
       const remote = await Sync.pull(), t = now(), theirs = ParkingModel.sanitize(remote.counts, ZONE_IDS);

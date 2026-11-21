@@ -29,6 +29,7 @@ const Sync = (() => {
     const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + encodeURIComponent(key),
       { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, returnSecureToken: true }) });
     const j = await res.json().catch(() => ({}));
+    if (!res.ok) Sync.signal('signin');
     if (!res.ok) throw Error(/TOO_MANY_ATTEMPTS/.test(j?.error?.message || '') ? 'Too many tries. Wait a few minutes.' : 'That email and password were not accepted.');
     keep({ uid: j.localId, idToken: j.idToken, refreshToken: j.refreshToken, exp: until(j.expiresIn) });
     // Signed in is not enough: the account must be on the monitor list, which only the project owner can edit.
@@ -61,6 +62,13 @@ const Sync = (() => {
     signIn, signOut: () => keep(null), signedIn: () => !!session, uid: () => session ? session.uid : '',
     saveCount: (zone, record) => call('/v1/counts/' + encodeURIComponent(zone) + '.json', 'PUT', record, true),
     addReport: report => call('/v1/reports.json', 'POST', report),
+    // A failure seen on this phone: a public tally mark (time and kind) the monitor counts, and the message,
+    // which is write-only. Never awaited and never retried: reporting a failure must not cause another.
+    signal(kind, msg) {
+      if (!available) return;
+      const t = Date.now(), post = (path, value) => fetch(base + path, { method: 'POST', body: JSON.stringify(value) }).catch(() => {});
+      post('/v1/signals.json', { t, kind }); if (msg) post('/v1/errors.json', { t, kind, msg: String(msg).slice(0, 300) });
+    },
     // With sign-in on, each history entry says which monitor account made it: the audit trail.
     addHistory: entry => call('/v1/history.json', 'POST', auth && session ? { ...entry, by: session.uid } : entry, true),
     // Everything a phone needs to draw the page. The newest 300 reports and 2000 past counts are plenty.

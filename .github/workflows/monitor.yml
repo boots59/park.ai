@@ -1,0 +1,22 @@
+# Watches the live site and the shared database and raises an alert when something breaks or looks like an attack.
+# An alert is a GitHub issue labelled park-ai-alert that mentions the repository owner, so GitHub emails them.
+# The same alert is not sent twice, and the issue closes itself when the checks pass again. See docs/MONITORING.md.
+# GitHub runs schedules about every 5 minutes at the fastest and can run late when it is busy.
+name: monitor
+on:
+  schedule: [{ cron: "*/5 * * * *" }]
+  workflow_dispatch:
+    inputs:
+      test_alert: { description: "Send a test alert", type: boolean, default: false }
+permissions: { contents: read, issues: write }
+concurrency: { group: monitor, cancel-in-progress: false }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/monitor.cjs --report ${{ inputs.test_alert && '--test-alert' || '' }}
+        env: { GH_TOKEN: "${{ github.token }}", GH_REPO: "${{ github.repository }}" }

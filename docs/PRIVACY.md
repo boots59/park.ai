@@ -51,3 +51,5 @@ The Count screen can open the phone's camera. Frames are read into memory, measu
 ## Monitor accounts (only when sign-in is switched on)
 A monitor signs in with an email and password held by Firebase Authentication. The password is sent to Google's sign-in service and never stored by this app. The phone keeps the account's id and tokens so the monitor stays signed in; "Lock again" removes them. Each saved count's history entry carries the monitor's account id (`by`), so a wrong count can be traced to an account. Students never have accounts and their reports carry no id.
 
+## Error reports (sent automatically when something fails)
+So that a broken page is noticed, the app reports its own failures: the time and one of four kinds (script error, failed monitor sign-in, refused entry, AI failure), and for a script error the error message and line number. The tally mark is public; the message is write-only. No address, account, device id or location is sent, and at most six are sent in one visit. `docs/MONITORING.md` describes what reads them.

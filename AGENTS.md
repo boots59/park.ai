@@ -20,6 +20,7 @@ npm run check:rules     # database rules in the Firebase emulator (needs Java). 
 | `src/viewer.js` | three.js deck viewer |
 | `src/detect.js`, `src/ai.js` | Detection maths (pure, tested) and the browser glue around the model |
 | `data/` | The only source of deck facts: `deck.json`, `places.json`, raw field files in `data/field/` |
+| `scripts/monitor.cjs`, `monitor/config.json` | The five-minute monitor and its limits. `evaluate()` is pure and tested in `test/monitor.test.cjs` |
 | `firebase/` | Database rules: `rules.json` (live now) and `rules-signin.json` (with monitor sign-in). The console copy must match |
 | `docs/` | Evidence, results, privacy, data sources. Update them in the same change as the code |
 | `submission/` | Pitch deck, scripts, description |

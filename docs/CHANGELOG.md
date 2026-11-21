@@ -142,4 +142,5 @@ Codex: work on a separate branch and rebase onto `main` before changing `src/`.
   - An entry the database refuses is dropped from the outbox and reported, instead of blocking everything behind it.
   - Nightly backup of counts, reports and history as a 90-day workflow artifact (`npm run backup`, `.github/workflows/backup.yml`).
   - `docs/SECURITY.md` rewritten with the setup order and what is still open.
+- **Monitoring and alerts** (`docs/MONITORING.md`). The app reports its own failures as anonymous tally marks (`signals`) with private messages (`errors`). `scripts/monitor.cjs` runs every five minutes from GitHub Actions: it checks the site, the model file, the database, three things the database must refuse, floods of entries, bad records and the tally marks. An alert is a GitHub issue that mentions the owner; repeats are not re-sent and it closes itself when clear. Limits are in `monitor/config.json`; the judgement has 9 tests in `npm test`. Both rule files gained `signals` and `errors` (91 emulator checks).
 

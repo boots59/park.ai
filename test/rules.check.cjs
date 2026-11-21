@@ -35,6 +35,9 @@ const count = (extra = {}) => ({ count: 12, start: now - 60e3, end: now, version
     await allow('a student survey answer', await send('POST', '/v1/poll', { time: '2026-11-19T15:00:00Z', source: 'qr', late: 'Several times', note: '' }));
     await allow('a survey tally mark', await send('POST', '/v1/pollcount', { t: now }));
     await allow('a field-kit backup', await send('PUT', '/v1/fieldkit/dab12cd34ef', { saved: 'x', stalls: { L3_West: { open: 4 } } }));
+    await allow('an error signal (a time and a kind, nothing else)', await send('POST', '/v1/signals', { t: now, kind: 'js' }));
+    await allow('an error detail', await send('POST', '/v1/errors', { t: now, kind: 'js', msg: 'TypeError: x is not a function @ 120:14' }));
+    await allow('the monitor reading signals', await send('GET', '/v1/signals'));
     await allow('reading counts', await send('GET', '/v1/counts'));
     await allow('reading the newest reports', (await fetch(url('/v1/reports') + '&orderBy=%22%24key%22&limitToLast=300')).status);
 
@@ -59,6 +62,13 @@ const count = (extra = {}) => ({ count: 12, start: now - 60e3, end: now, version
     await deny('a survey answer with nested data', await send('POST', '/v1/poll', { t: now, blob: { a: { b: 'c' } } }));
     await deny('a tally mark with extra data', await send('POST', '/v1/pollcount', { t: now, who: 'x' }));
     await deny('a field-kit backup under a strange key', await send('PUT', '/v1/fieldkit/NOT-A-DEVICE', { saved: 'x' }));
+    await deny('a signal of a made-up kind', await send('POST', '/v1/signals', { t: now, kind: 'pwned' }));
+    await deny('a signal carrying text', await send('POST', '/v1/signals', { t: now, kind: 'js', msg: 'hello' }));
+    await deny('a signal dated last month', await send('POST', '/v1/signals', { t: now - 2592e6, kind: 'js' }));
+    await deny('reading error details', await send('GET', '/v1/errors'));
+    await deny('an oversized error detail', await send('POST', '/v1/errors', { t: now, kind: 'js', msg: 'x'.repeat(5000) }));
+    await deny('the monitor\'s probe write', await send('PUT', '/v1/monitor-probe', { t: now }));
+    await deny('the monitor\'s probe delete', await send('DELETE', '/v1/counts/monitor-probe'));
     await deny('writing outside the app\'s data', await send('PUT', '/v2/anything', { a: 1 }));
     await deny('writing at the top', await send('PUT', '/v1/extra', { a: 1 }));
 

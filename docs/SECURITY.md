@@ -16,11 +16,12 @@ A plain statement for a student prototype with no payments and almost no persona
 | Eavesdropping | Served only over HTTPS | GitHub Pages |
 | Leaked secrets | There are none in the code. The database address and the Firebase web key are public by design; access is controlled by rules, not by hiding them | Code review |
 | Malicious data shown on screen | Everything read from storage or the shared database is validated before display (`ParkingModel.sanitize`, `cleanReports`). Only numbers and known bay ids reach the page. Typed text is escaped | `npm test` |
-| Malformed or oversized writes | The database rules in `firebase/rules.json` check every field: known bay ids only, counts 0 to 999, no dates in the future, no extra fields, no nested data, short strings | `npm run check:rules` (71 checks in the Firebase emulator) |
+| Malformed or oversized writes | The database rules in `firebase/rules.json` check every field: known bay ids only, counts 0 to 999, no dates in the future, no extra fields, no nested data, short strings | `npm run check:rules` (91 checks in the Firebase emulator) |
 | Wiping the data | Counts cannot be deleted, and reports, history and survey answers cannot be edited once written | `npm run check:rules` |
 | Reading other people's answers | Survey answers and field-kit backups are write-only: the website cannot read them back | `npm run check:rules` |
 | One bad entry blocking the rest | An entry the database refuses is dropped from the phone's outbox instead of being retried forever | `npm test` |
 | Lost or polluted shared data | A copy of counts, reports and history is saved every night for 90 days (`.github/workflows/backup.yml`) | Actions tab |
+| Not knowing something is wrong | The app reports its own failures, and a monitor checks the site, the data and the database's locks every five minutes and emails the owner (`docs/MONITORING.md`) | `npm test`, Actions tab |
 | Loading code from elsewhere | A content security policy lets the page load only its own files and talk only to its own database (and Firebase sign-in, when that is on) | Browser |
 
 ## Monitor sign-in (built, switched off until you set it up)

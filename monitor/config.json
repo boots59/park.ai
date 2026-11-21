@@ -1,0 +1,11 @@
+{
+  "site": "https://boots59.github.io/park.ai/",
+  "windowMinutes": 10,
+  "reportsPerWindow": 40,
+  "countsPerWindow": 30,
+  "surveysPerWindow": 40,
+  "scriptErrorsPerWindow": 5,
+  "failedSignInsPerWindow": 8,
+  "refusedWritesPerWindow": 5,
+  "aiFailuresPerWindow": 8
+}

@@ -464,6 +464,19 @@ const photo = () => ({ files: [{}], value: 'x' });
     assert.equal(b.run('outbox.length'), 0); assert.equal(Object.keys(db.data.v1.counts).length, 1);
     assert.match(b.els.syncStatus.textContent, /1 entry was refused/);
   });
+  await atest('the app reports its own failures: a time and a kind in public, the message in private, and never a flood', async () => {
+    const sent = [], fetch = async (u, o = {}) => { sent.push([u, o.body && JSON.parse(o.body)]); return { ok: true, status: 200, json: async () => ({}) }; };
+    const b = boot({}, { syncUrl: 'https://example.test', fetch });
+    sent.length = 0;
+    b.run("tell('js', 'TypeError: x is not a function @ 120:14')");
+    const signal = sent.find(s => /signals\.json/.test(s[0]))[1], detail = sent.find(s => /errors\.json/.test(s[0]))[1];
+    assert.deepEqual(Object.keys(signal).sort(), ['kind', 't']); assert.equal(signal.kind, 'js');           // nothing that identifies a phone or a person
+    assert.deepEqual(Object.keys(detail).sort(), ['kind', 'msg', 't']); assert.match(detail.msg, /TypeError/);
+    for (let i = 0; i < 20; i++) b.run("tell('js', 'again')");
+    assert.equal(sent.filter(s => /signals\.json/.test(s[0])).length, 1);                                    // one of a kind per minute
+    b.run("told.last = {}; for (let i = 0; i < 20; i++) { told.last = {}; tell('js', 'x' + i); }");
+    assert.equal(sent.filter(s => /signals\.json/.test(s[0])).length, 6);                                    // and six a visit at most
+  });
   await atest('with a database configured but no ?live in the address, the page stays the self-contained demo', async () => {
     const db = fakeDatabase(), els = {};
     const b = boot({}, { replay: true });                                             // boot() without syncUrl has no location at all
