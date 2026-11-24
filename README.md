@@ -11,7 +11,7 @@ a range once the count starts to age.
 > **Status: concept prototype.** The demo replays real counts taken on foot on one morning; nothing here is a
 > real-time feed. Not a KSU system and not affiliated with KSU. What is measured, assumed and simulated is tracked in [docs/EVIDENCE.md](docs/EVIDENCE.md).
 
-Built for the KSU AI Club Hackathon 2026 by Kell Enow.
+Built for the KSU AI Club Hackathon 2026 by Kell Enow.(Placed 2nd)
 
 ## What it does
 
